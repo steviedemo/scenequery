@@ -159,6 +159,15 @@ Biography curlTool::iafd(QString name){
 /****************************************************************
  *                           PHOTOS                             *
  ****************************************************************/
+QString curlTool::headshotDownloaded(QString name){
+    QString location("");
+    QString filepath = QString("%1/%2").arg(this->headshotPath).arg(headshot(name));
+    if (QFileInfo(filepath).exists()){
+        location = filepath;
+    }
+    return location;
+}
+
 QString headshotName(QString name){
     QString filename = name.toLower().replace(' ', '_').remove(QRegularExpression("[\\t\\n'.]"));
     filename.append(".jpeg");
@@ -172,22 +181,76 @@ bool curlTool::wget(QString url, QString destination){
 
 bool curlTool::downloadHeadshot(QString name){
     bool success = false;
-    QString html = getHTML(IAFD, name);
-    if (!html.isEmpty()){
-        const QRegularExpression rx(".*<div id=\"headshot\">.*src=\"(.*)\">\\s*</div>\\s*<p class=\"headshotcaption\">.*");
-        QRegularExpressionMatch m = rx.match(html);
-        if (m.hasMatch()){
-            QString link = m.captured(1);
-            QString destination = QString("%1/%2").arg(headshotPath).arg(headshotName(name));
-            if (wget(link, destination)){
-                success = true;
-                qDebug("Got Headshot for '%s'", qPrintable(name));
+    if (headshotDownloaded(name)){
+        qDebug("Headshot for '%s' already downloaded", qPrintable(name));
+        success = true;
+    } else {
+        QString html = getHTML(IAFD, name);
+        if (!html.isEmpty()){
+            const QRegularExpression rx(".*<div id=\"headshot\">.*src=\"(.*)\">\\s*</div>\\s*<p class=\"headshotcaption\">.*");
+            QRegularExpressionMatch m = rx.match(html);
+            if (m.hasMatch()){
+                QString link = m.captured(1);
+                QString pathToFile = QString("%1/%2").arg(headshotPath).arg(headshotName(name));
+                if (wget(link, pathToFile)){
+                    if ((success = QFileInfo(pathToFile).exists())){
+                        qDebug("Got Headshot for '%s'", qPrintable(name));
+                    } else {
+                        qWarning("wget request successful for '%s' headshot, but file not found after downloading.", qPrintable(name));
+                    }
+                } else {
+                    qWarning("Failed to Download Headshot for '%s'", qPrintable(name));
+                }
             } else {
-                qWarning("Failed to Download Headshot for '%s'", qPrintable(name));
+                qWarning("No Headshot Found For %s", qPrintable(name));
             }
-        } else {
-            qWarning("No Headshot Found For %s", qPrintable(name));
         }
     }
     return success;
+}
+
+//----------------------------------------------------------------
+//		THUMBNAILS
+//----------------------------------------------------------------
+QString formatImageName(QString s, QString extension){
+    QString n("");
+    if (!s.isEmpty() && !s.isNull()){
+        s.replace(QRegularExpression("[\\s,']"), "_");
+        n = QString("%1.%2").arg(s.toLower()).arg(extension);
+    }
+    return n;
+}
+
+QString getThumbnailFormat(QString filename){
+    return QString("%1/%2/%3").arg(DATAPATH).arg(THUMBNAIL_PATH).arg(toImageFormatString(filename));
+}
+
+bool thumbnailExists(Scene &s)
+{
+    FilePath thumbnail(THUMBNAIL_PATH, toImage(s.filename(), "png"));
+    return thumbnail.exists();
+}
+
+void generateThumbnails(Scene &s)
+{
+    if (s.exists())
+    {
+        std::string destination = getThumbnailFormat(s.filename());
+        std::string command("ffmpeg -i " + s.unix() + " -vf fps=" + THUMBNAIL_RATE + " scale=\'min(" + THUMBNAIL_MAX_SIZE + "\\, iw):-1\' " + destination);
+        shell_it(command);
+    }
+}
+void generateThumbnails(std::vector<Scene> &s)
+{
+    size_t idx = 0;
+    omp_set_dynamic(0);
+    #pragma omp parallel for num_threads(NUM_THREADS)
+    for (size_t i = 0; i < s.size(); ++i)
+    {
+        #pragma omp critical
+        {
+            std::cout << ++idx << "/" << s.size() << ":\t" << s.at(i).filename() << std::endl;
+        }
+        generateThumbnails(s.at(i));
+    }
 }
