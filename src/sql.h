@@ -7,11 +7,57 @@
 #include <QString>
 #include <QStringList>
 #include <QSharedPointer>
+#include "definitions.h"
 #define HOST        "localhost"
 #define USERNAME    "scenequery"
 #define PASSWORD    "scenequery"
 #define SCENE_DB    "scenes"
 #define ACTOR_DB    "actors"
+
+struct operation_count {
+    int idx, added, updated;
+    operation_count() :
+        idx(0), added(0), updated(0){}
+    int total(){ return added + updated;    }
+};
+
+void    sqlAppend   (QString &fields, QStringList &list, QString name, QString item);
+void    sqlAppend   (QString &fields, QString &values, QStringList &list, QString name, QString item);
+QString sqlAppend   (QString &fields, QString &values, QString name, QString item, bool prev);
+QString sqlAppend   (QString &fields, QString name, QString item, bool prev);
+QString sqlSafe     (QString s);
+QString sqlSafe     (QDate);
+QString sqlSafe     (QDateTime d);
+QString sqlSafe     (int i)              {   return QString("'%1'").arg(i);          }
+QString sqlSafe     (double d)           {   return QString("'%1'").arg(d);          }
+
+
+class SQL {
+public:
+    SQL(QString connectionName="default");
+    ~SQL();
+    bool connect        (void);
+    static void purgeScenes(void);
+    int  countMatches   (QSqlQuery *q);
+    bool hasMatch       (QSqlQuery *q);
+    bool hasScene       (ScenePtr s);
+    bool hasActor       (ActorPtr a);
+    bool modifyDatabase (QSqlQuery *q);
+    QSqlQuery *queryDatabase(QString queryText, QStringList args);
+    QSqlQuery *assembleQuery(QString queryText, QStringList args, bool &ok);
+    void loadActorList  (List<class Actor> &actors);
+    void loadSceneList  (List<class Scene> &scenes);
+    void updateDatabase (List<class Actor> actorList);
+    void updateDatabase (List<class Scene> sceneList);
+    bool makeTable      (Database::Table);
+    bool dropTable      (Database::Table);
+    bool sceneSql(ScenePtr S, Database::queryType type);
+    bool actorSql(ActorPtr A, Database::queryType type);
+private:
+    QSqlDatabase db;
+    QString connectionName;
+
+};
 
 #define ADB_TABLE 	"CREATE TABLE IF NOT EXISTS ACTORS("\
                     "ID				smallserial 	primary key,"\
@@ -78,58 +124,5 @@
                     "DATEADDED		text,"\
                     "NAME 			text,"\
                     "IMAGE			bytes)"
-enum Table { SCENE, ACTOR, THUMBNAIL, HEADSHOT, FILMOGRAPHY };
-struct operation_count {
-    int idx, added, updated;
-    operation_count() :
-        idx(0), added(0), updated(0){}
-    int total(){ return added + updated;    }
-};
-
-enum queryType { INSERT, UPDATE, REQUEST };
-void    sqlAppend(QString &fields, QStringList &list, QString name, QString item);
-void    sqlAppend(QString &fields, QString &values, QStringList &list, QString name, QString item);
-
-QString sqlAppend(QString &fields, QString &values, QString name, QString item, bool prev);
-QString sqlAppend(QString &fields, QString name, QString item, bool prev);
-QString sqlSafe(QString s);
-QString sqlSafe(QDate);
-QString sqlSafe(QDateTime d);
-QString sqlSafe(int i)              {   return QString("'%1'").arg(i);          }
-QString sqlSafe(double d)           {   return QString("'%1'").arg(d);          }
-
-
-class SQL {
-    SQL(QString connectionName="default");
-    ~SQL();
-    QSqlQuery *assembleQuery(QString s, QStringList args, bool &ok);
-    bool makeTable      (Table);
-    bool dropTable      (Table);
-    bool connect        (void);
-    int  countMatches   (QSqlQuery *q);
-    bool hasMatch       (QSqlQuery *q);
-    bool hasScene       (Scene s);
-    bool hasActor       (Actor a);
-    bool modifyDatabase (QSqlQuery *q);
-    void updateDatabase (QVector<QSharedPointer<Actor> > actorList);
-    void updateDatabase (QVector<QSharedPointer<Scene> > sceneList);
-private:
-    QSqlDatabase db;
-    QString connectionName;
-    bool sceneSql(QSharedPointer<Scene> S, queryType type);
-    bool actorSql(QSharedPointer<Actor> A, queryType type);
-
-};
-
-//class sql
-//{
-//private:
-//    QSqlDBHelper helper;
-//    QSharedPointer<QSqlDatabase> db;
-//    QSqlQuery query;
-//public:
-//    sql();
-//    sql(Table db, QString server=HOST, QString username=USERNAME, QString password=PASSWORD);
-//};
 
 #endif // SQL_H

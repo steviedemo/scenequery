@@ -6,20 +6,13 @@
 
 class Biography{
 public:
-    class QString name, aliases, city, nationality, ethnicity, eyes, hair, measurements, tattoos, piercings;
+    QString name, aliases, city, nationality, ethnicity, eyes, hair, measurements, tattoos, piercings;
     class Height height;
     int weight;
     bool fakeBoobs, retired;
     class QDate birthdate, careerStart, careerEnd;
-    Biography(){
-        name="";    aliases="";
-        city="";    nationality=""; ethnicity="";
-        eyes="";    hair="";
-        weight=0;   measurements="";
-        tattoos="";piercings="";
-        fakeBoobs   = false;
-        retired     = false;
-    }
+    bool update();
+    Biography(){}
     Biography(const Biography &b){
         this->name          = b.name;
         this->aliases       = b.aliases;
@@ -36,8 +29,8 @@ public:
         this->height        = b.height;
         this->retired       = b.retired;
         this->fakeBoobs     = b.fakeBoobs;
-        this->careerEnd    = b.careerEnd;
-        this->careerStart  = b.careerStart;
+        this->careerEnd     = b.careerEnd;
+        this->careerStart   = b.careerStart;
     }
 
 };

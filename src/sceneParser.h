@@ -12,7 +12,7 @@
 class sceneParser
 {
 private:
-    FilePath file;
+    class FilePath file;
     QString currPath, currName;
     QStringList tags, actors;
     QString title, company, series;
@@ -22,7 +22,7 @@ private:
     QDate release;
     QDateTime accessed, created;
     QStringList bracketedData;
-    void        bashScript          (class FilePath);
+    void        bashScript        (class FilePath);
     QStringList parseActors       (QString);
     QStringList parseTags         (QString);
     QString     parseCompany      (QString);
@@ -30,8 +30,8 @@ private:
     QDate       parseDateReleased (QString);
 public:
     sceneParser();
+    sceneParser(class FilePath f);
     ~sceneParser();
-    class Scene parseScene  (class FilePath);
     void        parse       (class FilePath);
     static QString sysCall  (QString);
 
@@ -49,7 +49,7 @@ public:
     QDateTime   getAccessed()   {   return accessed;}
     QDateTime   getAdded()      {   return created; }
     QDate       getReleased()   {   return release; }
-    FilePath    getFile()       {   return file;    }
+    class FilePath    getFile()       {   return file;    }
 
 };
 

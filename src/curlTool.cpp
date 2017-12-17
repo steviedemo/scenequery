@@ -83,79 +83,116 @@ QString curlTool::bioSearchFO(QString html, QString key){
     return value;
 }
 
-Biography curlTool::freeones(QString name){
-    Biography bio;
+/** \brief Get Biographical Data from freeones.ca and set the passed bio data accordingly
+ *  \param QString name:    Name of performer to get data about
+ *  \param Biography *bio:  Pointer to Biography Data Structure into which the Information will be placed
+ *  \return bool success:   True if the curl Request was successful, and it seems as though the data was retrieved.
+ */
+bool curlTool::getFreeonesData(QString name, Biography *bio){
     QString html = getHTML(Freeones, name);
-    if (html.isEmpty() || html.isNull()){
-        return bio;
+    if (html.isEmpty()){
+        qWarning("Retrieved Empty HTML from call to Freeones for '%s'", qPrintable(name));
+        return false;
     }
-    /**************TRIM OUT IRRELEVANT HTML SECTIONS****************/
-    // Trim the beginning of the text
     html = html.right(html.size() - html.indexOf("<dt>Babe Name:"));
-    // Trim the end of the text
-    if (!html.contains("</div>"))
-        return bio;
-    html.chop(html.size() - html.indexOf("</div>"));
-    /**************PARSE OUT THE VALUES OF INTEREST****************/
-    bio.measurements= bioSearchFO(html, "Measurements");
-    bio.aliases     = bioSearchFO(html, "Aliases");
-    bio.city        = bioSearchFO(html, "Place of Birth");
-    bio.nationality = bioSearchFO(html, "Country of Origin");
-    bio.eyes        = bioSearchFO(html, "Eye Color");
-    bio.hair        = bioSearchFO(html, "Hair Color");
-    bio.piercings   = bioSearchFO(html, "Piercings");
-    bio.tattoos     = bioSearchFO(html, "Tattoos");
-    QString bday    = bioSearchFO(html, "Date of Birth");
-    if (!bday.isEmpty() && !bday.isNull()){
-        bio.birthdate = QDate::fromString(bday, "MMMM d, yyyy");
+    if (html.contains("</div>")){
+        html.chop(html.size() - html.indexOf("</div>"));
+    } else {
+        qWarning("Unable to Find ending </div> tag on freeones page for '%s'", qPrintable(name));
+        return false;
+    }
+    if (bio->measurements.isEmpty()){   bio->measurements= bioSearchFO(html, "Measurements");       }
+    if (bio->aliases.isEmpty())     {   bio->aliases     = bioSearchFO(html, "Aliases");            }
+    if (bio->city.isEmpty())        {   bio->city        = bioSearchFO(html, "Place of Birth");     }
+    if (bio->nationality.isEmpty()) {   bio->nationality = bioSearchFO(html, "Country of Origin");  }
+    if (bio->eyes.isEmpty())        {   bio->eyes        = bioSearchFO(html, "Eye Color");          }
+    if (bio->hair.isEmpty())        {   bio->hair        = bioSearchFO(html, "Hair Color");         }
+    if (bio->piercings.isEmpty())   {   bio->piercings   = bioSearchFO(html, "Piercings");          }
+    if (bio->tattoos.isEmpty())     {   bio->tattoos     = bioSearchFO(html, "Tattoos");            }
+    if (!bio->birthdate.isValid() || bio->birthdate.isNull()){
+        QString bday     = bioSearchFO(html, "Date of Birth");
+        if (!bday.isEmpty() && !bday.isNull()){
+            bio->birthdate = QDate::fromString(bday, "MMMM d, yyyy");
+        }
     }
     QString active  = bioSearchFO(html, "Career Status");
     if (active.contains("Active")){
-        bio.retired = false;
+        bio->retired = false;
     }
+    return true;
+}
+
+Biography curlTool::freeones(QString name){
+    Biography bio;
+    bio.name = name;
+    getFreeonesData(name, &bio);
     return bio;
 }
 
-Biography curlTool::iafd(QString name){
-    Biography bio;
+/** \brief Get Biographical Data from IAFD.com and set the passed bio data accordingly
+ *  \param QString name:    Name of performer to get data about
+ *  \param Biography *bio:  Pointer to Biography Data Structure into which the Information will be placed
+ *  \return bool success:   True if the curl Request was successful, and it seems as though the data was retrieved.
+ */
+bool curlTool::getIAFDData(QString name, Biography *bio){
     QString html = getHTML(IAFD, name);
-    /**************TRIM OUT IRRELEVANT HTML SECTIONS****************/
+    // Verify that the html string isn't empty and contains some expected text.
+    if (html.isEmpty()){
+        qWarning("Got empty HTML From IAFD curl request for '%s'", qPrintable(name));
+        return false;
+    }
+    if (!html.contains("<p><b>Find where <a style=")){
+        qWarning("Couldn't find expected section ending in HTML for '%s's IAFD page.", qPrintable(name));
+        return false;
+    }
+    // TRIM OUT IRRELEVANT HTML SECTIONS
     int sectionStart = html.indexOf("<p class=\"bioheading\">Ethnicity");
     html.right(html.size() - sectionStart); // Remove the first chunk of the text.
     int sectionEnd = html.indexOf("<p><b>Find where <a style=");
     html.left(sectionEnd);                  // Isolate the remaining first half that is of interest
 
-    /**************PARSE OUT THE VALUES OF INTEREST****************/
-    bio.ethnicity   = bioSearchIAFD(html, "Ethnicity");
-    bio.height      = Height::fromText(bioSearchIAFD(html, "Height"));
-    bio.measurements= bioSearchIAFD(html, "Measurements");
-    bio.tattoos     = bioSearchIAFD(html, "Tattoos");
-    bio.piercings   = bioSearchIAFD(html, "Piercings");
-    bio.hair        = bioSearchIAFD(html, "Hair Color");
-    bio.nationality = bioSearchIAFD(html, "Nationality");
-    bio.city        = bioSearchIAFD(html, "Birthplace");
-    /**********************SPECIALIZED PARSING*********************/
-    QString bday    = bioSearchIAFD(html, "Birthday");
-    if (!bday.isEmpty() && !bday.isNull()){
-        bio.birthdate   = QDate::fromString(bday, "MMMM d, yyyy");
+    // PARSE OUT THE VALUES OF INTEREST
+    if (!bio->height.isValid())     {   bio->height         = Height::fromText(bioSearchIAFD(html, "Height"));  }
+    if (bio->ethnicity.isEmpty())   {   bio->ethnicity      = bioSearchIAFD(html, "Ethnicity");                 }
+    if (bio->measurements.isEmpty()){   bio->measurements   = bioSearchIAFD(html, "Measurements");              }
+    if (bio->piercings.isEmpty())   {   bio->piercings      = bioSearchIAFD(html, "Tattoos");                   }
+    if (bio->hair.isEmpty())        {   bio->hair           = bioSearchIAFD(html, "Hair Color");                }
+    if (bio->nationality.isEmpty()) {   bio->nationality    = bioSearchIAFD(html, "Nationality");               }
+    if (bio->city.isEmpty())        {   bio->city           = bioSearchIAFD(html, "Birthplace");                }
+    // SPECIALIZED PARSING
+    if (!bio->birthdate.isValid || bio->birthdate.isNull()){
+        QString bday    = bioSearchIAFD(html, "Birthday");
+        if (!bday.isEmpty() && !bday.isNull()){
+            bio->birthdate   = QDate::fromString(bday, "MMMM d, yyyy");
+        }
     }
-    QString weightString = bioSearchIAFD(html, "Weight");
-    QRegularExpressionMatch weightMatch = QRegularExpression(".*([0-9]+)\\s*\\(.*\\).*").match(weightString);
-    if (weightMatch.hasMatch()){
-        bio.weight = weightMatch.captured(1).toInt();
+    if (bio->weight == 0){
+        QString weightString = bioSearchIAFD(html, "Weight");
+        QRegularExpressionMatch weightMatch = QRegularExpression(".*([0-9]+)\\s*\\(.*\\).*").match(weightString);
+        if (weightMatch.hasMatch()){
+            bio->weight = weightMatch.captured(1).toInt();
+        }
     }
     QRegularExpressionMatch careerMatch = QRegularExpression("class=\"biodata\">([0-9]{4})-?([0-9]{4})? \\(Started").match(html);
     if (careerMatch.hasMatch()){
-        bio.careerStart = QDate(careerMatch.captured(1).toInt(), 0, 0);
-        if (careerMatch.lastCapturedIndex() > 1){
-            bio.careerEnd   = QDate(careerMatch.captured(2).toInt(), 0, 0);
-            bio.retired = true;
+        if (bio->careerStart.isNull() || !bio->careerStart.isValid()){
+            bio->careerStart = QDate(careerMatch.captured(1).toInt(), 0, 0);
+        }
+        if ((careerMatch.lastCapturedIndex() > 1) && (bio->careerEnd.isNull() || !bio->careerEnd.isValid())){
+            bio->careerEnd   = QDate(careerMatch.captured(2).toInt(), 0, 0);
+            bio->retired = true;
         }
     }
+    return true;
+}
 
-    /***************************RETURN BIO***************************/
+Biography curlTool::iafd(QString name){
+    Biography bio;
+    bio.name = name;
+    getIAFDData(name, &bio);
     return bio;
 }
+
 /****************************************************************
  *                           PHOTOS                             *
  ****************************************************************/

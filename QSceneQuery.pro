@@ -4,22 +4,22 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql
+QT       += core gui sql concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET      = sq
+TARGET      = SceneQuery
 TEMPLATE    = app
 CONFIG      += debug
 DESTDIR     = bin
-QMAKE_CXXFLAGS += -std=c++0x
+
 MOC_DIR     = build
 OBJECTS_DIR = build
 UI_DIR      = build
 
-QMAKE_CXXFLAGS = -std=c++0x -fopenmp
-QMAKE_CFLAGS_DEBUG = -std=gnu99
-QMAKE_CFLAGS_RELEASE = -std=gnu99
+QMAKE_CXXFLAGS =        -std=c++0x -fopenmp
+QMAKE_CFLAGS_DEBUG =    -std=gnu99
+QMAKE_CFLAGS_RELEASE =  -std=gnu99
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
@@ -32,20 +32,16 @@ QMAKE_CFLAGS_RELEASE = -std=gnu99
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+INCLUDEPATH += \
+    /usr/local/include \
+    /usr/local/opt/llvm/include \
+    src \
+    units
 
-#_BOOST_PATH = /usr/local/Cellar/boost/1.62.0
-#_PQXX_PATH  = /usr/local/Cellar/libpqxx/4.0.1_2
-#_CELLAR     = /usr/local/Cellar
-INCLUDEPATH += /usr/local/include \
-            /usr/local/opt/llvm/include \
-            src \
-            units
-          #  $${_CELLAR}/libiomp/20150701/include/libiomp
-
-LIBS += \ #-L$${_CELLAR}/libiomp/20150701/lib \
-        -L/usr/local/lib
-
-LIBS += -lpqxx -lpq -lcurl -lgomp -lcurses -lncurses -lreadline #-lboost_regex
+LIBS += \
+    -lcurl \
+    -lgomp \
+    -L/usr/local/lib
 
 SOURCES += src/main.cpp\
     src/mainwindow.cpp \
@@ -55,9 +51,12 @@ SOURCES += src/main.cpp\
     src/qsqldbhelper.cpp \
     src/sceneParser.cpp \
     src/sql.cpp \
+    src/FileScanner.cpp \
     src/WorkerThreads.cpp \
     units/Actor.cpp \
+    units/Biography.cpp \
     units/FilePath.cpp \
+    units/Height.cpp \
     units/Rating.cpp \
     units/Scene.cpp \
     src/old/Actor-old.cpp \
@@ -76,8 +75,7 @@ SOURCES += src/main.cpp\
     src/old/tests.cpp \
     src/old/tools.cpp \
     qtcurl/QtCUrl.cpp \
-    src/FileScanner.cpp \
-    units/Height.cpp
+    src/DatabaseThread.cpp
 
 HEADERS  += src/mainwindow.h \
     src/old/collectors.h \
@@ -88,6 +86,8 @@ HEADERS  += src/mainwindow.h \
     units/Rating.h \
     units/Scene.h \
     units/Actor.h \
+    units/Biography.h \
+    units/Height.h \
     src/old/imageTools.h \
     src/old/interface.h \
     src/old/lists.h \
@@ -107,8 +107,8 @@ HEADERS  += src/mainwindow.h \
     src/curlTool.h \
     src/config.h \
     src/FileScanner.h \
-    units/Biography.h \
-    units/Height.h
+    src/definitions.h \
+    src/DatabaseThread.h
 
 FORMS    += forms/mainwindow.ui
 

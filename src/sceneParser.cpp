@@ -5,8 +5,8 @@
 #include <QRegularExpression>
 #include <QString>
 #include <sys/stat.h>
-sceneParser::sceneParser(){
-}
+sceneParser::sceneParser(){}
+sceneParser::sceneParser(FilePath f):file(f){}
 sceneParser::~sceneParser(){}
 
 QString sceneParser::sysCall(QString cmd){
@@ -36,26 +36,6 @@ void sceneParser::parse(FilePath f){
     this->accessed      = file.lastRead();
     this->size          = file.size()/1000;
     // Parse out the Name
-    this->actors        = parseActors(currName);
-    this->title         = parseTitle(currName);
-    this->company       = parseCompany(currName);
-    this->sceneNumber   = parseSceneNumber(currName);
-    // get List of tags, as well as Rating, and try for release date & series name.
-    this->tags          = parseTags(currName);
-    // get Height, Width, Length, and try for release date.
-    bashScript(f);
-}
-
-class Scene sceneParser::parseScene(FilePath f){
-    QString fullpath = f.absolutePath();
-    QFileInfo file(fullpath);
-    QString currName    = f.getName();
-
-    this->file          = f;
-    this->created       = file.created();
-    this->accessed      = file.lastRead();
-    this->size          = file.size()/1000;
-
     this->actors        = parseActors(currName);
     this->title         = parseTitle(currName);
     this->company       = parseCompany(currName);

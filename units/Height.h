@@ -8,17 +8,30 @@ private:
     int feet;
     int inches;
     int cm;
+    bool valid;
+    bool isEqual(Height other);
+    bool isGreater(Height other);
 public:
-    Height(void){   feet = 0; inches = 0; cm = 0;   }
+    Height(void);
     Height(int cm);
     Height(int feet, int inches);
     Height(double feet);
+    Height(int feet, int inches, int cm);
+    Height(const Height &other);
+    Height operator = (Height other);
+    bool operator ==(Height other);
+    bool operator <(Height other);
+    bool operator !=(Height other);
+    bool operator <=(Height other);
+    bool operator >(Height other);
+    bool operator >=(Height other);
+    bool isValid();
     static Height fromText(QString s);
     ~Height();
-    double  getFeetAndInches(void);
-    double  getFeet(void)    {   return feet;   }
-    int     getInches(void)  {   return inches; }
-    int     getCm(void)      {   return cm;     }
+    double  getFeetDouble(void)         {   return (double)((inches/12.0)+feet);   }
+    int     getInches(void)             {   return inches; }
+    int     getCm(void)                 {   return cm;     }
+    int     getFeet(void)               {   return feet;   }
     QString toString(void);
 };
 

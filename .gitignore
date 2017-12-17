@@ -1,5 +1,5 @@
 ui_*.h
 build
 bin
-
+.DS_Store
 *.pro.user

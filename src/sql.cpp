@@ -21,6 +21,7 @@ SQL::SQL(QString connectionName){
     db.setHostName(HOST);
     db.setUserName(USERNAME);
     db.setPassword(PASSWORD);
+
 }
 
 bool SQL::connect(){
@@ -166,23 +167,26 @@ void purgeScenes(void){
     QSqlDBHelper sql = new QSqlDBHelper();
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Purge Scenes");
-        return;
+    } else {
+        QSqlTableModel model;
+        model.setTable(SCENE_DB);
+        model.setFilter("*");
+        if (!model.select()){
+            qWarning("Unable to populate QSqlTableModel with Scenes from the Database!");
+            return;
+        } else {
+#warning unfinished function
+        }
     }
-    QSqlTableModel model;
-
-    model.setTable(SCENE_DB);
-    model.setFilter("*");
-    if (!model.select()){
-        qWarning("Unable to populate QSqlTableModel with Scenes from the Database!");
-        return;
-    }
-
 }
 
 
 /*------------------------------------------------------------------
  * Retrieving a Vector of Items from the records in a table.
  *------------------------------------------------------------------*/
+/** \brief Load scenes from the database into the list of scenes passed
+ *  \param SceneList &scenes:   Scenes already in list.
+ */
 void loadSceneList(SceneList &scenes){
     QSqlDBHelper sql = new QSqlDBHelper();
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
@@ -191,9 +195,7 @@ void loadSceneList(SceneList &scenes){
     }
     // Set up the Table Model
     QSqlQueryModel model;
-
     model.setQuery("SELECT * FROM scenes");
-    //model.
     for (int i = 0; i < model.rowCount(); ++i){
         QSharedPointer<Scene> scenePointer = QSharedPointer<Scene>(new Scene(model.record(i)));
         scenes.push_back(scenePointer);
@@ -218,27 +220,15 @@ void loadActorList(ActorList &actors){
     }
     sql.disconnect();
 }
-    //    QSqlDBHelper dbHelper = new QSqlDBHelper("QPSQL");
-//    if (!dbHelper.connect(HOST, ACTOR_DB, USERNAME, PASSWORD)){
-//        qCritical("Unable To Connect to Actor Database: %s", qPrintable(dbHelper.getLastError()));
-//        return;
-//    }
-//    QSqlQuery query(dbHelper.getDbPointer());
-//    query.setForwardOnly(true); // Optimization
-//    if (query.exec("SELECT * FROM ACTORS")){
-//        qDebug("%d Actors Retrieved from the Database", query.size());
-//        while(query.next()){
-//            // Process Record.
-//        }
-//    } else {
-//        qCritical("Error Retrieving List of all Actors from Database: %s", qPrintable(dbHelper.getLastError()));
-//    }
-}
 
 /*------------------------------------------------------------------
  * ADDING/UPDATING a single item.
  *------------------------------------------------------------------*/
-bool SQL::sceneSql(QSharedPointer<Scene> S, queryType type){
+/** \brief Update Database with single item, or update item from database
+ *  \param QSharedPointer<Scene> S: Scene object
+ *  \param queryType:   Update, or retrieve.
+ */
+bool SQL::sceneSql(QSharedPointer<Scene> S, Database::queryType type){
     QString queryString("");
     QStringList queryArgs;
     const char *name = qPrintable(S->getFile().getName());
@@ -285,7 +275,7 @@ bool SQL::sceneSql(QSharedPointer<Scene> S, queryType type){
     return success;
 }
 
-bool SQL::actorSql(QSharedPointer<Actor> A, queryType type){
+bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
     QString queryString("");
     QStringList queryArgs;
     const char *name = qPrintable(A->getName());

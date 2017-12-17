@@ -16,17 +16,19 @@ class curlTool
 public:
     curlTool();
     ~curlTool();
-    class FilePath  getPhoto        (QString, QString);
-    class Biography getBiography    (class Actor &a);
-    class Biography freeones        (QString);
-    static QString  request(QString url);
+    bool            getFreeonesData (QString name, class Biography *bio);
+    bool            getIAFDData     (QString name, class Biography *bio);
     bool            downloadHeadshot(QString);
+    class FilePath  getPhoto        (QString, QString);
+    static QString  request(QString url);
+    class Biography freeones        (QString);
     class Biography iafd            (QString);
 
 private:
     QString         userAppData;
     QString         datalocation;
     QString         headshotPath;
+
    // QString         query           (QString name, QStringList keys, QStringList values, CurlRequest type);
     QString         getHTML         (Website w, QString name);
     bool            wget            (QString, QString);

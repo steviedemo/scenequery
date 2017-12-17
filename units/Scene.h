@@ -58,7 +58,7 @@ public:
     QDateTime   getAdded    (void)      {   return added;       }
     QDate       getReleased (void)      {   return released;    }
     FilePath    getFile     (void)      {   return file;        }
-    QString     getActors(int i=0)      {   return actors.at(i);    }
+    QString     getActor (int i=0)      {   return actors.at(i);    }
     int         getAge   (int i=0)      {   return ages.at(i);  }
 
     bool        hasActor(QString a)     {   return actors.contains(a);  }

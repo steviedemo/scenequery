@@ -1,6 +1,7 @@
 #ifndef FILESCANNER_H
 #define FILESCANNER_H
 #include "FilePath.h"
+#include "definitions.h"
 // Qt Stuff
 #include <QObject>
 #include <QStandardItem>
@@ -13,28 +14,36 @@
 // Collection Structures
 #include <QVector>
 #include <QMap>
+#include <QMutex>
 
-class FileScanner
+class FileScanner : public QThread
 {
     Q_OBJECT
 public:
-    FileScanner();
-    FileScanner(QString path);
-    ~FileManager();
+    FileScanner(QString path="");
+    ~FileScanner();
     bool setPath(QString);
-    bool scan(QVector<class Actor> &a, QVector<class Scene> &s);
-
+    void run();
 public slots:
     void receiveFileVector(QVector<FilePath>);
     void recursiveFileRead(QString);
 private:
+    QFileInfoList scan();
+    QFileInfoList recursiveScan(QFileInfo());
+    void initializeActors(void);
     void parseActorList(void);
-    void parseSceneList(void);
+    void parseSceneList(QFileInfoList);
     QString scanDir;
     QVector<FilePath> files;
-    QVector<class Actor> actors;
-    QVector<class Scene> scenes;
-
+    List<class Actor> actors;
+    List<class Scene> scenes;
+    int index;
+    QMutex mx;
+signals:
+    void finished(List<class Scene>);
+    void initProgress(int count);
+    void updateProgress(int value);
+    void closeProgress();
 };
 
 #endif // FILESCANNER_H

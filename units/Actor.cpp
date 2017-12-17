@@ -2,8 +2,8 @@
 #include "sql.h"
 #include <QRegularExpression>
 #include <QStringList>
-Actor::Actor(){
-    this->name = "";
+Actor::Actor(QString name):
+    name(name){
     this->dataUsage = 0.0;
     this->headshot = "";
 }
@@ -13,12 +13,9 @@ Actor::Actor(const Actor &a){
     this->dataUsage = a.dataUsage;
     this->headshot = a.headshot;
 }
-Actor::Actor operator =(Actor obj){
-    this->bio = obj.bio;
-    this->name = obj.name;
-    this->dataUsage = obj.dataUsage;
-    this->headshot = obj.headshot;
-    return *this;
+
+Actor::Actor(QString actorName, Biography bio, QString headshot):
+    name(actorName), bio(bio), dataUsage(0.0), headshot(headshot){
 }
 
 Actor::Actor(QSqlRecord r){
@@ -38,6 +35,19 @@ Actor::Actor(QSqlRecord r){
     b.tattoos       = r.value("tattoos").toString();
     b.piercings     = r.value("piercings").toString();
     this->bio = b;
+}
+
+Actor Actor::operator =(Actor obj){
+    this->bio = obj.bio;
+    this->name = obj.name;
+    this->dataUsage = obj.dataUsage;
+    this->headshot = obj.headshot;
+    return *this;
+}
+
+/** \brief Make Curl Requests to IAFD & Freeones to get biographical Details */
+bool Actor::updateBio(){
+    this->bio.update();
 }
 
 bool Actor::inDatabase(){

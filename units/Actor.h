@@ -21,12 +21,12 @@ private:
     double dataUsage;
 
 public:
-    Actor();
-    Actor(QString n) : Actor(){ this->name = n; }
+    Actor(QString name="");
     Actor(const Actor &a);
+    Actor(QString name, Bio bio, QString headshot);
     Actor(QSqlRecord);
     ~Actor();
-
+    bool updateBio();
     // Operators
     Actor operator =(Actor a);
     friend bool operator == (const Actor &a, const Actor &b)  {   return a.name == b.name;   }
