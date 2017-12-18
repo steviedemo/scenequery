@@ -15,31 +15,30 @@ typedef QVector<QSharedPointer<class Actor>> ActorList;
 class Actor
 {
 private:
-    Biography bio;
     QString name;
-    class FilePath headshot;
+    Biography bio;
     double dataUsage;
+    class FilePath headshot;
 
 public:
     Actor(QString name="");
     Actor(const Actor &a);
-    Actor(QString name, Bio bio, QString headshot);
+    Actor(QString name, Biography bio, QString headshot);
     Actor(QSqlRecord);
     ~Actor();
     bool updateBio();
     // Operators
-    Actor operator =(Actor a);
-    friend bool operator == (const Actor &a, const Actor &b)  {   return a.name == b.name;   }
-    friend bool operator <  (const Actor &a, const Actor &b)  {   return a.name <  b.name;   }
-    friend bool operator >  (const Actor &a, const Actor &b)  {   return a.name >  b.name;   }
-    friend bool operator != (const Actor &a, const Actor &b)  {   return a.name != b.name;   }
-
+    Actor operator =  (Actor &other);
+    bool  operator == (Actor &other) const;
+    bool  operator >  (Actor &other) const;
+    bool  operator <  (Actor &other) const;
     // Processing
     QString sqlInsert   (void);
     QString sqlUpdate   (void);
     bool    sqlInsert   (QString &query, QStringList &list);
     bool    sqlUpdate   (QString &query, QStringList &list);
     bool    inDatabase  (void);
+    QString headshotTitle(void);
     // Setters
     void    setName     (QString n)     {   this->name = n;         }
     void    setBio      (Biography b)   {   this->bio = b;          }

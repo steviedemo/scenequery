@@ -11,16 +11,19 @@ Rating::Rating(QString s){
     fromString(s);
 }
 
-void Rating::operator = (const Rating &other){
-    this->stars = other.stars;
-    this->ratingStr = other.ratingStr;
-}
-bool Rating::operator ==(const Rating &a, const Rating &b) const{   return (a.stars == b.stars);    }
-bool Rating::operator <(const Rating &a, const Rating &b)  const{   return (a.stars < b.stars);     }
-bool Rating::operator >(const Rating &a, const Rating &b)  const{   return (a.stars > b.stars);     }
-bool Rating::operator >=(const Rating &a, const Rating &b) const{   return (a.stars >= b.stars);    }
-bool Rating::operator <=(const Rating &a, const Rating &b) const{   return (a.stars <= b.stars);    }
+bool Rating::operator ==(Rating other) const{   return (this->stars == other.toStars());    }
+bool Rating::operator < (Rating other) const{   return (this->stars <  other.toStars());    }
+bool Rating::operator > (Rating other) const{   return (this->stars >  other.toStars());    }
+bool Rating::operator >=(Rating other) const{   return (this->stars >= other.toStars());    }
+bool Rating::operator <=(Rating other) const{   return (this->stars <= other.toStars());    }
+bool Rating::operator !=(Rating other) const{   return (this->stars != other.toStars());    }
 
+QString Rating::toString() const{
+    return this->ratingStr;
+}
+double Rating::toStars() const{
+    return this->stars;
+}
 void Rating::fromString(QString s){
     this->ratingStr = s;
     this->stars = string2double(s);

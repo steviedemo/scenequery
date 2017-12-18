@@ -1,27 +1,22 @@
 #include "QSqlDBhelper.h"
 
-QSqlDBHelper::QSqlDBHelper(const char* driver)
-{
-    db = new QSqlDatabase( QSqlDatabase::addDatabase(driver));
+QSqlDBHelper::QSqlDBHelper(const char* driver){
+    this->db = QSqlDatabase( QSqlDatabase::addDatabase(driver));
 }
 
 QSqlDBHelper::~QSqlDBHelper(){
-    qDebug() << "QSqlDBHelper Destructor Called!" << endl;
-    if ()
-    delete db;
 }
 
 bool QSqlDBHelper::connect(const QString &server, const QString &databaseName, const QString &userName, const QString &password)
 {
     bool success = false;
-    this->db = QSharedPointer<QSqlDatabase>(QSqlDatabase());
-    db->setConnectOptions();
-    db->setHostName(server);
-    db->setDatabaseName(databaseName);
-    db->setUserName(userName);
-    db->setPassword(password);
+    db.setConnectOptions();
+    db.setHostName(server);
+    db.setDatabaseName(databaseName);
+    db.setUserName(userName);
+    db.setPassword(password);
 
-    if (db->open()){
+    if (db.open()){
         success = true;
     }
     return success;
@@ -29,7 +24,7 @@ bool QSqlDBHelper::connect(const QString &server, const QString &databaseName, c
 
 QString QSqlDBHelper::getLastError(void){
     QString msg("");
-    msg = db->lastError().text();
+    msg = db.lastError().text();
     return msg;
 }
 
@@ -37,26 +32,26 @@ QString QSqlDBHelper::getLastError(void){
 void QSqlDBHelper::disconnect()
 {
     qDebug() << "Disconnected from Database!";
-    db->close();
+    db.close();
 }
 
-QSqlQuery *QSqlDBHelper::newQuery(void){
-    return QSqlQuery(*db);
+QSharedPointer<QSqlQuery> QSqlDBHelper::newQuery(void){
+    QSharedPointer<QSqlQuery> query = QSharedPointer<QSqlQuery>(new QSqlQuery(db));
+    return query;
 }
 
-QSqlDatabase *QSqlDBHelper::getDbPointer(){
-    return db;
+QSharedPointer<QSqlDatabase> QSqlDBHelper::getDbPointer(){
+    return QSharedPointer<QSqlDatabase>(&db);
 }
 
 bool QSqlDBHelper::query(QString queryString, QStringList args)
 {
     bool success = false;
-    QSqlQuery query(*db);
+    QSqlQuery query(db);
     if (makeQuery(queryString, args, &query)){
-        query->setForwardOnly(true);
-        success = runQuery(query);
+        query.setForwardOnly(true);
+        success = runQuery(&query);
     }
-    delete query;
     return success;
 }
 
@@ -82,7 +77,7 @@ bool QSqlDBHelper::makeQuery(QString queryString, QStringList args, QSqlQuery *q
     query->setForwardOnly(true);
     // Make the query
     if (!query->prepare(queryString)){
-        qWarning("Error Making Query: %s", db->lastError().text());
+        qWarning("Error Making Query: %s", qPrintable(db.lastError().text()));
     } else {
         // Bind the parameters
         for (int i = 0; i < args.size(); ++i) {
@@ -95,22 +90,22 @@ bool QSqlDBHelper::makeQuery(QString queryString, QStringList args, QSqlQuery *q
 
 bool QSqlDBHelper::runQuery(QSqlQuery *query){
     bool result = false;
-    if (!db->isValid()){
-        qCritical("Database %s is not valid. Cannot Run Query.", qPrintable(db->databaseName()));
-    } else if (!db->isOpen()){
-        qCritical("Database %s not open. Cannot Run Query.", qPrintable(db->databaseName()));
+    if (!db.isValid()){
+        qCritical("Database %s is not valid. Cannot Run Query.", qPrintable(db.databaseName()));
+    } else if (!db.isOpen()){
+        qCritical("Database %s not open. Cannot Run Query.", qPrintable(db.databaseName()));
     } else if (!query->isValid()){
-        qWarning("Query is Invalid. Cannot Run on %s Database.", qPrintable(db->databaseName()));
+        qWarning("Query is Invalid. Cannot Run on %s Database.", qPrintable(db.databaseName()));
     } else {
-        db->transaction();
+        db.transaction();
         bool result = query->exec();
         if (result && query->lastError().type() == QSqlError::NoError) {
-            db->commit();
+            db.commit();
             qDebug("Successfully ran Query.");
             result = true;
         } else {
             qWarning("Error Running Query: %s", qPrintable(query->lastError().text()));
-            db->rollback();
+            db.rollback();
         }
     }
     return result;

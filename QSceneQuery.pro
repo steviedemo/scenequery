@@ -17,10 +17,10 @@ MOC_DIR     = build
 OBJECTS_DIR = build
 UI_DIR      = build
 
-QMAKE_CXXFLAGS =        -std=c++0x -fopenmp
+QMAKE_CXXFLAGS =        -std=c++0x
 QMAKE_CFLAGS_DEBUG =    -std=gnu99
 QMAKE_CFLAGS_RELEASE =  -std=gnu99
-
+QMAKE_LFLAGS += -F/System/Library/Frameworks -L/usr/lib
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which as been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -34,14 +34,16 @@ QMAKE_CFLAGS_RELEASE =  -std=gnu99
 
 INCLUDEPATH += \
     /usr/local/include \
-    /usr/local/opt/llvm/include \
     src \
     units
 
 LIBS += \
     -lcurl \
-    -lgomp \
-    -L/usr/local/lib
+    -L/usr/local/lib \
+    -framework DiskArbitration \
+    -framework IOKit \
+    -framework OpenGL \
+    -framework AGL
 
 SOURCES += src/main.cpp\
     src/mainwindow.cpp \
@@ -52,63 +54,34 @@ SOURCES += src/main.cpp\
     src/sceneParser.cpp \
     src/sql.cpp \
     src/FileScanner.cpp \
-    src/WorkerThreads.cpp \
     units/Actor.cpp \
     units/Biography.cpp \
     units/FilePath.cpp \
     units/Height.cpp \
     units/Rating.cpp \
     units/Scene.cpp \
-    src/old/Actor-old.cpp \
-    src/old/collectors.cpp \
-    src/old/curlRequests.cpp \
-    src/old/database.cpp \
-    src/old/Date.cpp \
-    src/old/imageTools.cpp \
-    src/old/interface.cpp \
-    src/old/lists.cpp \
-    src/old/main-old.cpp \
-    src/old/output.cpp \
-    src/old/stringTools.cpp \
-    src/old/structs.cpp \
-    src/old/systemInterface.cpp \
-    src/old/tests.cpp \
-    src/old/tools.cpp \
     qtcurl/QtCUrl.cpp \
-    src/DatabaseThread.cpp
+    src/DatabaseThread.cpp \
+    ActorThread.cpp
 
 HEADERS  += src/mainwindow.h \
-    src/old/collectors.h \
-    src/old/curlRequests.h \
-    src/old/database.h \
-    src/old/Date.h \
     units/FilePath.h \
     units/Rating.h \
     units/Scene.h \
     units/Actor.h \
     units/Biography.h \
     units/Height.h \
-    src/old/imageTools.h \
-    src/old/interface.h \
-    src/old/lists.h \
-    src/old/output.h \
-    src/old/stringTools.h \
-    src/old/structs.h \
-    src/old/systemInterface.h \
-    src/old/tests.h \
-    src/old/tools.h \
     src/qsqldbhelper.h \
-    src/WorkerThreads.h \
     src/genericfunctions.h \
     src/sceneParser.h \
     qtcurl/QtCUrl.h \
-    src/old/Actor-old.h \
     src/sql.h \
     src/curlTool.h \
     src/config.h \
     src/FileScanner.h \
     src/definitions.h \
-    src/DatabaseThread.h
+    src/DatabaseThread.h \
+    ActorThread.h
 
 FORMS    += forms/mainwindow.ui
 

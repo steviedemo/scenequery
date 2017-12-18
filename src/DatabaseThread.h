@@ -14,17 +14,17 @@ class DatabaseThread : public QThread
 public:
     DatabaseThread();
     DatabaseThread(Database::Table table,Database::Operation operation);
-    DatabaseThread(List<class Scene>,    Database::Operation operation);
-    DatabaseThread(List<class Actor>,    Database::Operation operation);
+    DatabaseThread(SceneList,    Database::Operation operation);
+    DatabaseThread(ActorList,    Database::Operation operation);
     ~DatabaseThread();
     void run();
     void setTable(Database::Table table);
     void setOperation(Database::Operation operation);
-    void setList(List<class Scene> scenes);
-    void setList(List<class Actor> actors);
+    void setList(SceneList scenes);
+    void setList(ActorList actors);
 private:
-    List<class Actor> actorList;
-    List<class Scene> sceneList;
+    ActorList actorList;
+    SceneList sceneList;
     Database::Table table;
     Database::Operation operation;
     void updateSceneTable();
@@ -33,15 +33,18 @@ private:
     void updateActorList();
     void insertActor(ActorPtr a);
     void insertScene(ScenePtr s);
+    bool setActor(ActorPtr a);
+    bool setScene(ScenePtr s);
     int index;
     QMutex mx;
 
 signals:
-    void finished(List<class Actor>);
-    void finished(List<class Scene>);
+    void finished(ActorList);
+    void finished(SceneList);
     void initProgress(int count);
     void updateProgress(int currValue);
     void closeProgress();
+    void updateStatus(QString);
 };
 
 #endif // DATABASETHREAD_H

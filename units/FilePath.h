@@ -11,14 +11,15 @@ public:
     FilePath(QString, QString, QString);
     FilePath(const FilePath&);
     ~FilePath();
-    QString getName(void);
-    QString getPath(void);
-    QString absolutePath(void);
-    QString getExtension(void);
+    QString getName(void) const;
+    QString getPath(void) const;
+    QString absolutePath(void) const;
+    QString getExtension(void) const;
     static QString currentPath();
     static QString parentPath();
     static QString getParent(QString path);
-
+    QString unixSafe();
+    QString sqlSafe();
     bool exists();
 private:
     QString name;

@@ -5,6 +5,8 @@
 #include <QVector>
 #include <QString>
 #include <QStringList>
+#include "FilePath.h"
+#include "Rating.h"
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
 #define SPACE_REGEX     "[\\s\\t]*"
@@ -12,15 +14,15 @@
 class sceneParser
 {
 private:
-    class FilePath file;
+    FilePath file;
     QString currPath, currName;
     QStringList tags, actors;
     QString title, company, series;
     int height, width, size, sceneNumber;
     double length;
-    class Rating rating;
+    Rating rating;
     QDate release;
-    QDateTime accessed, created;
+    QDate accessed, created;
     QStringList bracketedData;
     void        bashScript        (class FilePath);
     QStringList parseActors       (QString);
@@ -28,6 +30,7 @@ private:
     QString     parseCompany      (QString);
     int         parseSceneNumber  (QString);
     QDate       parseDateReleased (QString);
+    QString     parseTitle        (QString);
 public:
     sceneParser();
     sceneParser(class FilePath f);
@@ -43,11 +46,11 @@ public:
     QString     getTitle()      {   return title;   }
     QString     getCompany()    {   return company; }
     QString     getSeries()     {   return series;  }
-    QString     getRating()     {   return rating;  }
+    Rating      getRating()     {   return rating;  }
     QStringList getActors()     {   return actors;  }
     QStringList getTags()       {   return tags;    }
-    QDateTime   getAccessed()   {   return accessed;}
-    QDateTime   getAdded()      {   return created; }
+    QDate       getAccessed()   {   return accessed;}
+    QDate       getAdded()      {   return created; }
     QDate       getReleased()   {   return release; }
     class FilePath    getFile()       {   return file;    }
 

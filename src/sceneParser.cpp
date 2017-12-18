@@ -32,8 +32,8 @@ void sceneParser::parse(FilePath f){
     QString currName      = f.getName();
     QString currPath      = f.getPath();
     // Use QFileInfo
-    this->created       = file.created();
-    this->accessed      = file.lastRead();
+    this->created       = file.created().date();
+    this->accessed      = file.lastRead().date();
     this->size          = file.size()/1000;
     // Parse out the Name
     this->actors        = parseActors(currName);
@@ -47,7 +47,7 @@ void sceneParser::parse(FilePath f){
 }
 
 // Get the Title.
-QString sceneParser::getTitle(QString name){
+QString sceneParser::parseTitle(QString name){
     int leftIndex = 0;
     int rightIndex = name.size();
     // Get the rightmost extent of the Title subsection
@@ -66,15 +66,15 @@ QString sceneParser::getTitle(QString name){
     } else if (name.contains(" - ")){
         leftIndex = name.indexOf(" - ");
     }
-    QString final = temp.right(temp.size() - leftIndex());
+    QString final = temp.right(temp.size() - leftIndex);
     return final;
 }
 
 // Get Height, Width, and Length from exif.
 void sceneParser::bashScript(FilePath f){
     QMap<QString, QString> videoData;
-    static const QRegularExpression rx("^([A-Za-z]+):\s*(.+)$");
-    const QStringList output = sysCall(QString("%1/scripts/collect_exif.sh \"%2\"").arg(FilePath::parentPath()).arg(f.absolutePath()));
+    static const QRegularExpression rx("^([A-Za-z]+):\\s*(.+)$");
+    const QString output = sysCall(QString("%1/scripts/collect_exif.sh \"%2\"").arg(FilePath::parentPath()).arg(f.absolutePath()));
     QRegularExpressionMatchIterator it = rx.globalMatch(output);
     while(it.hasNext()){
         QRegularExpressionMatch m = it.next();
@@ -88,7 +88,7 @@ void sceneParser::bashScript(FilePath f){
 }
 
 
-QStringList sceneParser::getTags(QString name){
+QStringList sceneParser::parseTags(QString name){
     static const QRegularExpression qualityRx("^[0-9]{3,4}p$"), dateRx("\\d{4}\\.\\d{2}\\.\\d{2}");
     static const QRegularExpression ratingRx("^[ABC][-+]*$");
     static const QRegularExpression listRx(".*\\((.+)\\).*");
@@ -142,21 +142,25 @@ QStringList sceneParser::getTags(QString name){
     }
     this->tags = items;
     qDebug("\n");
+    return items;
 }
 
 
-int sceneParser::getSceneNumber(QString name){
+int sceneParser::parseSceneNumber(QString name){
     int sceneNo = 0;
     static const QRegularExpression sceneNumberRx(".*Scene #([0-9]{1,2}).*");
     QRegularExpressionMatch m = sceneNumberRx.match(name);
     if (m.hasMatch()){
-        sceneNo = m.captured(1);
+        int temp = m.captured(1).toInt();
+        if (temp > 0){
+            sceneNo =  temp;
+        }
     }
     return sceneNo;
 }
 
 // Parse the release date out of the Name.
-QDate sceneParser::getDateReleased(QString name){
+QDate sceneParser::parseDateReleased(QString name){
     QDate date;
     static const QRegularExpression rx(".*([0-9]{4}\\.[0-9]{2}\\.[0-9]{2}.*");
     QRegularExpressionMatch match = rx.match(name);
@@ -167,7 +171,7 @@ QDate sceneParser::getDateReleased(QString name){
 }
 
 // Get string from within the square brackets.
-QString sceneParser::getCompany(const QString name){
+QString sceneParser::parseCompany(const QString name){
     static const QRegularExpression rx(".*\\[(.+)\\].*");
     QRegularExpressionMatch match = rx.match(name);
     if (match.hasMatch())   return match.captured(1);
@@ -175,7 +179,7 @@ QString sceneParser::getCompany(const QString name){
 }
 
 // Get all actors listed in the name
-QStringList sceneParser::getActors(QString name){
+QStringList sceneParser::parseActors(QString name){
     QStringList actors;
     // Get First Actor
     static const QRegularExpression firstActorRx("^([A-Za-z.\\s]+) - .+");
@@ -188,7 +192,7 @@ QStringList sceneParser::getActors(QString name){
     name.remove(QRegularExpression("\\(.*\\)\\..*"));
     if (name.isEmpty() || name.isNull()){
         QStringList featuredActors = name.split(QRegularExpression("[&,]"));
-        foreach(QString &temp, featuredActors){
+        foreach(QString temp, featuredActors){
             actors.push_back(temp.remove(QRegularExpression(SPACE_REGEX)));
         }
     }

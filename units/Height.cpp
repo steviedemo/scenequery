@@ -1,4 +1,5 @@
 #include "Height.h"
+#include "QRegularExpression"
 #define CM_PER_INCH 2.54
 #define INCH_PER_CM 0.3937
 Height::Height():
@@ -12,8 +13,8 @@ Height::Height(double f):
 Height::Height(int cm):
     cm(cm), valid(true){
     int totalInches = cm * INCH_PER_CM;
-    this->feet = total/12;
-    this->inches=total%12;
+    this->feet = totalInches/12;
+    this->inches=totalInches%12;
 }
 Height::Height(int feet, int inches):
     feet(feet), inches(inches), valid(true){
@@ -28,7 +29,7 @@ Height::Height(const Height &other){
     this->inches = other.inches;
     this->valid = other.valid;
 }
-
+Height::~Height(){}
 Height Height::operator =(Height other){
     Height h(other.getFeet(), other.getInches(), other.getCm());
     return h;
@@ -46,7 +47,7 @@ bool Height::operator > (Height other){ return isGreater(other);        }
 bool Height::operator >=(Height other){ return (isGreater(other) || isEqual(other));    }
 bool Height::operator < (Height other){ return (!isEqual(other) && !isGreater(other));  }
 bool Height::operator <=(Height other){ return (isEqual(other) || !isGreater(other));   }
-Height fromText(QString s){
+Height Height::fromText(QString s){
     QRegularExpression rx("([0-9])\\s*feet[\\s,]*([0-9])*(inches)?");
     QRegularExpressionMatch m = rx.match(s);
     int ft = 0, in = 0;
@@ -58,6 +59,13 @@ Height fromText(QString s){
             in = matches.at(1).toInt();
     }
     return Height(ft, in);
+}
+
+bool Height::isValid(){
+    if (feet == 0 && inches == 0)
+        return false;
+    else
+        return true;
 }
 
 QString Height::toString(void){

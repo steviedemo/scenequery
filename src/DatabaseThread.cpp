@@ -9,8 +9,8 @@ DatabaseThread::DatabaseThread():index(0){
 }
 /** \brief Constructor without use of a previous list. */
 DatabaseThread::DatabaseThread(Database::Table table, Database::Operation operation):
-    operation(operation), table(table), index(0){
-    this->operation = Database::NONE;
+    table(table), operation(operation), index(0){
+    this->operation = Database::OPERATION_NONE;
     this->actorList = {};
     this->sceneList = {};
 }
@@ -18,7 +18,7 @@ DatabaseThread::DatabaseThread(Database::Table table, Database::Operation operat
  *  \param actors:      List of actor objects to add to or update database from
  *  \param operation:   Type of operation to perform
  */
-DatabaseThread::DatabaseThread(List<Actor> actors, Database::Operation operation):
+DatabaseThread::DatabaseThread(ActorList actors, Database::Operation operation):
     actorList(actors), table(Database::ACTOR), operation(operation), index(0){
     this->sceneList = {};
 }
@@ -26,8 +26,8 @@ DatabaseThread::DatabaseThread(List<Actor> actors, Database::Operation operation
  *  \param scenes:      List of scene objects to add to or update database from
  *  \param operation:   Type of operation to perform
  */
-DatabaseThread::DatabaseThread(List<Scene> scenes, Database::Operation operation):
-    sceneList(scenes), table(DataSCENE), operation(operation), index(0){
+DatabaseThread::DatabaseThread(SceneList scenes, Database::Operation operation):
+    sceneList(scenes), table(Database::SCENE), operation(operation), index(0){
     this->actorList = {};
 }
 
@@ -36,46 +36,52 @@ DatabaseThread::~DatabaseThread(){
     actorList.clear();
 }
 
-void DatabaseThread::setList(List<Actor> actors) {  this->actorList = actors;   }
-void DatabaseThread::setList(List<Scene> scenes) {  this->sceneList = scenes;   }
-void DatabaseThread::setTable(Database::Table table)    {   this->table = table;    }
+void DatabaseThread::setList(ActorList actors)    {  this->actorList = actors;   }
+void DatabaseThread::setList(SceneList scenes)    {  this->sceneList = scenes;   }
+void DatabaseThread::setTable(Database::Table table){  this->table = table;    }
 void DatabaseThread::setOperation(Database::Operation operation)    {   this->operation = operation;    }
 
 
 void DatabaseThread::run(){
     index = 0;
     if (table == Database::SCENE){
-        if (operation == Database::UPDATE_TABLE){
+        if (operation == Database::OPERATION_UPDATE){
+            emit updateStatus(QString("Updating Scene Database"));
             updateSceneTable();
         } else {
+            emit updateStatus("Getting Scenes from Database");
             updateSceneList();
             emit finished(sceneList);
         }
+        emit updateStatus("Finished");
     } else {
-        if (operation == Database::UPDATE_TABLE){
+        if (operation == Database::OPERATION_UPDATE){
+            emit updateStatus("Updating Actor Database");
             updateActorTable();
         } else {
+            emit updateStatus("Getting Actors from Database");
             updateActorList();
             emit finished(actorList);
         }
+        emit updateStatus("Finished");
     }
 }
 
 void DatabaseThread::updateActorList(){
-    SQL sql();
+    SQL sql;
     sql.loadActorList(actorList);
 }
 void DatabaseThread::updateSceneList(){
-    SQL sql();
+    SQL sql;
     sql.loadSceneList(sceneList);
 }
 void DatabaseThread::updateActorTable(){
     if (actorList.size() > 0){
         qDebug("Updating Actor Database with %d Entries", actorList.size());
-        QFutureSynchronizer<bool> sync;
+        QFutureSynchronizer<void> sync;
         emit initProgress(actorList.size());
         for (int i = 0; i < actorList.size(); ++i){
-            sync.addFuture(QtConcurrent::Run(this, &DatabaseThread::insertActor, actorList.at(i)));
+            sync.addFuture(QtConcurrent::run(this, &DatabaseThread::insertActor, actorList.at(i)));
         }
         sync.waitForFinished();
         emit closeProgress();
@@ -85,16 +91,14 @@ void DatabaseThread::updateActorTable(){
 void DatabaseThread::updateSceneTable(){
     if (sceneList.size() > 0){
         qDebug("Updating Scene Table with %d Entries", sceneList.size());
-        QFutureSynchronizer<bool> sync;
+        QFutureSynchronizer<void> sync;
         emit initProgress(sceneList.size());
         for (int i = 0; i < sceneList.size(); ++i){
-            sync.addFuture(QtConcurrent::Run(this, &DatabaseThread::insertScene, sceneList.at(i)));
+            sync.addFuture(QtConcurrent::run(this, &DatabaseThread::insertScene, sceneList.at(i)));
         }
         sync.waitForFinished();
         emit closeProgress();
         qDebug("Scene Table Updated");
-    } else {
-
     }
 }
 

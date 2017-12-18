@@ -12,7 +12,7 @@ public:
     bool fakeBoobs, retired;
     class QDate birthdate, careerStart, careerEnd;
     bool update();
-    Biography(){}
+    Biography(QString name="");
     Biography(const Biography &b){
         this->name          = b.name;
         this->aliases       = b.aliases;
@@ -32,6 +32,11 @@ public:
         this->careerEnd     = b.careerEnd;
         this->careerStart   = b.careerStart;
     }
+    ~Biography();
+    void setHeight(Height h);
+    void setHeight(int cm);
+    void setHeight(int feet, int inches);
+    void setHeight(double feet);
 
 };
 

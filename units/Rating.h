@@ -8,14 +8,16 @@ public:
     Rating(double);
     Rating(QString);
     // operators
-    Rating& operator =          (const Rating &r);
-    Rating operator ==   (Rating a, Rating b);
-    Rating operator <    (Rating a, Rating b);
-    Rating operator >    (Rating a, Rating b);
-    Rating operator !=   (Rating a, Rating b);
+//    Rating operator = (const Rating &r) const;
+    bool operator == (Rating other) const;
+    bool operator <  (Rating other) const;
+    bool operator >  (Rating other) const;
+    bool operator <= (Rating other) const;
+    bool operator >= (Rating other) const;
+    bool operator != (Rating other) const;
 
-    double toStars();
-    QString toString();
+    double toStars() const;
+    QString toString() const;
     void fromStars(double d);
     void fromString(QString s);
 private:
@@ -25,5 +27,4 @@ private:
     double stars;
 };
 
-};
 #endif

@@ -5,7 +5,7 @@
 Actor::Actor(QString name):
     name(name){
     this->dataUsage = 0.0;
-    this->headshot = "";
+    this->headshot = FilePath();
 }
 Actor::Actor(const Actor &a){
     this->bio = a.bio;
@@ -29,7 +29,7 @@ Actor::Actor(QSqlRecord r){
     b.ethnicity     = r.value("ethnicity").toString();
     b.height        = Height(r.value("height").toInt());
     b.weight        = r.value("weight").toInt();
-    b.measurements  = r.value("measurements");
+    b.measurements  = r.value("measurements").toString();
     b.hair          = r.value("hair").toString();
     b.eyes          = r.value("eyes").toString();
     b.tattoos       = r.value("tattoos").toString();
@@ -37,7 +37,9 @@ Actor::Actor(QSqlRecord r){
     this->bio = b;
 }
 
-Actor Actor::operator =(Actor obj){
+Actor::~Actor(){}
+
+Actor Actor::operator =(Actor &obj){
     this->bio = obj.bio;
     this->name = obj.name;
     this->dataUsage = obj.dataUsage;
@@ -45,9 +47,13 @@ Actor Actor::operator =(Actor obj){
     return *this;
 }
 
+bool Actor::operator < (Actor &other) const {  return (this->name < other.getName());  }
+bool Actor::operator > (Actor &other) const {  return (this->name > other.getName());  }
+bool Actor::operator ==(Actor &other) const {  return (this->name == other.getName()); }
+
 /** \brief Make Curl Requests to IAFD & Freeones to get biographical Details */
 bool Actor::updateBio(){
-    this->bio.update();
+    return this->bio.update();
 }
 
 bool Actor::inDatabase(){
@@ -56,52 +62,52 @@ bool Actor::inDatabase(){
     args << this->name;
     SQL sql;
     bool ok = false, success = false;
-    QSqlQuery *q = sql.assembleQuery(queryString, args, ok);
+    QSharedPointer<QSqlQuery> q = sql.assembleQuery(queryString, args, ok);
     if (ok){
-        success = sql.hasMatch(q);
+        success = sql.hasMatch(q.data());
     }
     return success;
 }
 
-QString Actor::sqlInsert(void){
-    QString f("INSERT INTO ACTORS (NAME");
-    QString v = QString(") VALUES (%1").arg(sqlSafe(name));
-    sqlAppend(f, v, "ALIASES", sqlsafe(bio.aliases));
-    sqlAppend(f, v, "BIRTHDAY", sqlSafe(bio.birthdate));
-    sqlAppend(f, v, "CITY", sqlSafe(bio.city));
-    sqlAppend(f, v, "COUNTRY", sqlSafe(bio.nationality));
-    sqlAppend(f, v, "ETHNICITY", sqlSafe(bio.ethnicity));
-    sqlAppend(f, v, "HEIGHT", sqlSafe(bio.height.toString()));
-    sqlAppend(f, v, "WEIGHT", sqlSafe(bio.weight));
-    sqlAppend(f, v, "MEASUREMENTS", sqlSafe(bio.measurements));
-    sqlAppend(f, v, "HAIR", sqlSafe(bio.hair));
-    sqlAppend(f, v, "EYES", sqlSafe(bio.eyes));
-    sqlAppend(f, v, "TATTOOS", sqlSafe(bio.tattoos));
-    sqlAppend(f, v, "PIERCINGS", sqlSafe(bio.piercings));
-    sqlAppend(f, v, "PHOTO", sqlSafe(headshot));
-}
+//QString Actor::sqlInsert(void){
+//    QString f("INSERT INTO ACTORS (NAME");
+//    QString v = QString(") VALUES (%1").arg(sqlSafe(name));
+//    sqlAppend(f, v, "ALIASES", sqlSafe(bio.aliases));
+//    sqlAppend(f, v, "BIRTHDAY", sqlSafe(bio.birthdate));
+//    sqlAppend(f, v, "CITY", sqlSafe(bio.city));
+//    sqlAppend(f, v, "COUNTRY", sqlSafe(bio.nationality));
+//    sqlAppend(f, v, "ETHNICITY", sqlSafe(bio.ethnicity));
+//    sqlAppend(f, v, "HEIGHT", sqlSafe(bio.height.toString()));
+//    sqlAppend(f, v, "WEIGHT", sqlSafe(bio.weight));
+//    sqlAppend(f, v, "MEASUREMENTS", sqlSafe(bio.measurements));
+//    sqlAppend(f, v, "HAIR", sqlSafe(bio.hair));
+//    sqlAppend(f, v, "EYES", sqlSafe(bio.eyes));
+//    sqlAppend(f, v, "TATTOOS", sqlSafe(bio.tattoos));
+//    sqlAppend(f, v, "PIERCINGS", sqlSafe(bio.piercings));
+//    sqlAppend(f, v, "PHOTO", sqlSafe(headshot));
+//}
 
-QString Actor::sqlUpdate(void){
-    QString f("UPDATE actors SET ");
-    bool p = false;
-    sqlAppend(f, "ALIASES", sqlSafe(bio.aliases), p);
-    sqlAppend(f, "BIRTHDAY", sqlSafe(bio.birthdate), p);
-    sqlAppend(f, "CITY", sqlSafe(bio.city), p);
-    sqlAppend(f, "COUNTRY", sqlSafe(bio.nationality), p);
-    sqlAppend(f, "ETHNICITY", sqlSafe(bio.ethnicity), p);
-    sqlAppend(f, "HEIGHT", sqlSafe(bio.height.toString()), p);
-    sqlAppend(f, "WEIGHT", sqlSafe(bio.weight), p);
-    sqlAppend(f, "MEASUREMENTS", sqlSafe(bio.measurements), p);
-    sqlAppend(f, "HAIR", sqlSafe(bio.hair), p);
-    sqlAppend(f, "EYES", sqlSafe(bio.eyes), p);
-    sqlAppend(f, "TATTOOS", sqlSafe(bio.tattoos), p);
-    sqlAppend(f, "PIERCINGS", sqlSafe(bio.piercings), p);
-    sqlAppend(f, "PHOTO", sqlSafe(headshot), p);
-    if (p){
-        f.append(QString(" WHERE NAME = %1").arg(name));
-    }
-    return f;
-}
+//QString Actor::sqlUpdate(void){
+//    QString f("UPDATE actors SET ");
+//    bool p = false;
+//    sqlAppend(f, "ALIASES", sqlSafe(bio.aliases), p);
+//    sqlAppend(f, "BIRTHDAY", sqlSafe(bio.birthdate), p);
+//    sqlAppend(f, "CITY", sqlSafe(bio.city), p);
+//    sqlAppend(f, "COUNTRY", sqlSafe(bio.nationality), p);
+//    sqlAppend(f, "ETHNICITY", sqlSafe(bio.ethnicity), p);
+//    sqlAppend(f, "HEIGHT", sqlSafe(bio.height.toString()), p);
+//    sqlAppend(f, "WEIGHT", sqlSafe(bio.weight), p);
+//    sqlAppend(f, "MEASUREMENTS", sqlSafe(bio.measurements), p);
+//    sqlAppend(f, "HAIR", sqlSafe(bio.hair), p);
+//    sqlAppend(f, "EYES", sqlSafe(bio.eyes), p);
+//    sqlAppend(f, "TATTOOS", sqlSafe(bio.tattoos), p);
+//    sqlAppend(f, "PIERCINGS", sqlSafe(bio.piercings), p);
+//    sqlAppend(f, "PHOTO", sqlSafe(headshot), p);
+//    if (p){
+//        f.append(QString(" WHERE NAME = %1").arg(name));
+//    }
+//    return f;
+//}
 
 bool Actor::sqlInsert(QString &query, QStringList &list){
     list.clear();

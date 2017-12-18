@@ -6,12 +6,7 @@
 #include <QString>
 #include <QDebug>
 #include <QSharedPointer>
-#define HOST        "localhost"
-#define USERNAME    "derby"
-#define PASSWORD    "smashed"
-#define SCENE_DB    "scenes"
-#define ACTOR_DB    "actors"
-
+#include "definitions.h"
 class QSqlDBHelper
 {
 public:
@@ -23,8 +18,8 @@ public:
                             const QString& password);
     void disconnect();
     QString     getLastError(void);
-    QSqlQuery*  newQuery(void);
-    QSqlDatabase *getDbPointer(void);
+    QSharedPointer<QSqlQuery>   newQuery(void);
+    QSharedPointer<QSqlDatabase>getDbPointer(void);
     bool        query           (QString queryString, QStringList queryArgs);
     bool        makeQuery       (QString queryString, QStringList queryArgs, QSqlQuery *query);
     bool        sceneQuery      (QString queryString, QStringList queryArgs, QSqlQuery* query);
@@ -35,7 +30,7 @@ public:
     bool        executeDelete   (QSqlQuery *query);
     int         selectRowCountResult(QSqlQuery* query);
 private:
-    QSqlDatabase *db;
+    QSqlDatabase db;
     bool checkError(QSqlQuery *query, bool result);
 };
 

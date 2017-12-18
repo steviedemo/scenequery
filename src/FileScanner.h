@@ -28,22 +28,25 @@ public slots:
     void receiveFileVector(QVector<FilePath>);
     void recursiveFileRead(QString);
 private:
+
+    void addScene(FilePath);
     QFileInfoList scan();
-    QFileInfoList recursiveScan(QFileInfo());
-    void initializeActors(void);
-    void parseActorList(void);
-    void parseSceneList(QFileInfoList);
+    QFileInfoList recursiveScan(QFileInfo);
+    void initializeActors(ActorList);
+    ActorList parseActorList(SceneList);
+    SceneList parseSceneList(QFileInfoList);
     QString scanDir;
     QVector<FilePath> files;
-    List<class Actor> actors;
-    List<class Scene> scenes;
+    ActorList actors;
+    SceneList scenes;
     int index;
     QMutex mx;
 signals:
-    void finished(List<class Scene>);
+    void finished(SceneList);
     void initProgress(int count);
     void updateProgress(int value);
     void closeProgress();
+    void updateStatus(QString);
 };
 
 #endif // FILESCANNER_H

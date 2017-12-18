@@ -8,7 +8,7 @@
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters);
 QString     listToString(QStringList);
 QString     system_call(QString);
-
+QString     headshotName(QString actorName);
 std::string qtos    (QString q)     {   return q.toStdString();                 }
 QString     stoq    (std::string s) {   return QString::fromStdString(s);       }
 bool        empty   (QString s)     {   return (s.isEmpty() || s.isNull());     }

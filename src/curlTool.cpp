@@ -1,6 +1,9 @@
 #include "curlTool.h"
-#include "qtcurl/QtCUrl.h"
+//#include "qtcurl/QtCUrl.h"
+#include <curl/curl.h>
 #include "Actor.h"
+#include "Scene.h"
+#include "definitions.h"
 #include "genericfunctions.h"
 #include <curl/curl.h>
 #include <QDebug>
@@ -31,18 +34,25 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
     ((std::string *)userp)->append((char *)contents, size * nmemb);
     return size * nmemb;
 }
-QString curlTool::request(QString url){
+QString curlTool::request(QString urlString){
     QString html("");
+//    QtCUrl curl;
+//    QUrl url(urlString);
+//    QtCUrl::Options opt;
+//    opt[CURLOPT_URL] = url;
+//    opt[CURLOPT_POST] = true;
+//    opt[CURLOPT_FOLLOWLOCATION] = true;
+//    opt[CURLOPT_WRITEDATA] =
     CURL *curl;
+    char curl_errbuf[CURL_ERROR_SIZE];
     CURLcode res;
     std::string readBuffer;
-    if (curl){
-        curl_easy_setopt(curl, CURLOPT_URL, qPrintable(url));
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-    }
+    curl = curl_easy_init();
+    curl_easy_setopt(curl, CURLOPT_URL, qPrintable(urlString));
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
     html = QString::fromStdString(readBuffer);
     return html;
 }
@@ -147,9 +157,9 @@ bool curlTool::getIAFDData(QString name, Biography *bio){
     }
     // TRIM OUT IRRELEVANT HTML SECTIONS
     int sectionStart = html.indexOf("<p class=\"bioheading\">Ethnicity");
-    html.right(html.size() - sectionStart); // Remove the first chunk of the text.
+    html = html.right(html.size() - sectionStart); // Remove the first chunk of the text.
     int sectionEnd = html.indexOf("<p><b>Find where <a style=");
-    html.left(sectionEnd);                  // Isolate the remaining first half that is of interest
+    html = html.left(sectionEnd);                  // Isolate the remaining first half that is of interest
 
     // PARSE OUT THE VALUES OF INTEREST
     if (!bio->height.isValid())     {   bio->height         = Height::fromText(bioSearchIAFD(html, "Height"));  }
@@ -160,7 +170,7 @@ bool curlTool::getIAFDData(QString name, Biography *bio){
     if (bio->nationality.isEmpty()) {   bio->nationality    = bioSearchIAFD(html, "Nationality");               }
     if (bio->city.isEmpty())        {   bio->city           = bioSearchIAFD(html, "Birthplace");                }
     // SPECIALIZED PARSING
-    if (!bio->birthdate.isValid || bio->birthdate.isNull()){
+    if (!bio->birthdate.isValid() || bio->birthdate.isNull()){
         QString bday    = bioSearchIAFD(html, "Birthday");
         if (!bday.isEmpty() && !bday.isNull()){
             bio->birthdate   = QDate::fromString(bday, "MMMM d, yyyy");
@@ -198,7 +208,7 @@ Biography curlTool::iafd(QString name){
  ****************************************************************/
 QString curlTool::headshotDownloaded(QString name){
     QString location("");
-    QString filepath = QString("%1/%2").arg(this->headshotPath).arg(headshot(name));
+    QString filepath = QString("%1/%2").arg(this->headshotPath).arg(headshotName(name));
     if (QFileInfo(filepath).exists()){
         location = filepath;
     }
@@ -218,7 +228,7 @@ bool curlTool::wget(QString url, QString destination){
 
 bool curlTool::downloadHeadshot(QString name){
     bool success = false;
-    if (headshotDownloaded(name)){
+    if (!headshotDownloaded(name).isEmpty()){
         qDebug("Headshot for '%s' already downloaded", qPrintable(name));
         success = true;
     } else {
@@ -259,35 +269,32 @@ QString formatImageName(QString s, QString extension){
 }
 
 QString getThumbnailFormat(QString filename){
-    return QString("%1/%2/%3").arg(DATAPATH).arg(THUMBNAIL_PATH).arg(toImageFormatString(filename));
+    return QString("%1/%2/%3").arg(DATAPATH).arg(THUMBNAIL_PATH).arg(formatImageName(filename, ".png"));
 }
 
-bool thumbnailExists(Scene &s)
-{
-    FilePath thumbnail(THUMBNAIL_PATH, toImage(s.filename(), "png"));
+bool thumbnailExists(Scene &s){
+    FilePath thumbnail(THUMBNAIL_PATH, formatImageName(s.getFile().absolutePath(), "png"));
     return thumbnail.exists();
 }
 
-void generateThumbnails(Scene &s)
+void generateThumbnail(ScenePtr &s)
 {
-    if (s.exists())
-    {
-        std::string destination = getThumbnailFormat(s.filename());
-        std::string command("ffmpeg -i " + s.unix() + " -vf fps=" + THUMBNAIL_RATE + " scale=\'min(" + THUMBNAIL_MAX_SIZE + "\\, iw):-1\' " + destination);
+    if (s->exists()){
+        FilePath file = s->getFile();
+        QString dest = getThumbnailFormat(file.absolutePath());
+        /*
+        QString cmd = QString("ffmpg -i %1 -vf fps=%2 scale=\'min(%3, iw):-1\' %4").arg(file.unixSafe()).arg()
+        std::string command("ffmpeg -i " + file.unixSafe() + " -vf fps=" + THUMBNAIL_RATE + " scale=\'min(" + THUMBNAIL_MAX_SIZE + "\\, iw):-1\' " + destination);
         shell_it(command);
+        */
     }
 }
-void generateThumbnails(std::vector<Scene> &s)
+void generateThumbnails(SceneList &s)
 {
-    size_t idx = 0;
-    omp_set_dynamic(0);
-    #pragma omp parallel for num_threads(NUM_THREADS)
-    for (size_t i = 0; i < s.size(); ++i)
-    {
-        #pragma omp critical
-        {
-            std::cout << ++idx << "/" << s.size() << ":\t" << s.at(i).filename() << std::endl;
-        }
-        generateThumbnails(s.at(i));
+    int idx = 0;
+    for (int i = 0; i < s.size(); ++i){
+        FilePath file = s.at(i)->getFile();
+        qDebug("%d/%d:  %s", ++idx, s.size(), qPrintable(file.absolutePath()));
+        //generateThumbnails(s.at(i));
     }
 }

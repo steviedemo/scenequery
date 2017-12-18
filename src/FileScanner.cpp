@@ -8,16 +8,21 @@
 FileScanner::FileScanner(QString path):
     scanDir(path), index(0){
 }
+FileScanner::~FileScanner(){
+
+}
 
 void FileScanner::run(){
     if (!scanDir.isEmpty()){
         qDebug("Scanning Directory '%s'", qPrintable(scanDir));
+        emit updateStatus(QString("Scanning %1").arg(scanDir));
         QFileInfoList infoList = scan();
         if (infoList.size() > 0){
             this->index = 0;
             emit initProgress(infoList.size());
             qDebug("Scanning in %d scenes", infoList.size());
             QFutureSynchronizer<void> sync;
+            emit updateStatus("Parsing Files...");
             foreach(QFileInfo f, infoList){
                 FilePath file(f.absolutePath(), f.completeBaseName());
                 sync.addFuture(QtConcurrent::run(this, &FileScanner::addScene, file));
@@ -27,19 +32,19 @@ void FileScanner::run(){
     } else {
         qWarning("Unable to scan for files - no path provided");
     }
-    emit finished(sceneList);
+    emit finished(scenes);
 }
 
 void FileScanner::addScene(FilePath file){
-    Scene scene(file);
+    ScenePtr scene = QSharedPointer<Scene>(new Scene(file));
     mx.lock();
     emit updateProgress(index++);
     scenes.push_back(scene);
     mx.unlock();
 }
 
-List<Actor> FileScanner::parseActorList(List<Scene>sceneList){
-    List<Actor> actorList;
+ActorList FileScanner::parseActorList(SceneList sceneList){
+    ActorList actorList;
     // For every scene in the list
     foreach(ScenePtr s, sceneList){
         QStringList cast = s->getActors();
@@ -54,19 +59,20 @@ List<Actor> FileScanner::parseActorList(List<Scene>sceneList){
     return actorList;
 }
 
-void FileScanner::initializeActors(List<Actor> actorList){
+void FileScanner::initializeActors(ActorList actorList){
     foreach(ActorPtr a, actorList){
         a->updateBio();
     }
 }
 
-List<Scene> FileScanner::parseSceneList(QFileInfoList infoList){
+SceneList FileScanner::parseSceneList(QFileInfoList infoList){
     // Make a Scene object for every item in the list of files.
     foreach(QFileInfo info, infoList){
         FilePath f(info.absolutePath(), info.completeBaseName());
         QSharedPointer<Scene> scene = QSharedPointer<Scene>(new Scene(f));
         scenes.push_back(scene);
     }
+    return scenes;
 }
 
 QFileInfoList FileScanner::scan(){
@@ -74,7 +80,7 @@ QFileInfoList FileScanner::scan(){
     QFileInfoList files;
     if (!root.exists()){
         qCritical("Filepath '%s' Does not exist.", qPrintable(scanDir));
-        return fileList;
+        return files;
     }
     QStringList folderNameFilters;
     QFileInfoList subFolders = root.entryInfoList(folderNameFilters, QDir::Dirs|QDir::NoDotAndDotDot);
@@ -87,7 +93,7 @@ QFileInfoList FileScanner::scan(){
 
 QFileInfoList FileScanner::recursiveScan(QFileInfo rootFolder){
     QStringList nameFilters;
-    QFileInfoList fileList();
+    QFileInfoList fileList;
     // Stop here if the folder isn't found
     if (!rootFolder.exists()){
         return fileList;

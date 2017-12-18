@@ -8,12 +8,7 @@
 #include <QStringList>
 #include <QSharedPointer>
 #include "definitions.h"
-#define HOST        "localhost"
-#define USERNAME    "scenequery"
-#define PASSWORD    "scenequery"
-#define SCENE_DB    "scenes"
-#define ACTOR_DB    "actors"
-
+#include "FilePath.h"
 struct operation_count {
     int idx, added, updated;
     operation_count() :
@@ -23,15 +18,14 @@ struct operation_count {
 
 void    sqlAppend   (QString &fields, QStringList &list, QString name, QString item);
 void    sqlAppend   (QString &fields, QString &values, QStringList &list, QString name, QString item);
-QString sqlAppend   (QString &fields, QString &values, QString name, QString item, bool prev);
-QString sqlAppend   (QString &fields, QString name, QString item, bool prev);
+void    sqlAppend   (QString &fields, QString &values, QString name, QString item, bool prev);
+void    sqlAppend   (QString &fields, QString name, QString item, bool prev);
 QString sqlSafe     (QString s);
 QString sqlSafe     (QDate);
 QString sqlSafe     (QDateTime d);
 QString sqlSafe     (int i)              {   return QString("'%1'").arg(i);          }
 QString sqlSafe     (double d)           {   return QString("'%1'").arg(d);          }
-
-
+QString sqlSafe     (FilePath f);
 class SQL {
 public:
     SQL(QString connectionName="default");
@@ -43,12 +37,12 @@ public:
     bool hasScene       (ScenePtr s);
     bool hasActor       (ActorPtr a);
     bool modifyDatabase (QSqlQuery *q);
-    QSqlQuery *queryDatabase(QString queryText, QStringList args);
-    QSqlQuery *assembleQuery(QString queryText, QStringList args, bool &ok);
-    void loadActorList  (List<class Actor> &actors);
-    void loadSceneList  (List<class Scene> &scenes);
-    void updateDatabase (List<class Actor> actorList);
-    void updateDatabase (List<class Scene> sceneList);
+    QSharedPointer<QSqlQuery> queryDatabase(QString queryText, QStringList args);
+    QSharedPointer<QSqlQuery> assembleQuery(QString queryText, QStringList args, bool &ok);
+    void loadActorList  (ActorList &actors);
+    void loadSceneList  (SceneList &scenes);
+    void updateDatabase (ActorList actorList);
+    void updateDatabase (SceneList sceneList);
     bool makeTable      (Database::Table);
     bool dropTable      (Database::Table);
     bool sceneSql(ScenePtr S, Database::queryType type);

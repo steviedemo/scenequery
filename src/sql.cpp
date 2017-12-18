@@ -45,20 +45,20 @@ bool SQL::hasMatch(QSqlQuery *q){   return (countMatches(q) > 0);   }
 
 
 // Use a Query String and a Parameter List to assemble a QSqlQuery object.
-QSqlQuery *SQL::assembleQuery(QString s, QStringList args, bool &ok){
-    QSqlQuery query(db);
-    ok = query.setForwardOnly(true);
-    ok = ok && query.prepare(s);
+QSharedPointer<QSqlQuery> SQL::assembleQuery(QString s, QStringList args, bool &ok){
+    QSharedPointer<QSqlQuery> query = QSharedPointer<QSqlQuery>(new QSqlQuery(db));
+    query->setForwardOnly(true);
+    ok = query->prepare(s);
     if (!ok){
-        qWarning("Error Preparing Query %s: %s", qPrintable(s), db.lastError().text());
+        qWarning("Error Preparing Query %s: %s", qPrintable(s), qPrintable(db.lastError().text()));
     } else {
-        QStringListIterator it(&args);
-        while(it.hasNext()){
-            query.addBindValue(it.next());
+        QStringListIterator it(args);
+        foreach(QString s, args){
+            query->addBindValue(s);
         }
         ok = true;
     }
-    return ok;
+    return query;
 }
 
 
@@ -80,6 +80,10 @@ QString sqlSafe(QDate d)    {
     return s;
 }
 
+QString sqlSafe(FilePath f){
+    return sqlSafe(f.absolutePath());
+}
+
 QString sqlSafe(QString s){
     QString sql("");
     if (s.isEmpty())
@@ -89,11 +93,12 @@ QString sqlSafe(QString s){
     try{
         if (s.startsWith("'"))  {   f_offset = 1;   }
         if (s.endsWith("'"))    {   b_offset = 1;   }
-        for (QString::iterator it = s.begin(); it < s.end(); ++i){
-            if (*it == '\'')                    // escape apostrophes
+        for (int i = 0; i < s.size(); ++i){
+            QChar c = s.at(i);
+            if (c == '\'')                    // escape apostrophes
                 sql.append("''");
-            else if (*it != '\"' && *it != ';') // don't include semicolons or quotation marks
-                sql.append(*it);
+            else if (c != '\"' && c != ';') // don't include semicolons or quotation marks
+                sql.append(c);
          }
          int lastPosition = sql.size() - 1;
          while(sql.at(lastPosition) == '\''){
@@ -127,7 +132,7 @@ void    sqlAppend(QString &fields, QStringList &list, QString fieldname, QString
     }
 }
 
-QString sqlAppend(QString &fields, QString &values, QString name, QString item, bool prev){
+void sqlAppend(QString &fields, QString &values, QString name, QString item, bool prev){
     if (item != "0" && full(item)){
         if (prev){
             fields.append(',');
@@ -138,7 +143,7 @@ QString sqlAppend(QString &fields, QString &values, QString name, QString item, 
     }
 }
 
-QString sqlAppend(QString &fields, QString title, QString item, bool &prev){
+void sqlAppend(QString &fields, QString title, QString item, bool &prev){
     if (item != "0" && item != "0.0" && full(item)){
         if (prev)
             fields.append(',');
@@ -147,12 +152,12 @@ QString sqlAppend(QString &fields, QString title, QString item, bool &prev){
     }
 }
 
-const char *toString(enum queryType q){
-    if (q == UPDATE)
+const char *toString(Database::queryType q){
+    if (q == Database::UPDATE)
         return "Update";
-    else if (q == INSERT)
+    else if (q == Database::INSERT)
         return "Add";
-    else if (q == REQUEST)
+    else if (q == Database::REQUEST)
         return "Get";
     else
         return "???";
@@ -164,7 +169,7 @@ const char *toString(enum queryType q){
  * Clear unused items out of the table.
  *------------------------------------------------------------------*/
 void purgeScenes(void){
-    QSqlDBHelper sql = new QSqlDBHelper();
+    QSqlDBHelper sql;
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Purge Scenes");
     } else {
@@ -188,7 +193,7 @@ void purgeScenes(void){
  *  \param SceneList &scenes:   Scenes already in list.
  */
 void loadSceneList(SceneList &scenes){
-    QSqlDBHelper sql = new QSqlDBHelper();
+    QSqlDBHelper sql;
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Load Scenes");
         return;
@@ -204,7 +209,7 @@ void loadSceneList(SceneList &scenes){
 }
 
 void loadActorList(ActorList &actors){
-    QSqlDBHelper sql = new QSqlDBHelper();
+    QSqlDBHelper sql;
     if (!sql.connect(HOST, ACTOR_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Load Actors");
         return;
@@ -213,7 +218,8 @@ void loadActorList(ActorList &actors){
     QSqlQueryModel model;
     model.setQuery("SELECT * FROM actors");
     for (int i = 0; i < model.rowCount(); ++i){
-        if (!actors.contains(model.record(i).value("name"))){
+        QSharedPointer<Actor> temp = QSharedPointer<Actor>(new Actor(model.record(i).value("name").toString()));
+        if (!actors.contains(temp)){
             QSharedPointer<Actor> actorPointer = QSharedPointer<Actor>(new Actor(model.record(i)));
             actors.push_back(actorPointer);
         }
@@ -235,9 +241,9 @@ bool SQL::sceneSql(QSharedPointer<Scene> S, Database::queryType type){
     bool success = false, workToDo = false;
     qDebug("Attempting to %s %s", toString(type), name);
     // Get Query Syntax.
-    if (type == UPDATE){
+    if (type == Database::UPDATE){
         workToDo = S->sqlUpdate(queryString, queryArgs);
-    } else if (type == INSERT){
+    } else if (type == Database::INSERT){
         workToDo = S->sqlInsert(queryString, queryArgs);
     } else {
         qCritical("Invalid Query Type Requested for Actor %s: %s", name, toString(type));
@@ -250,9 +256,9 @@ bool SQL::sceneSql(QSharedPointer<Scene> S, Database::queryType type){
         // Run Query
         bool error = false, ok = false;
         db.transaction();
-        QSqlQuery *q = assembleQuery(queryString, queryArgs, ok);
+        QSharedPointer<QSqlQuery> q = assembleQuery(queryString, queryArgs, ok);
         if (ok){
-            if (q.exec()){
+            if (q->exec()){
                 qDebug("Committing Query");
                 if (db.commit()){
                     qDebug("%s of '%s' Successful.", toString(type), name);
@@ -283,9 +289,9 @@ bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
 
     qDebug("Attempting to %s %s", toString(type), name);
     // Get Query Syntax.
-    if (type == UPDATE){
+    if (type == Database::UPDATE){
         workToDo = A->sqlUpdate(queryString, queryArgs);
-    } else if (type == INSERT){
+    } else if (type == Database::INSERT){
         workToDo = A->sqlInsert(queryString, queryArgs);
     } else {
         qCritical("Invalid Query Type Requested for Actor %s: %s", name, toString(type));
@@ -298,7 +304,7 @@ bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
         // Run Query
         bool ok = false, error = false;
         db.transaction();
-        QSqlQuery *q = assembleQuery(queryString, queryArgs, ok);
+        QSharedPointer<QSqlQuery> q = assembleQuery(queryString, queryArgs, ok);
         if (ok){
             if (q->exec()){
                 if (db.commit()){
@@ -321,10 +327,9 @@ bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
 /*------------------------------------------------------------------
  * ADDING/UPDATING from items in a vector
  *------------------------------------------------------------------*/
-bool SQL::hasScene(Scene s){
-    bool success = false;
+bool SQL::hasScene(ScenePtr s){
     db.transaction();
-    QString queryString = QString("SELECT * FROM scenes WHERE actor1 = %1 AND title = %2 AND size = %3 AND height = %4 AND length = %5 ").arg(s.actors.at(0)).arg(s.title).arg(s.size).arg(s.height).arg(s.length);
+    QString queryString = QString("SELECT * FROM scenes WHERE actor1 = %1 AND title = %2 AND size = %3 AND height = %4 AND length = %5 ").arg(s->getActor(0)).arg(s->getTitle()).arg(s->getSize()).arg(s->getHeight()).arg(s->getLength());
     QSqlQuery q;
     q.exec(queryString);
     return (q.size() > 0);
@@ -338,10 +343,10 @@ void SQL::updateDatabase(SceneList sceneList){
         QSqlQuery query(db);
         // Check if record is in the list
         if (query.exec(QString("SELECT FROM ACTORS WHERE (NAME LIKE %1)").arg(S->getFile().getPath()))){
-            if (query->size() == 0){    // Insert into table
-                count.added += (sceneSql(S, INSERT) ? 1 : 0);
+            if (query.size() == 0){    // Insert into table
+                count.added += (sceneSql(S, Database::INSERT) ? 1 : 0);
             } else {    // Update or Leave alone
-                count.updated += (sceneSql(S, UPDATE) ? 1 : 0);
+                count.updated += (sceneSql(S, Database::UPDATE) ? 1 : 0);
             }
         } else {
             qCritical("Error Querying Table for Scene '%s'", qPrintable(S->getFile().getPath()));
@@ -350,7 +355,7 @@ void SQL::updateDatabase(SceneList sceneList){
     qDebug("\n\nAdded %d new Scenes.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), sceneList.size());
 }
 
-void updateDatabase(ActorList actorlist){
+void SQL::updateDatabase(ActorList actorlist){
     operation_count count;
     foreach(QSharedPointer<Actor> A, actorlist){
         count.idx++;
@@ -358,10 +363,10 @@ void updateDatabase(ActorList actorlist){
         QSqlQuery query(db);
         // Check if record is in the list
         if (query.exec(QString("SELECT FROM ACTORS WHERE (NAME LIKE %1)").arg(A->getName()))){
-            if (query->size() == 0){    // Insert into table
-                count.added += (actorSql(A, INSERT) ? 1 : 0);
+            if (query.size() == 0){    // Insert into table
+                count.added += (actorSql(A, Database::INSERT) ? 1 : 0);
             } else {    // Update or Leave alone
-                count.updated += (actorSql(A, UPDATE) ? 1 : 0);
+                count.updated += (actorSql(A, Database::UPDATE) ? 1 : 0);
             }
         } else {
             qCritical("Error Querying Table for Actor '%s'", qPrintable(A->getName()));
@@ -404,29 +409,29 @@ bool SQL::modifyDatabase(QSqlQuery *q){
     return result;
 }
 
-QSqlQuery *SQL::queryDatabase(QString s, QStringList a){
+QSharedPointer<QSqlQuery> SQL::queryDatabase(QString s, QStringList a){
     bool ok = false;
-    QSqlQuery *q = assembleQuery(s, a, ok);
+    QSharedPointer<QSqlQuery> q= assembleQuery(s, a, ok);
     if (ok && q->exec()){
         qDebug("Successfully ran query");
     } else {
-        qWarning("Error Running Query: %s", db.lastError().text());
+        qWarning("Error Running Query: %s", qPrintable(db.lastError().text()));
     }
     return q;
 }
 
-bool SQL::makeTable(Table table){
+bool SQL::makeTable(Database::Table table){
     QString queryString("");
     bool success = false;
-    if (Table == ACTOR){
+    if (table == Database::ACTOR){
         queryString = ADB_TABLE;
-    } else if (Table == SCENE) {
+    } else if (table == Database::SCENE) {
         queryString = SDB_TABLE;
-    } else if (Table == THUMBNAIL) {
+    } else if (table == Database::THUMBNAIL) {
         queryString = THUMBNAIL_DB;
-    } else if (Table == HEADSHOT){
+    } else if (table == Database::HEADSHOT){
         queryString = HEADSHOT_DB;
-    } else if (Table == FILMOGRAPHY){
+    } else if (table == Database::FILMOGRAPHY){
         queryString = FDB_TABLE;
     } else {
         qCritical("Error: Undefined enum value of 'Table'");

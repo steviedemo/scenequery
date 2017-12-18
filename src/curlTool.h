@@ -35,7 +35,7 @@ private:
     bool            getDimensions   (QString name, class Height &height, int &weight);
     QString         bioSearchIAFD   (QString html, QString key);
     QString         bioSearchFO     (QString html, QString key);
-    bool            headshotDownloaded(QString title);
+    QString         headshotDownloaded(QString title);
 };
 static size_t   WriteCallback   (void *, size_t, size_t, void *);
 QString         headshotName    (QString name);

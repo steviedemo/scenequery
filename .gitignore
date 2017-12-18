@@ -3,3 +3,5 @@ build
 bin
 .DS_Store
 *.pro.user
+Makefile
+.qmake.stash

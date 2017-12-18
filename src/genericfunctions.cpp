@@ -11,6 +11,21 @@ QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList name
     return QDir(path).entryList(nameFilters, typeFilter);
 }
 
+QString headshotName(QString actorName){
+    QString title("");
+    actorName = actorName.trimmed();
+    for (int i = 0; i < actorName.size(); ++i){
+        QChar c = actorName.at(i);
+        if (c == ' '){
+            title.push_back('_');
+        } else {
+            if (c.isLetter()){
+                title.push_back(c);
+            }
+        }
+    }
+    return title;
+}
 
 QString listToString(QStringList list){
     QStringListIterator it(list);
@@ -46,65 +61,46 @@ QString system_call(QString command){
 
 
 bool wordDateToStruct(QString s, QDate &d){
-    bool result = false;
+    bool success = true;
     QRegularExpression dateRx("[A-Za-z.]+ (\\d{1,2})[rndsth]*[,]? (\\d{4})");
     QRegularExpressionMatch dateMatch = dateRx.match(s);
     if (dateMatch.hasMatch()){
-        result = true;
-        QDate::fromString(s, Qt::DateFormat::)
-    }
-    boost::regex dateRx("[A-Za-z.]+ (\\d{1,2})[rndsth]*[,]? (\\d{4})");
-    boost::smatch dateMat;
-    bool success = false;
-    if (boost::regex_search(s, dateMat, dateRx))
-    //if (dateMat.hasMatch())
-    {
-        QString day_str, year_str;
-        day_str = dateMat[1].str();
-        year_str = dateMat[2].str();
-      //  day_str = dateMat.captured(1).toStdString();
-      //  year_str = dateMat.captured(2);
-        if (!day_str.empty())
-            d.setDay(atoi(day_str.c_str()));
-        else
-            return false;
-
-        if (!year_str.empty())
-            d.setYear(atoi(year_str.c_str()));
-        else
-            return false;
-
-        if (d.y() < 50)
-            d.setYear(d.y() + 1900);
-
-        if (d.y() < 1950)
-            return false;
-
-        if (s.find("Jan") != QString::npos)
-        {	d.setMonth(1); success = true;	}
-        else if (s.find("Feb") != QString::npos)
-        {	d.setMonth(2); success = true;	}
-        else if (s.find("Mar") != QString::npos)
-        {	d.setMonth(3); success = true;	}
-        else if (s.find("Apr") != QString::npos)
-        {	d.setMonth(4); success = true;	}
-        else if (s.find("May") != QString::npos)
-        {	d.setMonth(5); success = true;	}
-        else if (s.find("Jun") != QString::npos)
-        {	d.setMonth(6); success = true;	}
-        else if (s.find("Jul") != QString::npos)
-        {	d.setMonth(7); success = true;	}
-        else if (s.find("Aug") != QString::npos)
-        {	d.setMonth(8); success = true;	}
-        else if (s.find("Sept") != QString::npos)
-        {	d.setMonth(9); success = true;	}
-        else if (s.find("Oct") != QString::npos)
-        {	d.setMonth(10); success = true;	}
-        else if (s.find("Nov") != QString::npos)
-        {	d.setMonth(11); success = true;	}
-        else if (s.find("Dec") != QString::npos)
-        {	d.setMonth(12); success = true;	}
-        //cout << d.year <<":"<<d.month<<":"<<d.day<<endl;
+        QString dayStr  = dateMatch.captured(1);
+        QString monthStr= dateMatch.captured(2);
+        QString yearStr = dateMatch.captured(3);
+        // Convert to integers
+        int dayInt = 0, monthInt = 0, yearInt = 0;
+        dayInt = dayStr.toInt();
+        yearInt = yearStr.toInt();
+        if (monthStr.contains("Jan")){
+            monthInt = 1;
+        } else if (monthStr.contains("Feb")) {
+            monthInt = 2;
+        } else if (monthStr.contains("Mar")) {
+            monthInt = 3;
+        } else if (monthStr.contains("Apr")) {
+            monthInt = 4;
+        } else if (monthStr.contains("May")) {
+            monthInt = 5;
+        } else if (monthStr.contains("Jun")) {
+            monthInt = 6;
+        } else if (monthStr.contains("Jul")) {
+            monthInt = 7;
+        } else if (monthStr.contains("Aug")) {
+            monthInt = 8;
+        } else if (monthStr.contains("Sept")) {
+            monthInt = 9;
+        } else if (monthStr.contains("Oct")) {
+            monthInt = 10;
+        } else if (monthStr.contains("Nov")) {
+            monthInt = 11;
+        } else if (monthStr.contains("Dec")) {
+            monthInt = 12;
+        }
+        if (monthInt > 0){
+            success = true;
+        }
+        d = QDate(yearInt, monthInt, dayInt);
     }
     return success;
 }

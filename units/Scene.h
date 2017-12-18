@@ -8,8 +8,7 @@
 #include <QStringList>
 #include <QVector>
 #include "FilePath.h"
-typedef QVector<QSharedPointer<Scene>> SceneList;
-
+#include "Rating.h"
 class Scene
 {
 
@@ -20,7 +19,7 @@ private:
     QDate added, released, opened;
     QString title, company, series, url;
     QStringList actors, tags;
-    class Rating rating;
+    Rating rating;
     QVector<int> ages;
 
 public:
@@ -30,12 +29,8 @@ public:
     ~Scene  (void);
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
-    friend bool    sqlInsertScene(const Scene *s, QString &query, QStringList &list);
-    friend bool    sqlUpdateScene(const Scene *s, QString &query, QStringList &list);
-    QString sqlInsert(void);
-    QString sqlUpdate(void);
-    bool    sqlInsert(QString &query, QStringList &list);
-    bool    sqlUpdate(QString &query, QStringList &list);
+    bool    sqlInsert(QString &query, QStringList &list) const;
+    bool    sqlUpdate(QString &query, QStringList &list) const;
     bool    inDatabase(void);
     void    addActor    (QString a, int i=0);
     void    setAge      (int, int);
@@ -51,11 +46,11 @@ public:
     QString     getTitle    (void)      {   return title;       }
     QString     getCompany  (void)      {   return company;     }
     QString     getSeries   (void)      {   return series;      }
-    QString     getRating   (void)      {   return rating;      }
+    Rating      getRating   (void)      {   return rating;      }
     QStringList getActors   (void)      {   return actors;      }
     QStringList getTags     (void)      {   return tags;        }
-    QDateTime   getOpened   (void)      {   return opened;      }
-    QDateTime   getAdded    (void)      {   return added;       }
+    QDate       getOpened   (void)      {   return opened;      }
+    QDate       getAdded    (void)      {   return added;       }
     QDate       getReleased (void)      {   return released;    }
     FilePath    getFile     (void)      {   return file;        }
     QString     getActor (int i=0)      {   return actors.at(i);    }
@@ -71,7 +66,9 @@ public:
     void    setTitle    (QString t)     {   this->title = t;    }
     void    setCompany  (QString c)     {  this->company = c;   }
     void    setSeries   (QString s)     {   this->series = s;   }
-    void    setRating   (QString r)     {   this->rating = r;   }
+    void    setRating   (Rating r)      {   this->rating = r;   }
+    void    setRating   (QString r)     {   this->rating = Rating(r);   }
+    void    setRating   (double d)      {   this->rating = Rating(d);   }
     void    setActors   (QStringList a) {   this->actors = a;   }
     void    setTags     (QStringList t) {   this->tags = t;     }
     void    setOpened   (QDate d)       {   this->opened = d;   }
