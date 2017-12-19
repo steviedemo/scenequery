@@ -208,7 +208,7 @@ void loadSceneList(SceneList &scenes){
     sql.disconnect();
 }
 
-void loadActorList(ActorList &actors){
+void loadActorList(QVector<QSharedPointer<Actor>> &actors){
     QSqlDBHelper sql;
     if (!sql.connect(HOST, ACTOR_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Load Actors");
@@ -335,7 +335,12 @@ bool SQL::hasScene(ScenePtr s){
     return (q.size() > 0);
 }
 
-void SQL::updateDatabase(SceneList sceneList){
+bool SQL::hasActor(ActorPtr a){
+#warning unwritten code.
+    return true;
+}
+
+void SQL::updateDatabase(QVector<QSharedPointer<Scene>> sceneList){
     operation_count count;
     foreach(QSharedPointer<Scene> S, sceneList){
         count.idx++;
@@ -355,7 +360,7 @@ void SQL::updateDatabase(SceneList sceneList){
     qDebug("\n\nAdded %d new Scenes.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), sceneList.size());
 }
 
-void SQL::updateDatabase(ActorList actorlist){
+void SQL::updateDatabase(QVector<QSharedPointer<Actor>> actorlist){
     operation_count count;
     foreach(QSharedPointer<Actor> A, actorlist){
         count.idx++;

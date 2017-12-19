@@ -2,6 +2,9 @@
 #include "ui_mainwindow.h"
 #include "FilePath.h"
 #include "FileScanner.h"
+#include "ActorThread.h"
+#include "Scene.h"
+#include "Actor.h"
 #include "DatabaseThread.h"
 #include <QtGlobal>
 #include <QDebug>

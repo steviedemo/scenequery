@@ -8,11 +8,12 @@
 #include <QMutex>
 class ActorThread : public QThread
 {
+    Q_OBJECT
 public:
     ActorThread();
-    ActorThread(ActorList);
-    ActorThread(SceneList);
-    ActorThread(ActorList, SceneList);
+    ActorThread(QVector<QSharedPointer<class Actor>>);
+    ActorThread(QVector<QSharedPointer<class Scene>>);
+    ActorThread(QVector<QSharedPointer<class Actor>>, QVector<QSharedPointer<class Scene>>);
     ~ActorThread();
     void run();
 private:
@@ -26,9 +27,9 @@ private:
     int index;
     QMutex mx;
     bool dbThreadFinished;
-    void updateBio(ActorPtr a);
+    void updateBio(QSharedPointer<class Actor> a);
 private slots:
-    void receiveActors(ActorList);
+    void receiveActors(QVector<QSharedPointer<class Actor>>);
 signals:
     void initProgress(int);
     void updateProgress(int);

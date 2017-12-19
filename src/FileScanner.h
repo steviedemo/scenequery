@@ -26,9 +26,9 @@ public:
     void run();
 public slots:
     void receiveFileVector(QVector<FilePath>);
-    void recursiveFileRead(QString);
-private:
 
+private:
+    void recursiveScan(QString);
     void addScene(FilePath);
     QFileInfoList scan();
     QFileInfoList recursiveScan(QFileInfo);

@@ -1,4 +1,5 @@
 #include "ActorThread.h"
+#include <QFutureSynchronizer>
 #include <qtconcurrentrun.h>
 ActorThread::ActorThread(){
     this->scenes = {};

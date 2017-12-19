@@ -1,6 +1,7 @@
 #include "DatabaseThread.h"
 #include "Actor.h"
 #include "Scene.h"
+#include "sql.h"
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
 
@@ -68,13 +69,19 @@ void DatabaseThread::run(){
 }
 
 void DatabaseThread::updateActorList(){
-    SQL sql;
-    sql.loadActorList(actorList);
+    loadActorList(actorList);
 }
 void DatabaseThread::updateSceneList(){
-    SQL sql;
-    sql.loadSceneList(sceneList);
+    loadSceneList(sceneList);
 }
+
+void DatabaseThread::insertActor(QSharedPointer<Actor> a){
+#warning need to write function
+}
+void DatabaseThread::insertScene(QSharedPointer<Scene> s){
+#warning need to write function
+}
+
 void DatabaseThread::updateActorTable(){
     if (actorList.size() > 0){
         qDebug("Updating Actor Database with %d Entries", actorList.size());

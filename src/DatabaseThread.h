@@ -5,8 +5,8 @@
 #include <QThread>
 #include <QMutex>
 #include "definitions.h"
-#include "sql.h"
-
+#include <QSharedPointer>
+#include <QVector>
 
 class DatabaseThread : public QThread
 {
@@ -20,8 +20,8 @@ public:
     void run();
     void setTable(Database::Table table);
     void setOperation(Database::Operation operation);
-    void setList(SceneList scenes);
-    void setList(ActorList actors);
+    void setList(QVector<QSharedPointer<class Scene>> scenes);
+    void setList(QVector<QSharedPointer<class Actor>> actors);
 private:
     ActorList actorList;
     SceneList sceneList;
@@ -31,10 +31,10 @@ private:
     void updateSceneList();
     void updateActorTable();
     void updateActorList();
-    void insertActor(ActorPtr a);
-    void insertScene(ScenePtr s);
-    bool setActor(ActorPtr a);
-    bool setScene(ScenePtr s);
+    void insertActor(QSharedPointer<class Actor> a);
+    void insertScene(QSharedPointer<class Scene> s);
+    bool setActor(QSharedPointer<class Actor> a);
+    bool setScene(QSharedPointer<class Scene> s);
     int index;
     QMutex mx;
 

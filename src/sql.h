@@ -26,6 +26,8 @@ QString sqlSafe     (QDateTime d);
 QString sqlSafe     (int i)              {   return QString("'%1'").arg(i);          }
 QString sqlSafe     (double d)           {   return QString("'%1'").arg(d);          }
 QString sqlSafe     (FilePath f);
+void loadActorList  (QVector<QSharedPointer<class Actor>> &actors);
+void loadSceneList  (QVector<QSharedPointer<class Scene>> &scenes);
 class SQL {
 public:
     SQL(QString connectionName="default");
@@ -39,10 +41,9 @@ public:
     bool modifyDatabase (QSqlQuery *q);
     QSharedPointer<QSqlQuery> queryDatabase(QString queryText, QStringList args);
     QSharedPointer<QSqlQuery> assembleQuery(QString queryText, QStringList args, bool &ok);
-    void loadActorList  (ActorList &actors);
-    void loadSceneList  (SceneList &scenes);
-    void updateDatabase (ActorList actorList);
-    void updateDatabase (SceneList sceneList);
+
+    void updateDatabase (QVector<QSharedPointer<class Actor>> actorList);
+    void updateDatabase (QVector<QSharedPointer<class Scene>> sceneList);
     bool makeTable      (Database::Table);
     bool dropTable      (Database::Table);
     bool sceneSql(ScenePtr S, Database::queryType type);

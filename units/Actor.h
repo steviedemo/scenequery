@@ -7,7 +7,6 @@
 #include <QVector>
 // Custom Objects
 #include "Biography.h"
-#include "Height.h"
 #include "FilePath.h"
 
 typedef QVector<QSharedPointer<class Actor>> ActorList;

@@ -11,7 +11,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET      = SceneQuery
 TEMPLATE    = app
 CONFIG      += debug
-DESTDIR     = bin
 
 MOC_DIR     = build
 OBJECTS_DIR = build
@@ -35,7 +34,8 @@ QMAKE_LFLAGS += -F/System/Library/Frameworks -L/usr/lib
 INCLUDEPATH += \
     /usr/local/include \
     src \
-    units
+    units \
+
 
 LIBS += \
     -lcurl \
@@ -62,7 +62,7 @@ SOURCES += src/main.cpp\
     units/Scene.cpp \
     qtcurl/QtCUrl.cpp \
     src/DatabaseThread.cpp \
-    ActorThread.cpp
+    src/ActorThread.cpp
 
 HEADERS  += src/mainwindow.h \
     units/FilePath.h \
@@ -81,11 +81,11 @@ HEADERS  += src/mainwindow.h \
     src/FileScanner.h \
     src/definitions.h \
     src/DatabaseThread.h \
-    ActorThread.h
+    src/ActorThread.h
 
 FORMS    += forms/mainwindow.ui
 
 QMAKE_CLEAN += \
-    bin/*
-    build/*
-    QSceneQuery.pro.user
+    build/* \
+    QSceneQuery.pro.user \
+    Makefile

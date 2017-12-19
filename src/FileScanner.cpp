@@ -12,6 +12,10 @@ FileScanner::~FileScanner(){
 
 }
 
+void FileScanner::receiveFileVector(QVector<FilePath> fileVector){
+    this->files = fileVector;
+}
+
 void FileScanner::run(){
     if (!scanDir.isEmpty()){
         qDebug("Scanning Directory '%s'", qPrintable(scanDir));
