@@ -29,8 +29,8 @@ void sceneParser::parse(FilePath f){
     QFileInfo file(fullpath);
     // Add the file info.
     this->file          = f;
-    QString currName      = f.getName();
-    QString currPath      = f.getPath();
+    this->currName      = f.getName();
+    this->currPath      = f.getPath();
     // Use QFileInfo
     this->created       = file.created().date();
     this->accessed      = file.lastRead().date();

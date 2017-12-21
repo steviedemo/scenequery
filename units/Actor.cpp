@@ -72,37 +72,37 @@ bool Actor::inDatabase(){
 //QString Actor::sqlInsert(void){
 //    QString f("INSERT INTO ACTORS (NAME");
 //    QString v = QString(") VALUES (%1").arg(sqlSafe(name));
-//    sqlAppend(f, v, "ALIASES", sqlSafe(bio.aliases));
-//    sqlAppend(f, v, "BIRTHDAY", sqlSafe(bio.birthdate));
-//    sqlAppend(f, v, "CITY", sqlSafe(bio.city));
-//    sqlAppend(f, v, "COUNTRY", sqlSafe(bio.nationality));
-//    sqlAppend(f, v, "ETHNICITY", sqlSafe(bio.ethnicity));
-//    sqlAppend(f, v, "HEIGHT", sqlSafe(bio.height.toString()));
-//    sqlAppend(f, v, "WEIGHT", sqlSafe(bio.weight));
-//    sqlAppend(f, v, "MEASUREMENTS", sqlSafe(bio.measurements));
-//    sqlAppend(f, v, "HAIR", sqlSafe(bio.hair));
-//    sqlAppend(f, v, "EYES", sqlSafe(bio.eyes));
-//    sqlAppend(f, v, "TATTOOS", sqlSafe(bio.tattoos));
-//    sqlAppend(f, v, "PIERCINGS", sqlSafe(bio.piercings));
-//    sqlAppend(f, v, "PHOTO", sqlSafe(headshot));
+//    SQL::sqlAppend(f, v, "ALIASES", sqlSafe(bio.aliases));
+//    SQL::sqlAppend(f, v, "BIRTHDAY", sqlSafe(bio.birthdate));
+//    SQL::sqlAppend(f, v, "CITY", sqlSafe(bio.city));
+//    SQL::sqlAppend(f, v, "COUNTRY", sqlSafe(bio.nationality));
+//    SQL::sqlAppend(f, v, "ETHNICITY", sqlSafe(bio.ethnicity));
+//    SQL::sqlAppend(f, v, "HEIGHT", sqlSafe(bio.height.toString()));
+//    SQL::sqlAppend(f, v, "WEIGHT", sqlSafe(bio.weight));
+//    SQL::sqlAppend(f, v, "MEASUREMENTS", sqlSafe(bio.measurements));
+//    SQL::sqlAppend(f, v, "HAIR", sqlSafe(bio.hair));
+//    SQL::sqlAppend(f, v, "EYES", sqlSafe(bio.eyes));
+//    SQL::sqlAppend(f, v, "TATTOOS", sqlSafe(bio.tattoos));
+//    SQL::sqlAppend(f, v, "PIERCINGS", sqlSafe(bio.piercings));
+//    SQL::sqlAppend(f, v, "PHOTO", sqlSafe(headshot));
 //}
 
 //QString Actor::sqlUpdate(void){
 //    QString f("UPDATE actors SET ");
 //    bool p = false;
-//    sqlAppend(f, "ALIASES", sqlSafe(bio.aliases), p);
-//    sqlAppend(f, "BIRTHDAY", sqlSafe(bio.birthdate), p);
-//    sqlAppend(f, "CITY", sqlSafe(bio.city), p);
-//    sqlAppend(f, "COUNTRY", sqlSafe(bio.nationality), p);
-//    sqlAppend(f, "ETHNICITY", sqlSafe(bio.ethnicity), p);
-//    sqlAppend(f, "HEIGHT", sqlSafe(bio.height.toString()), p);
-//    sqlAppend(f, "WEIGHT", sqlSafe(bio.weight), p);
-//    sqlAppend(f, "MEASUREMENTS", sqlSafe(bio.measurements), p);
-//    sqlAppend(f, "HAIR", sqlSafe(bio.hair), p);
-//    sqlAppend(f, "EYES", sqlSafe(bio.eyes), p);
-//    sqlAppend(f, "TATTOOS", sqlSafe(bio.tattoos), p);
-//    sqlAppend(f, "PIERCINGS", sqlSafe(bio.piercings), p);
-//    sqlAppend(f, "PHOTO", sqlSafe(headshot), p);
+//    SQL::sqlAppend(f, "ALIASES", sqlSafe(bio.aliases), p);
+//    SQL::sqlAppend(f, "BIRTHDAY", sqlSafe(bio.birthdate), p);
+//    SQL::sqlAppend(f, "CITY", sqlSafe(bio.city), p);
+//    SQL::sqlAppend(f, "COUNTRY", sqlSafe(bio.nationality), p);
+//    SQL::sqlAppend(f, "ETHNICITY", sqlSafe(bio.ethnicity), p);
+//    SQL::sqlAppend(f, "HEIGHT", sqlSafe(bio.height.toString()), p);
+//    SQL::sqlAppend(f, "WEIGHT", sqlSafe(bio.weight), p);
+//    SQL::sqlAppend(f, "MEASUREMENTS", sqlSafe(bio.measurements), p);
+//    SQL::sqlAppend(f, "HAIR", sqlSafe(bio.hair), p);
+//    SQL::sqlAppend(f, "EYES", sqlSafe(bio.eyes), p);
+//    SQL::sqlAppend(f, "TATTOOS", sqlSafe(bio.tattoos), p);
+//    SQL::sqlAppend(f, "PIERCINGS", sqlSafe(bio.piercings), p);
+//    SQL::sqlAppend(f, "PHOTO", sqlSafe(headshot), p);
 //    if (p){
 //        f.append(QString(" WHERE NAME = %1").arg(name));
 //    }
@@ -112,20 +112,20 @@ bool Actor::inDatabase(){
 bool Actor::sqlInsert(QString &query, QStringList &list){
     list.clear();
     QString f ("INSERT INTO ACTORS (NAME"), v("?");
-    list << sqlSafe(name);
-    sqlAppend(f, v, list, "ALIASES",       sqlSafe(bio.aliases)         );
-    sqlAppend(f, v, list, "BIRTHDAY",      sqlSafe(bio.birthdate)       );
-    sqlAppend(f, v, list, "CITY",          sqlSafe(bio.city)            );
-    sqlAppend(f, v, list, "COUNTRY",       sqlSafe(bio.nationality)     );
-    sqlAppend(f, v, list, "ETHNICITY",     sqlSafe(bio.ethnicity)       );
-    sqlAppend(f, v, list, "HEIGHT",        sqlSafe(bio.height.toString()));
-    sqlAppend(f, v, list, "WEIGHT",        sqlSafe(bio.weight)          );
-    sqlAppend(f, v, list, "MEASUREMENTS",  sqlSafe(bio.measurements)    );
-    sqlAppend(f, v, list, "HAIR",          sqlSafe(bio.hair)            );
-    sqlAppend(f, v, list, "EYES",          sqlSafe(bio.eyes)            );
-    sqlAppend(f, v, list, "TATTOOS",       sqlSafe(bio.tattoos)         );
-    sqlAppend(f, v, list, "PIERCINGS",     sqlSafe(bio.piercings)       );
-    sqlAppend(f, v, list, "PHOTO",         sqlSafe(headshot)            );
+    list << SQL::sqlSafe(name);
+    SQL::sqlAppend(f, v, list, "ALIASES",       SQL::sqlSafe(bio.aliases)         );
+    SQL::sqlAppend(f, v, list, "BIRTHDAY",      SQL::sqlSafe(bio.birthdate)       );
+    SQL::sqlAppend(f, v, list, "CITY",          SQL::sqlSafe(bio.city)            );
+    SQL::sqlAppend(f, v, list, "COUNTRY",       SQL::sqlSafe(bio.nationality)     );
+    SQL::sqlAppend(f, v, list, "ETHNICITY",     SQL::sqlSafe(bio.ethnicity)       );
+    SQL::sqlAppend(f, v, list, "HEIGHT",        SQL::sqlSafe(bio.height.toString()));
+    SQL::sqlAppend(f, v, list, "WEIGHT",        SQL::sqlSafe(bio.weight)          );
+    SQL::sqlAppend(f, v, list, "MEASUREMENTS",  SQL::sqlSafe(bio.measurements)    );
+    SQL::sqlAppend(f, v, list, "HAIR",          SQL::sqlSafe(bio.hair)            );
+    SQL::sqlAppend(f, v, list, "EYES",          SQL::sqlSafe(bio.eyes)            );
+    SQL::sqlAppend(f, v, list, "TATTOOS",       SQL::sqlSafe(bio.tattoos)         );
+    SQL::sqlAppend(f, v, list, "PIERCINGS",     SQL::sqlSafe(bio.piercings)       );
+    SQL::sqlAppend(f, v, list, "PHOTO",         SQL::sqlSafe(headshot)            );
     query = QString("%1) VALUES (%2);").arg(f).arg(v);
     return (list.size() > 0);
 }
@@ -135,22 +135,22 @@ bool Actor::sqlUpdate(QString &query, QStringList &list){
     QString f("UPDATE actors SET ");
 
     list.clear();
-    sqlAppend(f, list, "ALIASES",       sqlSafe(bio.aliases)        );
-    sqlAppend(f, list, "BIRTHDAY",      sqlSafe(bio.birthdate)      );
-    sqlAppend(f, list, "CITY",          sqlSafe(bio.city)           );
-    sqlAppend(f, list, "COUNTRY",       sqlSafe(bio.nationality)    );
-    sqlAppend(f, list, "ETHNICITY",     sqlSafe(bio.ethnicity)      );
-    sqlAppend(f, list, "HEIGHT",        sqlSafe(bio.height.toString()));
-    sqlAppend(f, list, "WEIGHT",        sqlSafe(bio.weight)         );
-    sqlAppend(f, list, "MEASUREMENTS",  sqlSafe(bio.measurements)   );
-    sqlAppend(f, list, "HAIR",          sqlSafe(bio.hair)           );
-    sqlAppend(f, list, "EYES",          sqlSafe(bio.eyes)           );
-    sqlAppend(f, list, "TATTOOS",       sqlSafe(bio.tattoos)        );
-    sqlAppend(f, list, "PIERCINGS",     sqlSafe(bio.piercings)      );
-    sqlAppend(f, list, "PHOTO",         sqlSafe(headshot)           );
+    SQL::sqlAppend(f, list, "ALIASES",       SQL::sqlSafe(bio.aliases)        );
+    SQL::sqlAppend(f, list, "BIRTHDAY",      SQL::sqlSafe(bio.birthdate)      );
+    SQL::sqlAppend(f, list, "CITY",          SQL::sqlSafe(bio.city)           );
+    SQL::sqlAppend(f, list, "COUNTRY",       SQL::sqlSafe(bio.nationality)    );
+    SQL::sqlAppend(f, list, "ETHNICITY",     SQL::sqlSafe(bio.ethnicity)      );
+    SQL::sqlAppend(f, list, "HEIGHT",        SQL::sqlSafe(bio.height.toString()));
+    SQL::sqlAppend(f, list, "WEIGHT",        SQL::sqlSafe(bio.weight)         );
+    SQL::sqlAppend(f, list, "MEASUREMENTS",  SQL::sqlSafe(bio.measurements)   );
+    SQL::sqlAppend(f, list, "HAIR",          SQL::sqlSafe(bio.hair)           );
+    SQL::sqlAppend(f, list, "EYES",          SQL::sqlSafe(bio.eyes)           );
+    SQL::sqlAppend(f, list, "TATTOOS",       SQL::sqlSafe(bio.tattoos)        );
+    SQL::sqlAppend(f, list, "PIERCINGS",     SQL::sqlSafe(bio.piercings)      );
+    SQL::sqlAppend(f, list, "PHOTO",         SQL::sqlSafe(headshot)           );
     if (list.size() > 0){
         f.append(" WHERE NAME = ?;");
-        list << sqlSafe(name);
+        list << SQL::sqlSafe(name);
         query = f;
         success = true;
     }

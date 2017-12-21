@@ -22,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
     qRegisterMetaType<QVector<QSharedPointer<Scene>>>("QVector<QSharedPointer<Scene>>");
     qRegisterMetaType<QVector<QSharedPointer<Actor>>>("QVector<QSharedPointer<Actor>>");
+    qRegisterMetaType<ScenePtr>("ScenePtr");
+    qRegisterMetaType<ActorPtr>("ActorPtr");
+    qRegisterMetaType<SceneList>("SceneList");
+    qRegisterMetaType<ActorList>("ActorList");
 }
 
 MainWindow::~MainWindow(){

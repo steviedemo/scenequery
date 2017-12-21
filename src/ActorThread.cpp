@@ -1,4 +1,8 @@
 #include "ActorThread.h"
+#include "definitions.h"
+#include "DatabaseThread.h"
+#include "Scene.h"
+#include "Actor.h"
 #include <QFutureSynchronizer>
 #include <qtconcurrentrun.h>
 ActorThread::ActorThread(){
@@ -37,7 +41,7 @@ void ActorThread::readFromDatabase(){
     connect(database, SIGNAL(initProgress(int)), this, SIGNAL(initProgress(int)));
     connect(database, SIGNAL(updateProgress(int)), this, SIGNAL(updateProgress(int)));
     connect(database, SIGNAL(closeProgress()), this, SIGNAL(closeProgress()));
-    connect(database, SIGNAL(finished(ActorList)), this, SLOT(receiveActors(ActorList)));
+    connect(database, SIGNAL(finished(QVector<QSharedPointer<Actor>>)), this, SLOT(receiveActors(QVector<QSharedPointer<Actor>>)));
     database->start();
 }
 

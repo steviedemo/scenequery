@@ -5,7 +5,24 @@
 #include <QRegularExpression>
 #include <QDate>
 
-
+bool nonzero(double d){
+    return d > 0;
+}
+bool nonzero(int i){
+    return (i > 0);
+}
+bool empty(QString s){
+    return s.isEmpty();
+}
+bool full(QString s){
+    return !(s.isEmpty());
+}
+bool valid(QDate d){
+    return (d.isValid());
+}
+bool valid(QDateTime d){
+    return (d.isValid());
+}
 
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters){
     return QDir(path).entryList(nameFilters, typeFilter);

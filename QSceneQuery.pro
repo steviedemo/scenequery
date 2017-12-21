@@ -16,6 +16,7 @@ MOC_DIR     = build
 OBJECTS_DIR = build
 UI_DIR      = build
 
+QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9#-mmacosx-version-min
 QMAKE_CXXFLAGS =        -std=c++0x
 QMAKE_CFLAGS_DEBUG =    -std=gnu99
 QMAKE_CFLAGS_RELEASE =  -std=gnu99
@@ -35,53 +36,57 @@ INCLUDEPATH += \
     /usr/local/include \
     src \
     units \
-
-
+    -I/usr/local/opt/qt/bin
+PKGCONFIG  = /usr/local/opt/qt/lib/pkgconfig
 LIBS += \
     -lcurl \
     -L/usr/local/lib \
     -framework DiskArbitration \
     -framework IOKit \
     -framework OpenGL \
-    -framework AGL
+    -framework AGL  \
+    -L/usr/local/opt/qt/lib \
+    -L/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources
 
-SOURCES += src/main.cpp\
-    src/mainwindow.cpp \
+SOURCES += \
+    src/ActorThread.cpp \
     src/config.cpp \
     src/curlTool.cpp \
+    src/DatabaseThread.cpp \
+    src/FileScanner.cpp \
     src/genericfunctions.cpp \
+    src/main.cpp\
+    src/mainwindow.cpp \
     src/qsqldbhelper.cpp \
     src/sceneParser.cpp \
     src/sql.cpp \
-    src/FileScanner.cpp \
     units/Actor.cpp \
     units/Biography.cpp \
     units/FilePath.cpp \
     units/Height.cpp \
     units/Rating.cpp \
     units/Scene.cpp \
-    qtcurl/QtCUrl.cpp \
-    src/DatabaseThread.cpp \
-    src/ActorThread.cpp
+    qtcurl/QtCUrl.cpp
 
-HEADERS  += src/mainwindow.h \
-    units/FilePath.h \
-    units/Rating.h \
-    units/Scene.h \
+HEADERS  += \
+    src/ActorThread.h \
+    src/config.h \
+    src/curlTool.h \
+    src/DatabaseThread.h \
+    src/definitions.h \
+    src/FileScanner.h \
+    src/genericfunctions.h \
+    src/mainwindow.h \
+    src/qsqldbhelper.h \
+    src/sceneParser.h \
+    src/sql.h \
     units/Actor.h \
     units/Biography.h \
+    units/FilePath.h \
     units/Height.h \
-    src/qsqldbhelper.h \
-    src/genericfunctions.h \
-    src/sceneParser.h \
-    qtcurl/QtCUrl.h \
-    src/sql.h \
-    src/curlTool.h \
-    src/config.h \
-    src/FileScanner.h \
-    src/definitions.h \
-    src/DatabaseThread.h \
-    src/ActorThread.h
+    units/Rating.h \
+    units/Scene.h \
+    qtcurl/QtCUrl.h
 
 FORMS    += forms/mainwindow.ui
 
@@ -89,3 +94,9 @@ QMAKE_CLEAN += \
     build/* \
     QSceneQuery.pro.user \
     Makefile
+
+STATECHARTS += \
+    forms/GUI_State_chart.scxml
+
+DISTFILES += \
+    scripts/collect_exif.sh

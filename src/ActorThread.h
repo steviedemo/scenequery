@@ -1,11 +1,9 @@
 #ifndef ACTORTHREAD_H
 #define ACTORTHREAD_H
-#include "definitions.h"
-#include "DatabaseThread.h"
-#include "Actor.h"
-#include "Scene.h"
 #include <QThread>
 #include <QMutex>
+#include <QVector>
+#include <QSharedPointer>
 class ActorThread : public QThread
 {
     Q_OBJECT
@@ -18,11 +16,11 @@ public:
     void run();
 private:
     void readFromDatabase();
-    ActorList readFromScenes();
-    DatabaseThread *database;
-    ActorList actors;
-    ActorList newList;
-    SceneList scenes;
+    QVector<QSharedPointer<class Actor>> readFromScenes();
+    class DatabaseThread *database;
+    QVector<QSharedPointer<class Actor>> actors;
+    QVector<QSharedPointer<class Actor>> newList;
+    QVector<QSharedPointer<class Scene>> scenes;
     QStringList names;
     int index;
     QMutex mx;
@@ -34,7 +32,7 @@ signals:
     void initProgress(int);
     void updateProgress(int);
     void closeProgress(void);
-    void finished(ActorList);
+    void finished(QVector<QSharedPointer<class Actor>> );
     void updateStatus(QString);
 };
 

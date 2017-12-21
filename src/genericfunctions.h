@@ -9,12 +9,12 @@ QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList name
 QString     listToString(QStringList);
 QString     system_call(QString);
 QString     headshotName(QString actorName);
-std::string qtos    (QString q)     {   return q.toStdString();                 }
-QString     stoq    (std::string s) {   return QString::fromStdString(s);       }
-bool        empty   (QString s)     {   return (s.isEmpty() || s.isNull());     }
-bool        full    (QString s)     {   return (!s.isEmpty() && !s.isNull());   }
-bool        nonzero (int i)         {   return i > 0;                           }
-bool        nonzero (double d)      {   return d > 0.0;                         }
-bool        valid   (QDate d)       {   return (d.isValid() && !d.isNull());    }
-bool        valid   (QDateTime d)   {   return (d.isValid() && !d.isNull());    }
+//std::string qtos    (QString q)     {   return q.toStdString();                 }
+//QString     stoq    (std::string s) {   return QString::fromStdString(s);       }
+bool        empty   (QString s);
+bool        full    (QString s);
+bool        nonzero (int i);
+bool        nonzero (double d);
+bool        valid   (QDate d);
+bool        valid   (QDateTime d);
 #endif // GENERICFUNCTIONS_H

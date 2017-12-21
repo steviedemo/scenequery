@@ -1,5 +1,6 @@
 #ifndef SQL_H
 #define SQL_H
+#include <QMutex>
 #include <QtSql>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -14,21 +15,23 @@ struct operation_count {
     operation_count() :
         idx(0), added(0), updated(0){}
     int total(){ return added + updated;    }
+    void reset(){
+        idx = 0;
+        added = 0;
+        updated = 0;
+    }
+    void addInsert(){
+        idx++;
+        added++;
+    }
+    void addUpdate(){
+        idx++;
+        updated++;
+    }
 };
 
-void    sqlAppend   (QString &fields, QStringList &list, QString name, QString item);
-void    sqlAppend   (QString &fields, QString &values, QStringList &list, QString name, QString item);
-void    sqlAppend   (QString &fields, QString &values, QString name, QString item, bool prev);
-void    sqlAppend   (QString &fields, QString name, QString item, bool prev);
-QString sqlSafe     (QString s);
-QString sqlSafe     (QDate);
-QString sqlSafe     (QDateTime d);
-QString sqlSafe     (int i)              {   return QString("'%1'").arg(i);          }
-QString sqlSafe     (double d)           {   return QString("'%1'").arg(d);          }
-QString sqlSafe     (FilePath f);
-void loadActorList  (QVector<QSharedPointer<class Actor>> &actors);
-void loadSceneList  (QVector<QSharedPointer<class Scene>> &scenes);
-class SQL {
+class SQL : public QObject {
+    Q_OBJECT
 public:
     SQL(QString connectionName="default");
     ~SQL();
@@ -36,8 +39,10 @@ public:
     static void purgeScenes(void);
     int  countMatches   (QSqlQuery *q);
     bool hasMatch       (QSqlQuery *q);
-    bool hasScene       (ScenePtr s);
-    bool hasActor       (ActorPtr a);
+    bool hasScene       (ScenePtr s, bool &queryRan);
+    bool hasActor       (ActorPtr a, bool &queryRan);
+    bool insertOrUpdateActor(ActorPtr);
+    bool insertOrUpdateScene(ScenePtr);
     bool modifyDatabase (QSqlQuery *q);
     QSharedPointer<QSqlQuery> queryDatabase(QString queryText, QStringList args);
     QSharedPointer<QSqlQuery> assembleQuery(QString queryText, QStringList args, bool &ok);
@@ -46,12 +51,30 @@ public:
     void updateDatabase (QVector<QSharedPointer<class Scene>> sceneList);
     bool makeTable      (Database::Table);
     bool dropTable      (Database::Table);
-    bool sceneSql(ScenePtr S, Database::queryType type);
-    bool actorSql(ActorPtr A, Database::queryType type);
+    bool sceneSql(ScenePtr S, queryType type);
+    bool actorSql(ActorPtr A, queryType type);
+    // Static Functions
+    static void    sqlAppend   (QString &fields, QStringList &list, QString name, QString item);
+    static void    sqlAppend   (QString &fields, QString &values, QStringList &list, QString name, QString item);
+    static void    sqlAppend   (QString &fields, QString &values, QString name, QString item, bool prev);
+    static void    sqlAppend   (QString &fields, QString name, QString item, bool &prev);
+    static QString sqlSafe     (QString s);
+    static QString sqlSafe     (QDate);
+    static QString sqlSafe     (QDateTime d);
+    static QString sqlSafe     (int i)              {   return QString("'%1'").arg(i);          }
+    static QString sqlSafe     (double d)           {   return QString("'%1'").arg(d);          }
+    static QString sqlSafe     (FilePath f);
+    static void loadActorList  (QVector<QSharedPointer<class Actor>> &actors);
+    static void loadSceneList  (QVector<QSharedPointer<class Scene>> &scenes);
 private:
+    operation_count count;
     QSqlDatabase db;
     QString connectionName;
-
+    QMutex mx;
+signals:
+    void startProgress(int total);
+    void updateProgress(int);
+    void closeProgress();
 };
 
 #define ADB_TABLE 	"CREATE TABLE IF NOT EXISTS ACTORS("\

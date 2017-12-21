@@ -215,12 +215,6 @@ QString curlTool::headshotDownloaded(QString name){
     return location;
 }
 
-QString headshotName(QString name){
-    QString filename = name.toLower().replace(' ', '_').remove(QRegularExpression("[\\t\\n'.]"));
-    filename.append(".jpeg");
-    return filename;
-}
-
 bool curlTool::wget(QString url, QString destination){
     QString cmd = QString("wget -O %1 %2").arg(destination).arg(url);
     return (system(qPrintable(cmd)) == EXIT_SUCCESS);

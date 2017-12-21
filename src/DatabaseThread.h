@@ -27,9 +27,7 @@ private:
     SceneList sceneList;
     Database::Table table;
     Database::Operation operation;
-    void updateSceneTable();
     void updateSceneList();
-    void updateActorTable();
     void updateActorList();
     void insertActor(QSharedPointer<class Actor> a);
     void insertScene(QSharedPointer<class Scene> s);

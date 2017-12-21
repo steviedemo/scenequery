@@ -2,6 +2,9 @@
 #include "qsqldbhelper.h"
 #include "Actor.h"
 #include "Scene.h"
+#include <QFutureSynchronizer>
+#include <QtConcurrent>
+#include <QtConcurrentRun>
 #include <QObjectUserData>
 #include <QSqlQuery>
 #include <QSqlRecord>
@@ -65,7 +68,7 @@ QSharedPointer<QSqlQuery> SQL::assembleQuery(QString s, QStringList args, bool &
 /*------------------------------------------------------------------
  * Converting strings to the appropriate Syntax for SQL queries.
  *------------------------------------------------------------------*/
-QString sqlSafe(QDateTime d){
+QString SQL::sqlSafe(QDateTime d){
     QString s("");
     if (valid(d)){
         s=d.toString("'yyyy-MM-dd'");
@@ -73,18 +76,18 @@ QString sqlSafe(QDateTime d){
     return s;
 }
 
-QString sqlSafe(QDate d)    {
+QString SQL::sqlSafe(QDate d)    {
     QString s("");
     if (d.isValid() && !d.isNull())
         s=d.toString("'yyyy-MM-dd'");
     return s;
 }
 
-QString sqlSafe(FilePath f){
+QString SQL::sqlSafe(FilePath f){
     return sqlSafe(f.absolutePath());
 }
 
-QString sqlSafe(QString s){
+QString SQL::sqlSafe(QString s){
     QString sql("");
     if (s.isEmpty())
         return sql;
@@ -113,7 +116,7 @@ QString sqlSafe(QString s){
     sql.append("'");
     return sql;
 }
-void    sqlAppend(QString &fields, QString &values, QStringList &list, QString fieldname, QString itemvalue){
+void    SQL::sqlAppend(QString &fields, QString &values, QStringList &list, QString fieldname, QString itemvalue){
     if (!itemvalue.isEmpty() && !itemvalue.isNull() && itemvalue != "0" && itemvalue != "0.0"){
         if (list.size() > 0)
             fields.append(',');
@@ -123,7 +126,7 @@ void    sqlAppend(QString &fields, QString &values, QStringList &list, QString f
     }
 }
 
-void    sqlAppend(QString &fields, QStringList &list, QString fieldname, QString itemvalue){
+void SQL::sqlAppend(QString &fields, QStringList &list, QString fieldname, QString itemvalue){
     if (!itemvalue.isEmpty() && !itemvalue.isNull() && itemvalue != "0" && itemvalue != "0.0"){
         if (list.size() > 0)
             fields.append(',');
@@ -132,7 +135,7 @@ void    sqlAppend(QString &fields, QStringList &list, QString fieldname, QString
     }
 }
 
-void sqlAppend(QString &fields, QString &values, QString name, QString item, bool prev){
+void SQL::sqlAppend(QString &fields, QString &values, QString name, QString item, bool prev){
     if (item != "0" && full(item)){
         if (prev){
             fields.append(',');
@@ -143,7 +146,7 @@ void sqlAppend(QString &fields, QString &values, QString name, QString item, boo
     }
 }
 
-void sqlAppend(QString &fields, QString title, QString item, bool &prev){
+void SQL::sqlAppend(QString &fields, QString title, QString item, bool &prev){
     if (item != "0" && item != "0.0" && full(item)){
         if (prev)
             fields.append(',');
@@ -152,12 +155,12 @@ void sqlAppend(QString &fields, QString title, QString item, bool &prev){
     }
 }
 
-const char *toString(Database::queryType q){
-    if (q == Database::UPDATE)
+const char *toString(queryType q){
+    if (q == SQL_UPDATE)
         return "Update";
-    else if (q == Database::INSERT)
+    else if (q == SQL_INSERT)
         return "Add";
-    else if (q == Database::REQUEST)
+    else if (q == SQL_REQUEST)
         return "Get";
     else
         return "???";
@@ -168,7 +171,7 @@ const char *toString(Database::queryType q){
 /*------------------------------------------------------------------
  * Clear unused items out of the table.
  *------------------------------------------------------------------*/
-void purgeScenes(void){
+void SQL::purgeScenes(void){
     QSqlDBHelper sql;
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Purge Scenes");
@@ -192,7 +195,7 @@ void purgeScenes(void){
 /** \brief Load scenes from the database into the list of scenes passed
  *  \param SceneList &scenes:   Scenes already in list.
  */
-void loadSceneList(SceneList &scenes){
+void SQL::loadSceneList(SceneList &scenes){
     QSqlDBHelper sql;
     if (!sql.connect(HOST, SCENE_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Load Scenes");
@@ -208,7 +211,7 @@ void loadSceneList(SceneList &scenes){
     sql.disconnect();
 }
 
-void loadActorList(QVector<QSharedPointer<Actor>> &actors){
+void SQL::loadActorList(QVector<QSharedPointer<Actor>> &actors){
     QSqlDBHelper sql;
     if (!sql.connect(HOST, ACTOR_DB, USERNAME, PASSWORD)){
         qWarning("Unable to Connect to database - Cannot Load Actors");
@@ -234,16 +237,16 @@ void loadActorList(QVector<QSharedPointer<Actor>> &actors){
  *  \param QSharedPointer<Scene> S: Scene object
  *  \param queryType:   Update, or retrieve.
  */
-bool SQL::sceneSql(QSharedPointer<Scene> S, Database::queryType type){
+bool SQL::sceneSql(QSharedPointer<Scene> S, queryType type){
     QString queryString("");
     QStringList queryArgs;
     const char *name = qPrintable(S->getFile().getName());
     bool success = false, workToDo = false;
     qDebug("Attempting to %s %s", toString(type), name);
     // Get Query Syntax.
-    if (type == Database::UPDATE){
+    if (type == SQL_UPDATE){
         workToDo = S->sqlUpdate(queryString, queryArgs);
-    } else if (type == Database::INSERT){
+    } else if (type == SQL_INSERT){
         workToDo = S->sqlInsert(queryString, queryArgs);
     } else {
         qCritical("Invalid Query Type Requested for Actor %s: %s", name, toString(type));
@@ -281,7 +284,7 @@ bool SQL::sceneSql(QSharedPointer<Scene> S, Database::queryType type){
     return success;
 }
 
-bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
+bool SQL::actorSql(QSharedPointer<Actor> A, queryType type){
     QString queryString("");
     QStringList queryArgs;
     const char *name = qPrintable(A->getName());
@@ -289,9 +292,9 @@ bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
 
     qDebug("Attempting to %s %s", toString(type), name);
     // Get Query Syntax.
-    if (type == Database::UPDATE){
+    if (type == SQL_UPDATE){
         workToDo = A->sqlUpdate(queryString, queryArgs);
-    } else if (type == Database::INSERT){
+    } else if (type == SQL_INSERT){
         workToDo = A->sqlInsert(queryString, queryArgs);
     } else {
         qCritical("Invalid Query Type Requested for Actor %s: %s", name, toString(type));
@@ -327,58 +330,95 @@ bool SQL::actorSql(QSharedPointer<Actor> A, Database::queryType type){
 /*------------------------------------------------------------------
  * ADDING/UPDATING from items in a vector
  *------------------------------------------------------------------*/
-bool SQL::hasScene(ScenePtr s){
+bool SQL::hasScene(ScenePtr s, bool &queryRan){
     db.transaction();
     QString queryString = QString("SELECT * FROM scenes WHERE actor1 = %1 AND title = %2 AND size = %3 AND height = %4 AND length = %5 ").arg(s->getActor(0)).arg(s->getTitle()).arg(s->getSize()).arg(s->getHeight()).arg(s->getLength());
     QSqlQuery q;
-    q.exec(queryString);
+    queryRan = q.exec(queryString);
     return (q.size() > 0);
 }
 
-bool SQL::hasActor(ActorPtr a){
-#warning unwritten code.
-    return true;
+bool SQL::hasActor(ActorPtr a, bool &queryRan){
+    bool success = false;
+    QSqlQuery query(db);
+    if (query.exec(QString("SELECT FROM ACTORS WHERE (NAME LIKE %1)").arg(a->getName()))){
+        queryRan = true;
+        success = (query.size() > 0);
+    }
+    return success;
+}
+
+bool SQL::insertOrUpdateActor(QSharedPointer<Actor> A){
+    QSqlQuery query(db);
+    // Check if record is in the list
+    bool success = false;
+    bool inDb = hasActor(A, success);
+    if (success && !inDb){
+        if (actorSql(A, SQL_INSERT)){
+            mx.lock();
+            count.added++;
+            mx.unlock();
+        }
+    } else if (success && inDb){
+        if (actorSql(A, SQL_UPDATE)){
+            mx.lock();
+            count.updated++;
+            mx.unlock();
+        }
+    } else {
+        qCritical("Error Querying Table for Actor '%s'", qPrintable(A->getName()));
+    }
+    return success;
+}
+
+
+void SQL::updateDatabase(QVector<QSharedPointer<Actor>> actorList){
+    emit startProgress(actorList.size());
+    QFutureSynchronizer<bool> sync;
+    foreach(QSharedPointer<Actor> A, actorList){
+        sync.addFuture(QtConcurrent::run(this, &SQL::insertOrUpdateActor, A));
+    }
+    sync.waitForFinished();
+    emit closeProgress();
+    qDebug("\n\nAdded %d new Actors.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), actorList.size());
+}
+
+bool SQL::insertOrUpdateScene(ScenePtr s){
+    bool queryRan = false, inTable = false;
+    inTable = hasScene(s, queryRan);
+    if (queryRan && !inTable) {
+        if (sceneSql(s, SQL_UPDATE)){
+            mx.lock();
+            count.addUpdate();
+            mx.unlock();
+        }
+    } else if (queryRan && !inTable){
+        if (sceneSql(s, SQL_INSERT)){
+            mx.lock();
+            count.addInsert();
+            mx.unlock();
+        }
+    } else {
+        qCritical("Error Querying Database for '%s'", qPrintable(s->getFile().absolutePath()));
+    }
+    mx.lock();
+    emit updateProgress(count.idx);
+    mx.unlock();
+    return queryRan;
 }
 
 void SQL::updateDatabase(QVector<QSharedPointer<Scene>> sceneList){
-    operation_count count;
+    count.reset();
+    emit startProgress(sceneList.size());
+    QFutureSynchronizer<bool> sync;
     foreach(QSharedPointer<Scene> S, sceneList){
-        count.idx++;
-        // General Variables needed in most cases
-        QSqlQuery query(db);
-        // Check if record is in the list
-        if (query.exec(QString("SELECT FROM ACTORS WHERE (NAME LIKE %1)").arg(S->getFile().getPath()))){
-            if (query.size() == 0){    // Insert into table
-                count.added += (sceneSql(S, Database::INSERT) ? 1 : 0);
-            } else {    // Update or Leave alone
-                count.updated += (sceneSql(S, Database::UPDATE) ? 1 : 0);
-            }
-        } else {
-            qCritical("Error Querying Table for Scene '%s'", qPrintable(S->getFile().getPath()));
-        }
+        sync.addFuture(QtConcurrent::run(this, &SQL::insertOrUpdateScene, S));
     }
+    sync.waitForFinished();
+    emit closeProgress();
     qDebug("\n\nAdded %d new Scenes.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), sceneList.size());
 }
 
-void SQL::updateDatabase(QVector<QSharedPointer<Actor>> actorlist){
-    operation_count count;
-    foreach(QSharedPointer<Actor> A, actorlist){
-        count.idx++;
-        // General Variables needed in most cases
-        QSqlQuery query(db);
-        // Check if record is in the list
-        if (query.exec(QString("SELECT FROM ACTORS WHERE (NAME LIKE %1)").arg(A->getName()))){
-            if (query.size() == 0){    // Insert into table
-                count.added += (actorSql(A, Database::INSERT) ? 1 : 0);
-            } else {    // Update or Leave alone
-                count.updated += (actorSql(A, Database::UPDATE) ? 1 : 0);
-            }
-        } else {
-            qCritical("Error Querying Table for Actor '%s'", qPrintable(A->getName()));
-        }
-    }
-    qDebug("\n\nAdded %d new Actors.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), actorlist.size());
-}
 
 // Run a SELECT query and count the number of records that match.
 int SQL::countMatches(QSqlQuery *q){
@@ -392,7 +432,7 @@ int SQL::countMatches(QSqlQuery *q){
     return matches;
 }
 
-// Run an UPDATE or INSERT query on the database
+// Run an SQL_UPDATE or SQL_INSERT query on the database
 bool SQL::modifyDatabase(QSqlQuery *q){
     bool result = false;
     if (!db.isValid()){

@@ -2,6 +2,7 @@
 #include "Actor.h"
 #include "Scene.h"
 #include "sql.h"
+#include "definitions.h"
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
 
@@ -45,67 +46,49 @@ void DatabaseThread::setOperation(Database::Operation operation)    {   this->op
 
 void DatabaseThread::run(){
     index = 0;
+    SQL sql("db");
+    connect(&sql, SIGNAL(startProgress(int)), this, SIGNAL(initProgress(int)));
+    connect(&sql, SIGNAL(updateProgress(int)), this, SIGNAL(updateProgress(int)));
+    connect(&sql, SIGNAL(closeProgress()),    this, SIGNAL(closeProgress()));
     if (table == Database::SCENE){
         if (operation == Database::OPERATION_UPDATE){
             emit updateStatus(QString("Updating Scene Database"));
-            updateSceneTable();
+            sql.updateDatabase(sceneList);
         } else {
             emit updateStatus("Getting Scenes from Database");
-            updateSceneList();
+            sql.loadSceneList(sceneList);
             emit finished(sceneList);
         }
         emit updateStatus("Finished");
     } else {
         if (operation == Database::OPERATION_UPDATE){
             emit updateStatus("Updating Actor Database");
-            updateActorTable();
+            sql.updateDatabase(actorList);
         } else {
             emit updateStatus("Getting Actors from Database");
-            updateActorList();
+            SQL::loadActorList(actorList);
             emit finished(actorList);
         }
         emit updateStatus("Finished");
     }
+    disconnect(&sql, SIGNAL(startProgress(int)), this, SIGNAL(initProgress(int)));
+    disconnect(&sql, SIGNAL(updateProgress(int)), this, SIGNAL(updateProgress(int)));
+    disconnect(&sql, SIGNAL(closeProgress()),    this, SIGNAL(closeProgress()));
 }
 
-void DatabaseThread::updateActorList(){
-    loadActorList(actorList);
-}
-void DatabaseThread::updateSceneList(){
-    loadSceneList(sceneList);
-}
-
+/** \brief Add an actor to the database */
 void DatabaseThread::insertActor(QSharedPointer<Actor> a){
-#warning need to write function
-}
-void DatabaseThread::insertScene(QSharedPointer<Scene> s){
-#warning need to write function
-}
-
-void DatabaseThread::updateActorTable(){
-    if (actorList.size() > 0){
-        qDebug("Updating Actor Database with %d Entries", actorList.size());
-        QFutureSynchronizer<void> sync;
-        emit initProgress(actorList.size());
-        for (int i = 0; i < actorList.size(); ++i){
-            sync.addFuture(QtConcurrent::run(this, &DatabaseThread::insertActor, actorList.at(i)));
-        }
-        sync.waitForFinished();
-        emit closeProgress();
-        qDebug("Actor Table Updated");
+    if(!a.isNull()){
+        SQL sql(a->getName());
+        sql.actorSql(a, SQL_INSERT);
     }
 }
-void DatabaseThread::updateSceneTable(){
-    if (sceneList.size() > 0){
-        qDebug("Updating Scene Table with %d Entries", sceneList.size());
-        QFutureSynchronizer<void> sync;
-        emit initProgress(sceneList.size());
-        for (int i = 0; i < sceneList.size(); ++i){
-            sync.addFuture(QtConcurrent::run(this, &DatabaseThread::insertScene, sceneList.at(i)));
-        }
-        sync.waitForFinished();
-        emit closeProgress();
-        qDebug("Scene Table Updated");
+
+/** \brief Add a Scene to the Database */
+void DatabaseThread::insertScene(QSharedPointer<Scene> s){
+    if (!s.isNull()){
+        SQL sql(s->getTitle());
+        sql.sceneSql(s, SQL_INSERT);
     }
 }
 
@@ -115,13 +98,14 @@ bool DatabaseThread::setActor(ActorPtr a){
     if (name.isEmpty()){
         qWarning("Not Creating Database Connection for actor object with empty name");
     } else {
+        bool queryRan = false;
         SQL sql(a->getName());
         if(!sql.connect()){
             qWarning("Unable to create database connection with name '%s'", qPrintable(name));
-        } else if(sql.hasActor(a)){
-            success = sql.actorSql(a, Database::UPDATE);
+        } else if(sql.hasActor(a, queryRan)){
+            success = sql.actorSql(a, SQL_UPDATE);
         } else {
-            success = sql.actorSql(a, Database::INSERT);
+            success = sql.actorSql(a, SQL_INSERT);
         }
     }
     mx.lock();
@@ -131,14 +115,14 @@ bool DatabaseThread::setActor(ActorPtr a){
 }
 
 bool DatabaseThread::setScene(ScenePtr s){
-    bool success = false;
+    bool success = false, queryRan = false;
     SQL sql(s->getTitle());
     if (!sql.connect()){
         qWarning("Unable to connect to Scene Database");
-    } else if (sql.hasScene(s)){
-        success = sql.sceneSql(s, Database::UPDATE);
+    } else if (sql.hasScene(s, queryRan)){
+        success = sql.sceneSql(s, SQL_UPDATE);
     } else {
-        success = sql.sceneSql(s, Database::INSERT);
+        success = sql.sceneSql(s, SQL_INSERT);
     }
     mx.lock();
     emit updateProgress(index);

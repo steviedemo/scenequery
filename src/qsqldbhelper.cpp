@@ -63,6 +63,8 @@ bool QSqlDBHelper::sceneQuery(QString queryString, QStringList queryArgs, QSqlQu
     }
     return success;
 }
+
+
 bool QSqlDBHelper::actorQuery(QString queryString, QStringList args, QSqlQuery *query){
     bool success = false;
     if (makeQuery(queryString, args, query)){
