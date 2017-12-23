@@ -66,7 +66,9 @@ SOURCES += \
     units/Height.cpp \
     units/Rating.cpp \
     units/Scene.cpp \
-    qtcurl/QtCUrl.cpp
+    qtcurl/QtCUrl.cpp \
+    src/sqlconnection.cpp \
+    query.cpp
 
 HEADERS  += \
     src/ActorThread.h \
@@ -86,7 +88,9 @@ HEADERS  += \
     units/Height.h \
     units/Rating.h \
     units/Scene.h \
-    qtcurl/QtCUrl.h
+    qtcurl/QtCUrl.h \
+    src/sqlconnection.h \
+    query.h
 
 FORMS    += forms/mainwindow.ui
 

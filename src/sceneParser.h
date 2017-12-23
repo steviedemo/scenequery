@@ -15,6 +15,7 @@ class sceneParser
 {
 private:
     FilePath file;
+    bool parsed;
     QString currPath, currName;
     QStringList tags, actors;
     QString title, company, series;
@@ -35,9 +36,11 @@ public:
     sceneParser();
     sceneParser(class FilePath f);
     ~sceneParser();
+    void        parse       (void);
     void        parse       (class FilePath);
     static QString sysCall  (QString);
-
+    bool        isParsed()      {   return parsed;  }
+    bool        isEmpty()       {   return file.isEmpty();  }
     int         getSize()       {   return size;    }
     int         getWidth()      {   return width;   }
     int         getHeight()     {   return height;  }

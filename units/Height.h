@@ -33,6 +33,7 @@ public:
     int     getCm(void)                 {   return cm;     }
     int     getFeet(void)               {   return feet;   }
     QString toString(void);
+    QString sqlSafe(void);
 };
 
 

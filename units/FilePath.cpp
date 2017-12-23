@@ -32,6 +32,9 @@ FilePath::FilePath(const FilePath &f){
     this->extension = f.extension;
 }
 FilePath::~FilePath(){}
+bool    FilePath::isEmpty(){
+    return (path.isEmpty() || name.isEmpty());
+}
 
 QString FilePath::getName()      const {   return this->name;      }
 QString FilePath::getPath()      const {   return this->path;      }

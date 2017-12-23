@@ -5,9 +5,20 @@
 #include <QRegularExpression>
 #include <QString>
 #include <sys/stat.h>
-sceneParser::sceneParser(){}
-sceneParser::sceneParser(FilePath f):file(f){}
-sceneParser::~sceneParser(){}
+sceneParser::sceneParser():
+    parsed(false), currPath(""), currName(""), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(0.0),
+    release(QDate()), accessed(QDate()), created(QDate()){
+}
+sceneParser::sceneParser(FilePath f):
+    file(f), parsed(false),
+    currPath(""), currName(""), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(0.0),
+    release(QDate()), accessed(QDate()), created(QDate())
+    {
+}
+sceneParser::~sceneParser(){
+}
 
 QString sceneParser::sysCall(QString cmd){
     QString output("");
@@ -23,6 +34,13 @@ QString sceneParser::sysCall(QString cmd){
     return output;
 }
 
+void sceneParser::parse(void){
+    if (file.isEmpty()){
+        qWarning("Cannot parse empty filepath");
+    } else {
+        parse(this->file);
+    }
+}
 
 void sceneParser::parse(FilePath f){
     QString fullpath = f.absolutePath();
@@ -44,6 +62,7 @@ void sceneParser::parse(FilePath f){
     this->tags          = parseTags(currName);
     // get Height, Width, Length, and try for release date.
     bashScript(f);
+    parsed = true;
 }
 
 // Get the Title.

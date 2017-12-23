@@ -71,4 +71,6 @@ bool Height::isValid(){
 QString Height::toString(void){
     return QString("%1'%2\"").arg(feet).arg(inches);
 }
-
+QString Height::sqlSafe(){
+    return QString("%1cm").arg(cm);
+}

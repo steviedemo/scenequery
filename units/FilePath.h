@@ -21,6 +21,7 @@ public:
     QString unixSafe();
     QString sqlSafe();
     bool exists();
+    bool isEmpty();
 private:
     QString name;
     QString path;

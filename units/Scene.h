@@ -9,6 +9,7 @@
 #include <QVector>
 #include "FilePath.h"
 #include "Rating.h"
+
 class Scene
 {
 
@@ -26,9 +27,12 @@ public:
     Scene   (void);
     Scene   (FilePath);
     Scene   (QSqlRecord);
+    Scene   (class sceneParser);
     ~Scene  (void);
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
+
+    class Query toQuery();
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;
     bool    inDatabase(void);
