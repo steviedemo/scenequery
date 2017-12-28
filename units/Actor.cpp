@@ -31,27 +31,6 @@ Actor::Actor(pqxx::result::const_iterator &i):Entry(){
     this->fromRecord(i);
 }
 
-//Actor::Actor(QSqlRecord r){
-//    Biography b;
-//    this->name      = r.value("name").toString();
-//    this->headshot = headshotDownloaded()
-//    this->headshot  = r.value("photo").toString();
-//    b.aliases       = r.value("aliases").toString();
-//    b.birthdate     = QDate::fromString(r.value("birthday").toString(), "yyyy.MM.dd");
-//    b.city          = r.value("city").toString();
-//    b.nationality   = r.value("country").toString();
-//    b.ethnicity     = r.value("ethnicity").toString();
-//    b.height        = Height(r.value("height").toInt());
-//    b.weight        = r.value("weight").toInt();
-//    b.measurements  = r.value("measurements").toString();
-//    b.hair          = r.value("hair").toString();
-//    b.eyes          = r.value("eyes").toString();
-//    b.tattoos       = r.value("tattoos").toString();
-//    b.piercings     = r.value("piercings").toString();
-//    this->bio = b;
-//    setup();
-//}
-
 void Actor::fromRecord(pqxx::result::const_iterator &i){
     try{
         if (!i["id"].is_null())         {   setID((qint64)i["id"].as<long long unsigned int>());                }

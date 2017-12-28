@@ -59,14 +59,48 @@ private slots:
 
     void on_updateDisplay_clicked();
 
-    void on_assignProfilePhoto_clicked();
+    void selectNewProfilePhoto();
 
+    void on_closeProfile_clicked();
+
+    void on_profile_photo_customContextMenuRequested(const QPoint &pos);
+
+
+    void on_saveProfile_clicked();
+
+    void on_resetProfile_clicked();
+
+    void on_birthDateDateEdit_userDateChanged(const QDate &date);
+
+    void on_hairColorLineEdit_textChanged(const QString &arg1);
+
+    void on_ethnicityLineEdit_textChanged(const QString &arg1);
+
+    void on_nationalityLineEdit_textEdited(const QString &arg1);
+
+    void on_heightLineEdit_textEdited(const QString &arg1);
+
+    void on_weightLineEdit_textEdited(const QString &arg1);
+
+    void on_eyeColorLineEdit_textEdited(const QString &arg1);
+
+    void on_measurementsLineEdit_textEdited(const QString &arg1);
+
+    void on_aliasesEdit_textChanged();
+
+    void on_piercingsEdit_textChanged();
+
+    void on_tattoosEdit_textChanged();
+    void showEvent(QShowEvent *event);
 private:
     void setupThreads();
     void setupViews();
     void refreshSceneView();
     void sortActors();
     ActorPtr getSelectedActor();
+    void setResetAndSaveButtons(bool enabled);
+
+    void loadActorProfile(ActorPtr);
     /// View
     Ui::MainWindow *ui;
     QModelIndex currentActorIndex;
@@ -93,7 +127,7 @@ signals:
 
     void updateBios(ActorList);
     void getHeadshots(ActorList);
-
+    void saveActorChanges(ActorPtr);
     void scanFolder(QString);
     void scanActors(SceneList, ActorList);
     void makeNewActors(QStringList);

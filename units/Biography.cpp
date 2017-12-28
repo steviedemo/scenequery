@@ -90,25 +90,25 @@ void Biography::setWeight(int w){
 bool Biography::has(QString key){
     bool found = false;
     if (key.contains("alias", Qt::CaseInsensitive))
-        found = !(this->aliases.isEmpty());
+        found = !(this->aliases.isEmpty() && this->aliases.contains("Unknown"));
     else if (key.contains("city", Qt::CaseInsensitive))
-        found = !(city.isEmpty());
+        found = !(city.isEmpty() && this->city.contains("Unknown"));
     else if (key.contains("ethnic", Qt::CaseInsensitive))
-        found = !(ethnicity.isEmpty());
+        found = !(ethnicity.isEmpty() && this->ethnicity.contains("Unknown"));
     else if (key.contains("hair", Qt::CaseInsensitive))
-        found = !(hair.isEmpty());
+        found = !(hair.isEmpty() && this->hair.contains("Unknown"));
     else if (key.contains("eye", Qt::CaseInsensitive))
-        found = !(eyes.isEmpty());
+        found = !(eyes.isEmpty() && this->eyes.contains("Unknown"));
     else if (key.contains("measure", Qt::CaseInsensitive))
-        found = !(measurements.isEmpty());
+        found = !(measurements.isEmpty() && this->measurements.contains("Unknown"));
     else if (key.contains("nation", Qt::CaseInsensitive))
-        found = !(nationality.isEmpty());
+        found = !(nationality.isEmpty() && this->nationality.contains("Unknown"));
     else if (key.contains("birthda", Qt::CaseInsensitive))
         found = (!birthdate.isNull() && birthdate.isValid());
     else if (key.contains("tattoo", Qt::CaseInsensitive))
-        found = !(tattoos.isEmpty());
+        found = !(tattoos.isEmpty() && this->tattoos.contains("Unknown") && this->tattoos != "None");
     else if (key.contains("pierc", Qt::CaseInsensitive) || key.contains("peirc", Qt::CaseInsensitive))
-        found = !(piercings.isEmpty());
+        found = !(piercings.isEmpty() && this->piercings.contains("Unknown") && this->piercings != "None");
     else if (key.contains("height", Qt::CaseInsensitive))
         found = height.isValid() && height.nonZero();
     else if (key.contains("weight", Qt::CaseInsensitive))

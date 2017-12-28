@@ -52,6 +52,7 @@ public:
     // Hight Level, Threaded Routines
 public slots:
     void            saveChanges         (ScenePtr);
+    void            updateActor         (ActorPtr);
     void            stopThread          ();
     void            load                (ActorList actors);
     void            load                (SceneList scenes);

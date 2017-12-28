@@ -16,16 +16,8 @@
 enum Website { IAFD, Freeones };
 
 QString         downloadHeadshot    (QString name);
-QString         headshotName    (QString name);
-bool            getFreeonesData     (QString name, class Biography *bio);
-bool            getIAFDData         (QString name, class Biography *bio);
-class Biography freeones            (QString);
-class Biography iafd                (QString);
-bool            wget                (QString, QString);
-QString         getHTML             (Website w, QString name);
-QString         bioSearchIAFD       (QString html, QString key);
-QString         bioSearchFO         (QString html, QString key);
-QString         getHeadshotName     (QString actorName);
+
+
 //enum CurlRequest { IAFD, Freeones, Photo, Filmography };
 class DownloadThread : public QObject, public QRunnable{
     Q_OBJECT
@@ -33,6 +25,14 @@ public:
     DownloadThread(QString name);
     ~DownloadThread();
     void run();
+    static bool            getFreeonesData     (QString name, class Biography *bio);
+    static bool            getIAFDData         (QString name, class Biography *bio);
+    static class Biography freeones            (QString);
+    static class Biography iafd                (QString);
+    static bool            wget                (QString, QString);
+    static QString         getHTML             (Website w, QString name);
+    static QString          bioSearchIAFD       (QString html, QString key);
+    static QString         bioSearchFO         (QString html, QString key);
 private:
     void            makeActor           (QString name);
     QString name, html, photo;
@@ -59,7 +59,7 @@ public slots:
 //    void            updateBio           (ActorPtr a);
 //  void            downloadPhotos      (ActorList a);
 //  void            updateBios          (ActorList a);
-    void            updateBios          (QStringList nameList);
+    void            makeNewActors       (QStringList nameList);
     void            stopThread          (void);
 private slots:
     void            receiveActor        (ActorPtr);

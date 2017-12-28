@@ -3,5 +3,40 @@
         <file>Icons/green_checkmark.png</file>
         <file>Icons/blank_profile_photo.png</file>
         <file>Icons/edit_icon.png</file>
+        <file>Icons/edit_icon_blue.png</file>
+        <file>Icons/add_folder_icon.png</file>
+        <file>Icons/edit_pencil.png</file>
+        <file>Icons/flat_save_icon.png</file>
+        <file>Icons/folder_search_icon_2.png</file>
+        <file>Icons/folder_search_icon.png</file>
+        <file>Icons/shiny_blue_add_icon.png</file>
+        <file>Icons/shiny_blue_back_icon.png</file>
+        <file>Icons/shiny_blue_cancel_icon.png</file>
+        <file>Icons/shiny_blue_download_from_cloud_icon.png</file>
+        <file>Icons/shiny_blue_download_icon.png</file>
+        <file>Icons/shiny_blue_forward_icon copy.png</file>
+        <file>Icons/shiny_blue_pause_icon.png</file>
+        <file>Icons/shiny_blue_play_icon.png</file>
+        <file>Icons/shiny_blue_reload_icon.png</file>
+        <file>Icons/shiny_blue_save_icon.png</file>
+        <file>Icons/shiny_blue_skip_back_icon.png</file>
+        <file>Icons/shiny_blue_skip_forward_icon.png</file>
+        <file>Icons/shiny_blue_stop_icon.png</file>
+        <file>Icons/shiny_blue_upload_icon.png</file>
+        <file>Icons/magnifying_glass_1.ico</file>
+        <file>Icons/shiny_blue_search_icon.png</file>
+        <file>Icons/red_close_icon.png</file>
+        <file>Icons/flat_cloud_sync_icon.png</file>
+        <file>Icons/flat_download_from_cloud_icon.png</file>
+        <file>Icons/flat_download_to_computer_icon.png</file>
+        <file>Icons/flat_hide_icon.png</file>
+        <file>Icons/flat_lock_icon.png</file>
+        <file>Icons/flat_sync_with_cloud_icon.png</file>
+        <file>Icons/refresh_desktop_icon.png</file>
+        <file>Icons/cloud down.ico</file>
+        <file>Icons/cloud up.ico</file>
+        <file>Icons/cloud-sync-icon.png</file>
+        <file>Icons/database_sync_icon.png</file>
+        <file>Icons/flat_save_icon_2.png</file>
     </qresource>
 </RCC>

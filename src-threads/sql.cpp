@@ -17,7 +17,7 @@
 
 using namespace pqxx;
 
-#define START_PSQL "pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
+#define START_PSQL "/usr/local/bin/pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
 SQL::SQL(QString name){
     // Start Postgresql
     startPostgres();
@@ -26,7 +26,6 @@ SQL::SQL(QString name){
 
 void SQL::startPostgres(){
     qDebug("Starting Postgresql..");
-    qDebug("Running Command: '%s'", "pg_ctl -D /usr/local/var/postgres start && brew services start postgresql");
     QString output = system_call(START_PSQL);
     qDebug("Output: %s", qPrintable(output));
 }
@@ -216,6 +215,21 @@ bool SQL::hasActor(ActorPtr a, bool &queryRan){
     delete sql;
     emit sendResult(found);
     return found;
+}
+
+void SQL::updateActor(ActorPtr A){
+    const char *name = qPrintable(A->getName());
+    qDebug("Updating Entry for %s", name);
+    Query query = A->toQuery();
+    sqlConnection *sql = new sqlConnection(query, SQL_UPDATE);
+    if (!sql->execute()){
+        qWarning("Error Updating %s", name);
+        emit updateStatus(QString("Error Updating %1").arg(A->getName()));
+    } else {
+        qDebug("%s Updated!", name);
+        emit updateStatus(QString("Successfully Updated %1").arg(A->getName()));
+    }
+    delete sql;
 }
 
 bool SQL::insertOrUpdateActor(QSharedPointer<Actor> A){

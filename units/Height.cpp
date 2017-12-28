@@ -40,13 +40,7 @@ bool Height::isEqual(Height other){
 bool Height::isGreater(Height other){
     return (this->getFeetDouble() > other.getFeetDouble());
 }
-bool Height::nonZero(){
-    bool zero = false;
-    if (this->feet == 0 && this->inches == 0){
-        zero = true;
-    }
-    return zero;
-}
+bool Height::nonZero(){ return (this->feet > 0);    }
 
 bool Height::operator ==(Height other){ return this->isEqual(other);    }
 bool Height::operator !=(Height other){ return !(this->isEqual(other)); }

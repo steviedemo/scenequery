@@ -89,7 +89,7 @@ QString request(QString urlString){
     return html;
 }
 
-QString getHTML(Website w, QString name){
+QString DownloadThread::getHTML(Website w, QString name){
     QString html(""), url("");
     QTextStream out(&url);
     QString nameCopy_1 = QString("%1").arg(name);
@@ -110,7 +110,7 @@ QString getHTML(Website w, QString name){
     return html;
 }
 
-QString bioSearchIAFD(QString html, QString key){
+QString DownloadThread::bioSearchIAFD(QString html, QString key){
     QString captureGroup("");
     QRegularExpression rx;
     rx.setPattern(QString(".*<p class=\"bioheading\">%1</p>\\s*<p class=\"biodata\">([a-zA-Z0-9/()\\s]+)</p>.*").arg(key));
@@ -119,7 +119,7 @@ QString bioSearchIAFD(QString html, QString key){
     return captureGroup;
 }
 
-QString bioSearchFO(QString html, QString key){
+QString DownloadThread::bioSearchFO(QString html, QString key){
     QString value("");
     QRegularExpression rx;
     rx.setPattern(QString("<dt>%1:\\s?</dt>\\s*<dd>([^\n]+)</dd>").arg(key));
@@ -135,7 +135,7 @@ QString bioSearchFO(QString html, QString key){
  *  \param Biography *bio:  Pointer to Biography Data Structure into which the Information will be placed
  *  \return bool success:   True if the curl Request was successful, and it seems as though the data was retrieved.
  */
-bool getFreeonesData(QString name, Biography *bio){
+bool DownloadThread::getFreeonesData(QString name, Biography *bio){
     QString html = getHTML(Freeones, name);
     if (html.isEmpty()){
         qWarning("Freeones Returned Empty HTML for '%s'", qPrintable(name));
@@ -170,7 +170,7 @@ bool getFreeonesData(QString name, Biography *bio){
     return true;
 }
 
-Biography freeones(QString name){
+Biography DownloadThread::freeones(QString name){
     Biography bio(name);
     getFreeonesData(name, &bio);
     return bio;
@@ -182,7 +182,7 @@ Biography freeones(QString name){
  *  \param Biography *bio:  Pointer to Biography Data Structure into which the Information will be placed
  *  \return bool success:   True if the curl Request was successful, and it seems as though the data was retrieved.
  */
-bool getIAFDData(QString name, Biography *bio){
+bool DownloadThread::getIAFDData(QString name, Biography *bio){
     QString html = getHTML(IAFD, name);
     // Verify that the html string isn't empty and contains some expected text.
     if (html.isEmpty()){
@@ -231,7 +231,7 @@ bool getIAFDData(QString name, Biography *bio){
     return true;
 }
 
-Biography iafd(QString name){
+Biography DownloadThread::iafd(QString name){
     Biography bio(name);
     getIAFDData(name, &bio);
     return bio;
@@ -258,7 +258,7 @@ void curlTool::downloadThreadComplete(){
 }
 
 
-void curlTool::updateBios(QStringList nameList){
+void curlTool::makeNewActors(QStringList nameList){
     this->index = 0;
     this->additions = 0;
     this->threadsFinished = 0;
@@ -300,7 +300,7 @@ void curlTool::downloadPhoto(ActorPtr a){
  *  \param  QString destination:    Absolute path to the location on disk where the link should be saved to.
  *  \return bool success:           true if download succeeded, false if it failed.
  */
-bool wget(QString url, QString filePath){
+bool DownloadThread::wget(QString url, QString filePath){
     bool success = false;
     QString cmd = QString("/usr/local/bin/wget %1 -O %2").arg(url).arg(filePath);
     if (!system_call(cmd).isEmpty()){
@@ -320,14 +320,14 @@ QString downloadHeadshot(QString actorName){
         qDebug("Headshot for '%s' already downloaded", qPrintable(actorName));
         returnValue = getHeadshotName(actorName);
     } else {
-        QString html = getHTML(IAFD, actorName);
+        QString html = DownloadThread::getHTML(IAFD, actorName);
         if (!html.isEmpty()){
             const QRegularExpression rx(".*<div id=\"headshot\">.*src=\"(.*)\">\\s*</div>\\s*<p class=\"headshotcaption\">.*");
             QRegularExpressionMatch m = rx.match(html);
             if (m.hasMatch()){
                 QString link = m.captured(1);
                 QString fullpath = getHeadshotName(actorName);
-                if (wget(link, fullpath)){
+                if (DownloadThread::wget(link, fullpath)){
                     returnValue = fullpath;
                     qDebug("Got Headshot for '%s'", qPrintable(actorName));
                 } else {
