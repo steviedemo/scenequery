@@ -6,14 +6,26 @@
 #include "query.h"
 #include <QSqlQuery>
 #include <QVariant>
-Scene::Scene(){
-    actors  = {};
+#include <string>
+using namespace std;
+Scene::Scene():Entry(){
     ages    = {};
 }
-Scene::Scene(sceneParser s){
-    if (!s.isEmpty()){
-        if (!s.isParsed()){
-            s.parse();
+Scene::Scene(sceneParser p):Entry(){
+    this->fromParser(p);
+}
+
+Scene::Scene(FilePath file) : Entry(){
+    this->file      = file;
+    sceneParser p;
+    p.parse(file);
+    this->fromParser(p);
+
+}
+void Scene::fromParser(sceneParser p){
+    if (!p.isEmpty()){
+        if (!p.isParsed()){
+            p.parse();
         }
         this->actors    = p.getActors();
         this->title     = p.getTitle();
@@ -30,32 +42,13 @@ Scene::Scene(sceneParser s){
         this->released  = p.getReleased();
         this->ages      = QVector<int>(actors.size(), 0);
     } else {
-        actors  = {};
-        ages    = {};
+        ages = {};
     }
 }
 
-Scene::Scene(FilePath file){
-    this->file      = file;
-    sceneParser p;
-    p.parse(file);
-    this->actors    = p.getActors();
-    this->title     = p.getTitle();
-    this->company   = p.getCompany();
-    this->series    = p.getSeries();
-    this->rating    = p.getRating();
-    this->tags      = p.getTags();
-    this->width     = p.getWidth();
-    this->height    = p.getHeight();
-    this->size      = p.getSize();
-    this->length    = p.getLength();
-    this->added     = p.getAdded();
-    this->opened    = p.getAccessed();
-    this->released  = p.getReleased();
-    this->ages      = QVector<int>(actors.size(), 0);
-}
 
 Scene::Scene(QSqlRecord r){
+    this->ID        = r.value("id").toLongLong();
     this->file      = FilePath(r.value("filepath").toString(), r.value("filename").toString());
     this->title     = r.value("title").toString();
     this->company   = r.value("company").toString();
@@ -80,34 +73,102 @@ Scene::Scene(QSqlRecord r){
     }
 }
 
-Scene::~Scene(){}
+Scene::Scene(pqxx::result::const_iterator &i){ this->fromRecord(i); }
 
-bool Scene::inDatabase(void){
-    SQL sql;
-    QStringList args;
-    QString queryString = QString("SELECT * FROM %1 where ACTOR1 = ? AND TITLE = ? AND SIZE = ? AND HEIGHT = ? AND LENGTH = ?").arg(SCENE_DB);
-    args << this->actors.at(0) << this->title << QString("%1").arg(this->size) << QString("%1").arg(this->height) << QString("%1").arg(this->length);
-    bool ok = false;
-    bool exists = false;
-    QSharedPointer<QSqlQuery>q = sql.assembleQuery(queryString, args, ok);
-    if (ok){
-        exists = sql.hasMatch(q.data());
+void Scene::fromRecord(pqxx::result::const_iterator &i){
+    try{
+        if (!i["id"].is_null())     {    this->ID = i["id"].as<int>();   }
+        if (!i["filename"].is_null() && !i["filepath"].is_null()){
+            QString filename = QString::fromStdString(i["filename"].as<string>());
+            QString filepath = QString::fromStdString(i["filepath"].as<string>());
+            this->setFile(FilePath(filepath, filename));
+        }
+        if (!i["title"].is_null())  {   this->title     = QString::fromStdString(i["title"].as<std::string>());     }
+        if (!i["company"].is_null()){   this->company   = QString::fromStdString(i["company"].as<std::string>());   }
+        if (!i["series"].is_null()) {   this->series    = QString::fromStdString(i["series"].as<std::string>());    }
+        if (!i["scene_no"].is_null()){  this->sceneNumber = (i["scene_no"].as<int>());                              }
+        if (!i["rating"].is_null()) {   this->rating    = Rating(i["rating"].as<std::string>());                    }
+        if (!i["size"].is_null())   {   this->size      = i["size"].as<int>();      }
+        if (!i["length"].is_null()) {   this->length    = i["length"].as<float>();  }
+        if (!i["width"].is_null())  {   this->width     = i["width"].as<int>();     }
+        if (!i["height"].is_null()) {   this->height    = i["height"].as<int>();    }
+        if (!i["added"].is_null())  {
+            QString temp = QString::fromStdString(i["added"].as<std::string>());
+            this->added = QDate::fromString(temp, "yyyy-MM-dd");
+        }
+        if (!i["created"].is_null()){
+            QString temp = QString::fromStdString(i["created"].as<std::string>());
+            this->released = QDate::fromString(temp, "yyyy-MM-dd");
+        }
+        if (!i["accessed"].is_null()){
+            QString temp = QString::fromStdString(i["accessed"].as<std::string>());
+            this->opened = QDate::fromString(temp, "yyyy-MM-dd");
+        }
+        for (int idx = 0; idx < 4; ++idx){
+            std::string fieldname = qPrintable(QString("actor%1").arg(idx+1));
+            std::string fieldage  = qPrintable(QString("age%1").arg(idx+1));
+            if (!i[fieldname].is_null()){
+                actors << QString::fromStdString(i[fieldname].as<std::string>());
+            }
+            if (!i[fieldage].is_null()){
+                ages.push_back(i[fieldage].as<int>());
+            } else {
+                ages.push_back(0);
+            }
+        }
+        if (!i["url"].is_null()){
+            this->url = QString::fromStdString(i["url"].as<std::string>());
+        }
+    }catch(std::exception &e){
+        qWarning("Error Caught while making Scene: %s", e.what());
     }
-    return exists;
 }
 
-Query Scene::toQuery(){
-    Query q();
+Scene::~Scene(){}
+
+
+QList<QStandardItem *> Scene::buildQStandardItem(){
+    qDebug("Placeholder for QStandardItem builder for Scene Class");
+    return row;
+}
+void Scene::updateQStandardItem(){
+    qDebug("Placeholder for QStandardItem Updater for the Scene Class");
+}
+
+bool Scene::inDatabase(void){
+    bool found = false;
+    sqlConnection *sql = new sqlConnection(QString("SELECT * FROM %1 where ACTOR1 = ? AND TITLE = ? AND SIZE = ? AND HEIGHT = ? AND LENGTH = ?").arg(SCENE_DB));
+    if (sql->execute()){
+        found = sql->foundMatch();
+    }
+    delete sql;
+    return found;
+}
+
+QString Scene::tagString() const{
+    QString s("");
+    QTextStream out(&s);
+    QStringListIterator it(tags);
+    while(it.hasNext()){
+        out << it.next() << (it.hasNext() ? ", " : "");
+    }
+    return s;
+}
+
+Query Scene::toQuery() const{
+    Query q;
+    q.setTable("scenes");
     q.add("TITLE", title);
     q.add("COMPANY", company);
     q.add("SERIES", series);
-    q.add("RATING", rating);
+    q.add("RATING", rating.toString());
     q.add("SCENE_NO", sceneNumber);
     q.add("SIZE",   size);
     q.add("LENGTH", length);
     q.add("WIDTH", width);
     q.add("HEIGHT", height);
-    q.add("TAGS",  sqlSafe(listToString(this->tags)));
+    q.add("TAGS",  tagString());
+    q.add("TAGS",  listToString(this->tags));
     q.add("ADDED", added);
     q.add("CREATED", released);
     q.add("ACCESSED", opened);
@@ -123,72 +184,22 @@ Query Scene::toQuery(){
     return q;
 }
 
-
-
-bool Scene::sqlInsert(QString &query, QStringList &list) const{
-    list.clear();
-    query.clear();
-    QString f("INSERT INTO scenes (FILENAME,FILEPATH"), v("?,?");
-    list << SQL::sqlSafe(file.getName());
-    list << SQL::sqlSafe(file.getPath());
-    SQL::sqlAppend(f, v, list, "TITLE",       SQL::sqlSafe(this->title));
-    SQL::sqlAppend(f, v, list, "COMPANY",     SQL::sqlSafe(this->company));
-    SQL::sqlAppend(f, v, list, "SERIES",      SQL::sqlSafe(this->series));
-    SQL::sqlAppend(f, v, list, "RATING",      SQL::sqlSafe(this->rating.toString()));
-    SQL::sqlAppend(f, v, list, "SCENE_NO",    SQL::sqlSafe(this->sceneNumber));
-    SQL::sqlAppend(f, v, list, "SIZE",        SQL::sqlSafe(this->size));
-    SQL::sqlAppend(f, v, list, "LENGTH",      SQL::sqlSafe(this->length));
-    SQL::sqlAppend(f, v, list, "WIDTH",       SQL::sqlSafe(this->width));
-    SQL::sqlAppend(f, v, list, "HEIGHT",      SQL::sqlSafe(this->height));
-    SQL::sqlAppend(f, v, list, "TAGS",        SQL::sqlSafe(listToString(this->tags)));
-    SQL::sqlAppend(f, v, list, "ADDED",       SQL::sqlSafe(this->added));
-    SQL::sqlAppend(f, v, list, "CREATED",     SQL::sqlSafe(this->released));
-    SQL::sqlAppend(f, v, list, "ACCESSED",    SQL::sqlSafe(this->opened));
-    SQL::sqlAppend(f, v, list, "ACTOR1",      SQL::sqlSafe(this->actors.at(0)));
-    SQL::sqlAppend(f, v, list, "ACTOR2",      SQL::sqlSafe(this->actors.at(1)));
-    SQL::sqlAppend(f, v, list, "ACTOR3",      SQL::sqlSafe(this->actors.at(2)));
-    SQL::sqlAppend(f, v, list, "ACTOR4",      SQL::sqlSafe(this->actors.at(3)));
-    SQL::sqlAppend(f, v, list, "AGE1",        SQL::sqlSafe(this->ages.at(0)));
-    SQL::sqlAppend(f, v, list, "AGE2",        SQL::sqlSafe(this->ages.at(1)));
-    SQL::sqlAppend(f, v, list, "AGE3",        SQL::sqlSafe(this->ages.at(2)));
-    SQL::sqlAppend(f, v, list, "AGE4",        SQL::sqlSafe(this->ages.at(3)));
-    SQL::sqlAppend(f, v, list, "URL",         SQL::sqlSafe(this->url));
-    query = QString("%1) VALUES (%2").arg(f).arg(v);
-    query.append(");");
-    return (list.size() > 0);
-}
-
-bool Scene::sqlUpdate(QString &query, QStringList &list) const{
-    QString f("UPDATE scenes SET ");
-    list.clear();
-    query.clear();
-
-    SQL::sqlAppend(f, list, "TITLE",       SQL::sqlSafe(this->title));
-    SQL::sqlAppend(f, list, "COMPANY",     SQL::sqlSafe(this->company));
-    SQL::sqlAppend(f, list, "SERIES",      SQL::sqlSafe(this->series));
-    SQL::sqlAppend(f, list, "RATING",      SQL::sqlSafe(this->rating.toString()));
-    SQL::sqlAppend(f, list, "SCENE_NO",    SQL::sqlSafe(this->sceneNumber));
-    SQL::sqlAppend(f, list, "SIZE",        SQL::sqlSafe(this->size));
-    SQL::sqlAppend(f, list, "LENGTH",      SQL::sqlSafe(this->length));
-    SQL::sqlAppend(f, list, "WIDTH",       SQL::sqlSafe(this->width));
-    SQL::sqlAppend(f, list, "HEIGHT",      SQL::sqlSafe(this->height));
-    SQL::sqlAppend(f, list, "TAGS",        SQL::sqlSafe(listToString(this->tags)));
-    SQL::sqlAppend(f, list, "ADDED",       SQL::sqlSafe(this->added));
-    SQL::sqlAppend(f, list, "CREATED",     SQL::sqlSafe(this->released));
-    SQL::sqlAppend(f, list, "ACCESSED",    SQL::sqlSafe(this->opened));
-    SQL::sqlAppend(f, list, "ACTOR1",      SQL::sqlSafe(this->actors.at(0)));
-    SQL::sqlAppend(f, list, "ACTOR2",      SQL::sqlSafe(this->actors.at(1)));
-    SQL::sqlAppend(f, list, "ACTOR3",      SQL::sqlSafe(this->actors.at(2)));
-    SQL::sqlAppend(f, list, "ACTOR4",      SQL::sqlSafe(this->actors.at(3)));
-    SQL::sqlAppend(f, list, "AGE1",        SQL::sqlSafe(this->ages.at(0)));
-    SQL::sqlAppend(f, list, "AGE2",        SQL::sqlSafe(this->ages.at(1)));
-    SQL::sqlAppend(f, list, "AGE3",        SQL::sqlSafe(this->ages.at(2)));
-    SQL::sqlAppend(f, list, "AGE4",        SQL::sqlSafe(this->ages.at(3)));
-    SQL::sqlAppend(f, list, "URL",         SQL::sqlSafe(this->url));
-    if (list.size() > 0){
-        f.append(" WHERE FILENAME = ?;");
-        list << SQL::sqlSafe(this->file.getName());
-        query = f;
-    }
-    return (list.size() > 0);
+int Scene::entrySize(){
+    int size = 0;
+    size += (this->file.isEmpty() ? 0 : 1);
+    size += (this->title.isEmpty() ? 0 : 1);
+    size += (this->company.isEmpty() ? 0 : 1);
+    size += (this->series.isEmpty() ? 0 : 1);
+    size += (this->rating.isEmpty() ? 0 : 1);
+    size += tags.size();
+    size += ((width == 0) ? 0 : 1);
+    size += ((height == 0) ? 0 : 1);
+    size += ((size == 0) ? 0 : 1);
+    size += ((length == 0.0) ? 0 : 1);
+    size += (this->added.isValid() ? 0 : 1);
+    size += (this->opened.isValid() ? 0 : 1);
+    size += (this->released.isValid() ? 0 : 1);
+    size += actors.size();
+    size += ages.size();
+    return size;
 }

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Get the EXIF Tool Data Output
-data=$(exiftool "$1")
+data=$(exiftool "__FILE__")
 time=$(echo "$data" | grep "Media Duration" | awk '{print $4}')
 
 # Get Frame Width
@@ -23,11 +23,6 @@ sec=$(echo "$data" | awk -F; '{print $3}');
 if [[ ! -z $sec ]]; then
     echo "Seconds: "$(echo "$time" | awk -F: '{print $3}')
 fi
-# Parse out the File Size
-#size=$(echo "$data" | awk /"File Size"/ '{print $4}')
-#if [[ ! -z $size ]]; then
-#    echo "Size: "$(echo "$data" | grep "File Size" | awk '{print $4}')
-#fi
 
 #mdata=$(mdls "$1")
 #echo "Added: "$(echo "$mdata" | grep "kMDItemFSCreationDate" | awk '{print $3}')

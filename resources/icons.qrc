@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Icons/green_checkmark.png</file>
+        <file>Icons/blank_profile_photo.png</file>
+        <file>Icons/edit_icon.png</file>
+    </qresource>
+</RCC>

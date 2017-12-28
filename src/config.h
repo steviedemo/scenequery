@@ -1,22 +1,12 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #include <QString>
-
-class config
-{
-public:
-    config();
-    QString dataLocation();
-    QString headshotLocation();
-    QString databaseLocation();
-    QString makePaths();
-
-private:
-    QString configName;
-    QString configLocation;
-    QString headshotPath, dbPath, dataPath;
-
-
-};
+#define DATA_FOLDER         ".scenequery"
+#define HEADSHOT_FOLDER     "headshots"
+#define THUMBNAIL_FOLDER    "thumbnails"
+bool    makeDirectories();
+QString findDataLocation();
+QString findHeadshotLocation();
+QString findThumbnailLocation();
 
 #endif // CONFIG_H

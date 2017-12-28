@@ -1,9 +1,11 @@
 #include "sceneParser.h"
+#include "config.h"
 #include "FilePath.h"
 #include "Rating.h"
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QString>
+#include <QTextStream>
 #include <sys/stat.h>
 sceneParser::sceneParser():
     parsed(false), currPath(""), currName(""), title(""), company(""), series(""),
@@ -43,6 +45,7 @@ void sceneParser::parse(void){
 }
 
 void sceneParser::parse(FilePath f){
+    qDebug("Parsing '%s'", qPrintable(f.absolutePath()));
     QString fullpath = f.absolutePath();
     QFileInfo file(fullpath);
     // Add the file info.
@@ -93,7 +96,8 @@ QString sceneParser::parseTitle(QString name){
 void sceneParser::bashScript(FilePath f){
     QMap<QString, QString> videoData;
     static const QRegularExpression rx("^([A-Za-z]+):\\s*(.+)$");
-    const QString output = sysCall(QString("%1/scripts/collect_exif.sh \"%2\"").arg(FilePath::parentPath()).arg(f.absolutePath()));
+    QString script = QString("%1/scripts/collect_exif.sh \"%2\"").arg(findDataLocation()).arg(f.absolutePath());
+    QString output = sysCall(script);
     QRegularExpressionMatchIterator it = rx.globalMatch(output);
     while(it.hasNext()){
         QRegularExpressionMatch m = it.next();
@@ -104,6 +108,7 @@ void sceneParser::bashScript(FilePath f){
     if (videoData.contains("Minutes"))  {   this->length += videoData.value("Minutes").toDouble();          }
     if (videoData.contains("Seconds"))  {   this->length += (videoData.value("Seconds").toDouble())/60.0;   }
     if (videoData.contains("Created"))  {   this->release = QDate::fromString(videoData.value("Created"), "yyyy:MM:dd");    }
+
 }
 
 
@@ -117,7 +122,6 @@ QStringList sceneParser::parseTags(QString name){
     QStringList items = listMatch.captured(1).split(QRegularExpression(",[\\s]?"));
 
     QStringListIterator it(items);
-    qDebug("\nParsing Tags for %s (%d items detected)...", qPrintable(this->currName), items.size());
     int itemNumber = 0;
     while(it.hasNext())
     {
@@ -125,28 +129,27 @@ QStringList sceneParser::parseTags(QString name){
         QRegularExpressionMatch qMatch = qualityRx.match(item), rMatch = ratingRx.match(item), dMatch = dateRx.match(item);
         if (qMatch.hasMatch()){
             // This is a Pixel Quality
-            qDebug("Removing Quality (%s) from list of tags", qPrintable(item));
             items.removeOne(item);
         } else if (dMatch.hasMatch()){
             // This is a Date
             QDate date = QDate::fromString(dMatch.captured(1), "yyyy.MM.dd");
             if ((release.isNull() || !release.isValid() || date < this->release) && date.isValid() && !date.isNull()){
-                qDebug("Release Date being set to: %s", qPrintable(item));
+               // qDebug("Release Date being set to: %s", qPrintable(item));
                 release = date;
             } else {
-                qDebug("Disregarding parsed release date of %s in favour of exif-retrieved release date of %s", qPrintable(item), qPrintable(release.toString("yyyy.MM.dd")));
+                //qDebug("Disregarding parsed release date of %s in favour of exif-retrieved release date of %s", qPrintable(item), qPrintable(release.toString("yyyy.MM.dd")));
             }
             items.removeOne(item);
         } else if (rMatch.hasMatch() && !it.hasNext()){
             // This is a Rating
-            qDebug("Rating: %s", qPrintable(item));
+            //qDebug("Rating: %s", qPrintable(item));
             this->rating = Rating(item);
             items.removeOne(item);
         } else if (itemNumber == 0){
             // This is a Series Title
             this->series = item;
             items.removeOne(item);
-            qDebug("Series: %s", qPrintable(item));
+    //        qDebug("Series: %s", qPrintable(item));
         }
         ++itemNumber;
     }
@@ -157,10 +160,10 @@ QStringList sceneParser::parseTags(QString name){
             printableList.append(it.next());
             if (it.hasNext()){  printableList.append(", "); }
         }
-        qDebug("Tags: %s", qPrintable(printableList));
+      //  qDebug("Tags: %s", qPrintable(printableList));
     }
     this->tags = items;
-    qDebug("\n");
+    //qDebug("\n");
     return items;
 }
 
@@ -204,7 +207,7 @@ QStringList sceneParser::parseActors(QString name){
     static const QRegularExpression firstActorRx("^([A-Za-z.\\s]+) - .+");
     QRegularExpressionMatch match = firstActorRx.match(name);
     if (match.hasMatch()){
-        actors.push_back(match.captured(1).remove(QRegularExpression(SPACE_REGEX)));
+        actors.push_back(match.captured(1).trimmed());
     }
     // Get any featured actors.
     name.remove(QRegularExpression(".*feat."));
@@ -212,7 +215,7 @@ QStringList sceneParser::parseActors(QString name){
     if (name.isEmpty() || name.isNull()){
         QStringList featuredActors = name.split(QRegularExpression("[&,]"));
         foreach(QString temp, featuredActors){
-            actors.push_back(temp.remove(QRegularExpression(SPACE_REGEX)));
+            actors.push_back(temp.trimmed());
         }
     }
     return actors;

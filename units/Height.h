@@ -26,14 +26,15 @@ public:
     bool operator >(Height other);
     bool operator >=(Height other);
     bool isValid();
+    bool nonZero();
     static Height fromText(QString s);
     ~Height();
     double  getFeetDouble(void)         {   return (double)((inches/12.0)+feet);   }
-    int     getInches(void)             {   return inches; }
-    int     getCm(void)                 {   return cm;     }
-    int     getFeet(void)               {   return feet;   }
-    QString toString(void);
-    QString sqlSafe(void);
+    int     getInches(void) const             {   return inches; }
+    int     getCm(void)     const             {   return cm;     }
+    int     getFeet(void)   const             {   return feet;   }
+    QString toString(void)  const;
+    QString sqlSafe(void)   const;
 };
 
 

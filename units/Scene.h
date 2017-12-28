@@ -9,11 +9,13 @@
 #include <QVector>
 #include "FilePath.h"
 #include "Rating.h"
-
-class Scene
+#include <pqxx/pqxx>
+#include "Entry.h"
+class Scene : public Entry
 {
 
 private:
+    long long int ID;
     FilePath file;
     double length;
     int height, width, size, sceneNumber;
@@ -22,17 +24,22 @@ private:
     QStringList actors, tags;
     Rating rating;
     QVector<int> ages;
-
+    void fromParser(class sceneParser p);
 public:
     Scene   (void);
     Scene   (FilePath);
     Scene   (QSqlRecord);
     Scene   (class sceneParser);
+    Scene   (pqxx::result::const_iterator &it);
     ~Scene  (void);
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
 
-    class Query toQuery();
+    Query   toQuery() const;
+    void    fromRecord(pqxx::result::const_iterator &record);
+    int     entrySize();
+    QList<QStandardItem *> buildQStandardItem();
+    void    updateQStandardItem();
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;
     bool    inDatabase(void);
@@ -42,6 +49,7 @@ public:
     int     getAge      (QString name);
     bool    exists      (void)          { return file.exists(); }
     // Getters
+    int         getID       (void)      {   return ID;          }
     int         getSize     (void)      {   return size;        }
     int         getWidth    (void)      {   return width;       }
     int         getHeight   (void)      {   return height;      }
@@ -53,6 +61,7 @@ public:
     Rating      getRating   (void)      {   return rating;      }
     QStringList getActors   (void)      {   return actors;      }
     QStringList getTags     (void)      {   return tags;        }
+    QString     tagString   (void) const;
     QDate       getOpened   (void)      {   return opened;      }
     QDate       getAdded    (void)      {   return added;       }
     QDate       getReleased (void)      {   return released;    }

@@ -6,22 +6,25 @@ class FilePath
 
 public:
     FilePath();
-    FilePath(QString);
-    FilePath(QString, QString);
-    FilePath(QString, QString, QString);
-    FilePath(const FilePath&);
+    FilePath(QString  absolute_path);
+    FilePath(QString path, QString name);
+    FilePath(QString path, QString name, QString extensien);
+    FilePath(const FilePath &other);
     ~FilePath();
-    QString getName(void) const;
-    QString getPath(void) const;
-    QString absolutePath(void) const;
+    QString getName     (void) const;
+    QString getPath     (void) const;
     QString getExtension(void) const;
-    static QString currentPath();
-    static QString parentPath();
-    static QString getParent(QString path);
-    QString unixSafe();
-    QString sqlSafe();
-    bool exists();
-    bool isEmpty();
+    QString absolutePath(void) const;
+    QString parentPath  (void) const;
+    QString unixSafe    (void) const;
+    QString sqlSafe     (void) const;
+    bool exists         (void) const;
+    bool isEmpty        (void) const;
+    int     size        (void) const;
+
+    static QString currentPath();           // App's current path
+    static QString currentParent();         // App's parent Path
+    static QString getParent(QString path); // Return the folder one level above the path passed
 private:
     QString name;
     QString path;

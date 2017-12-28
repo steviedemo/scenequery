@@ -40,6 +40,13 @@ bool Height::isEqual(Height other){
 bool Height::isGreater(Height other){
     return (this->getFeetDouble() > other.getFeetDouble());
 }
+bool Height::nonZero(){
+    bool zero = false;
+    if (this->feet == 0 && this->inches == 0){
+        zero = true;
+    }
+    return zero;
+}
 
 bool Height::operator ==(Height other){ return this->isEqual(other);    }
 bool Height::operator !=(Height other){ return !(this->isEqual(other)); }
@@ -68,9 +75,9 @@ bool Height::isValid(){
         return true;
 }
 
-QString Height::toString(void){
+QString Height::toString(void) const {
     return QString("%1'%2\"").arg(feet).arg(inches);
 }
-QString Height::sqlSafe(){
-    return QString("%1cm").arg(cm);
+QString Height::sqlSafe() const{
+    return QString("'%1'").arg(cm);
 }

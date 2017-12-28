@@ -28,21 +28,6 @@ QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList name
     return QDir(path).entryList(nameFilters, typeFilter);
 }
 
-QString headshotName(QString actorName){
-    QString title("");
-    actorName = actorName.trimmed();
-    for (int i = 0; i < actorName.size(); ++i){
-        QChar c = actorName.at(i);
-        if (c == ' '){
-            title.push_back('_');
-        } else {
-            if (c.isLetter()){
-                title.push_back(c);
-            }
-        }
-    }
-    return title;
-}
 
 QString listToString(QStringList list){
     QStringListIterator it(list);
@@ -60,7 +45,6 @@ QString system_call(QString command){
     FILE *pipe = popen(qPrintable(command), "r");
     if (!pipe){
         qCritical("Runtime Error - popen() failed on command '%s'!", qPrintable(command));
-//        throw std::runtime_error("popen() failed!");
     }
     try{
         while(!feof(pipe)){
@@ -70,7 +54,6 @@ QString system_call(QString command){
     } catch (...) {
         pclose(pipe);
         qCritical("Caught Unknown Error While reading output of command '%s'!", qPrintable(command));
-        //throw;
     }
     pclose(pipe);
     return output;

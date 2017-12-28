@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql concurrent
+QT       += core gui sql concurrent network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -31,13 +31,21 @@ QMAKE_LFLAGS += -F/System/Library/Frameworks -L/usr/lib
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+PQXX = /usr/local/Cellar/libpqxx/4.0.1_2
 
 INCLUDEPATH += \
     /usr/local/include \
     src \
     units \
-    -I/usr/local/opt/qt/bin
+    src-threads \
+    src-views \
+    PSQL/src \
+    -I/usr/local/opt/qt/bin \
+    $${PQXX}/src \
+    $${PQXX}/include
+
 PKGCONFIG  = /usr/local/opt/qt/lib/pkgconfig
+
 LIBS += \
     -lcurl \
     -L/usr/local/lib \
@@ -46,20 +54,19 @@ LIBS += \
     -framework OpenGL \
     -framework AGL  \
     -L/usr/local/opt/qt/lib \
-    -L/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources
+    -L/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources \
+    -L$${PQXX} \
+    -lpqxx \
+    -lpq
 
 SOURCES += \
-    src/ActorThread.cpp \
     src/config.cpp \
-    src/curlTool.cpp \
-    src/DatabaseThread.cpp \
-    src/FileScanner.cpp \
+    src-threads/curlTool.cpp \
+    src-threads/FileScanner.cpp \
     src/genericfunctions.cpp \
     src/main.cpp\
     src/mainwindow.cpp \
-    src/qsqldbhelper.cpp \
     src/sceneParser.cpp \
-    src/sql.cpp \
     units/Actor.cpp \
     units/Biography.cpp \
     units/FilePath.cpp \
@@ -67,21 +74,21 @@ SOURCES += \
     units/Rating.cpp \
     units/Scene.cpp \
     qtcurl/QtCUrl.cpp \
-    src/sqlconnection.cpp \
-    query.cpp
+    PSQL/src/query.cpp \
+    PSQL/src/sqlconnection.cpp \
+    src-threads/sql.cpp \
+    units/Entry.cpp \
+    src/filenames.cpp \
+    src-views/ActorTableModel.cpp
 
 HEADERS  += \
-    src/ActorThread.h \
     src/config.h \
-    src/curlTool.h \
-    src/DatabaseThread.h \
+    src-threads/curlTool.h \
     src/definitions.h \
-    src/FileScanner.h \
+    src-threads/FileScanner.h \
     src/genericfunctions.h \
     src/mainwindow.h \
-    src/qsqldbhelper.h \
     src/sceneParser.h \
-    src/sql.h \
     units/Actor.h \
     units/Biography.h \
     units/FilePath.h \
@@ -89,8 +96,14 @@ HEADERS  += \
     units/Rating.h \
     units/Scene.h \
     qtcurl/QtCUrl.h \
-    src/sqlconnection.h \
-    query.h
+    PSQL/src/query.h \
+    src-threads/sql.h \
+    PSQL/src/sqlconnection.h \
+    PSQL/src/sql_definitions.h \
+    PSQL/src/database.h \
+    units/Entry.h \
+    src/filenames.h \
+    src-views/ActorTableModel.h
 
 FORMS    += forms/mainwindow.ui
 
@@ -103,4 +116,9 @@ STATECHARTS += \
     forms/GUI_State_chart.scxml
 
 DISTFILES += \
-    scripts/collect_exif.sh
+    scripts/collect_exif.sh \
+    resources/scripts/collect_exif.sh
+
+RESOURCES += \
+    resources/icons.qrc \
+    resources/scripts.qrc

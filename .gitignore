@@ -1,3 +1,5 @@
+headshots/*
+*.app.*
 ui_*.h
 build
 bin

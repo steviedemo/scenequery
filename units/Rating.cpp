@@ -10,6 +10,9 @@ Rating::Rating(double d){
 Rating::Rating(QString s){
     fromString(s);
 }
+Rating::Rating(const std::string s){
+    fromString(QString::fromStdString(s));
+}
 
 bool Rating::operator ==(Rating other) const{   return (this->stars == other.toStars());    }
 bool Rating::operator < (Rating other) const{   return (this->stars <  other.toStars());    }
@@ -18,6 +21,13 @@ bool Rating::operator >=(Rating other) const{   return (this->stars >= other.toS
 bool Rating::operator <=(Rating other) const{   return (this->stars <= other.toStars());    }
 bool Rating::operator !=(Rating other) const{   return (this->stars != other.toStars());    }
 
+bool Rating::isEmpty() const{
+    return ratingStr.isEmpty();
+}
+
+QString Rating::sqlSafe() const{
+    return QString('%1').arg(this->ratingStr);
+}
 QString Rating::toString() const{
     return this->ratingStr;
 }
