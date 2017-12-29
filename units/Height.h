@@ -19,6 +19,10 @@ public:
     Height(int feet, int inches, int cm);
     Height(const Height &other);
     Height operator = (Height other);
+    void set(int feet, int inches);
+    void set(double);
+    void set(int cm);
+    void set(Height h);
     bool operator ==(Height other);
     bool operator <(Height other);
     bool operator !=(Height other);

@@ -10,6 +10,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
+#include <QMap>
 #include <QFutureSynchronizer>
 #include <QRegularExpression>
 #include <QStandardPaths>
@@ -17,11 +18,12 @@
 #include <QStringList>
 #include <QThreadPool>
 #include <QVector>
-
+#define out();  qDebug("%s::%s::%d", __FILE__,__FUNCTION__,__LINE__);
 curlTool::curlTool(){
     this->dataPath = findDataLocation();
     this->headshotPath = findHeadshotLocation();
     this->thumbnailPath = findThumbnailLocation();
+    this->setTerminationEnabled(true);
 }
 
 DownloadThread::DownloadThread(QString name){
@@ -43,6 +45,7 @@ void curlTool::run(){
     }
     qDebug("curl thread Stopping");
 }
+
 
 /** \brief DownloadThread's Main Routine */
 void DownloadThread::run(){
@@ -91,7 +94,7 @@ QString request(QString urlString){
 
 QString DownloadThread::getHTML(Website w, QString name){
     QString html(""), url("");
-    QTextStream out(&url);
+    QTextStream output(&url);
     QString nameCopy_1 = QString("%1").arg(name);
     QString nameCopy_2 = QString("%1").arg(name);
     nameCopy_1 = nameCopy_1.trimmed();
@@ -99,11 +102,11 @@ QString DownloadThread::getHTML(Website w, QString name){
     QString lc = name.toLower();
     if (w == Freeones){
         nameCopy_1 = nameCopy_1.toLower();
-        out << "www.freeones.ca/html/" << nameCopy_1.at(0) << "_links/" << nameCopy_2.remove('.').replace(" ", "_") << "/";
+        output << "www.freeones.ca/html/" << nameCopy_1.at(0) << "_links/" << nameCopy_2.remove('.').replace(" ", "_") << "/";
         qDebug("Retrieving Freeones bio from: %s", qPrintable(url));
         html = request(url);
     } else if (w == IAFD) {
-        out << "www.iafd.com/person.rme/perfid=" << nameCopy_1.toLower().remove(QRegularExpression("[\\s\\.\\-\\']")) << "/gender=f/" << nameCopy_2.toLower().replace(" ", "-") << ".htm";
+        output << "www.iafd.com/person.rme/perfid=" << nameCopy_1.toLower().remove(QRegularExpression("[\\s\\.\\-\\']")) << "/gender=f/" << nameCopy_2.toLower().replace(" ", "-") << ".htm";
         qDebug("Retrieving IAFD Bio from: %s", qPrintable(url));
         html = system_call(QString("curl %1").arg(url));
     }
@@ -112,17 +115,31 @@ QString DownloadThread::getHTML(Website w, QString name){
 
 QString DownloadThread::bioSearchIAFD(QString html, QString key){
     QString captureGroup("");
-    QRegularExpression rx;
-    rx.setPattern(QString(".*<p class=\"bioheading\">%1</p>\\s*<p class=\"biodata\">([a-zA-Z0-9/()\\s]+)</p>.*").arg(key));
+    QRegularExpression rx(".*<p class=\"bioheading\">"+key+"</p>\\s*<p class=\"biodata\">([^\\<]+)</p>.*");
     QRegularExpressionMatch m = rx.match(html);
     if (m.hasMatch()){  captureGroup = m.captured(1).trimmed();   }
     return captureGroup;
 }
 
+QMap<QString,QString> getFreeonesTags(QString html){
+    QMap<QString,QString>tagMap;
+    QRegularExpression rx("<dt>([^\\<]+)</dt>\\s*<dd>([^\\<]+)</dd>");
+    QRegularExpressionMatchIterator it = rx.globalMatch(html);
+    while(it.hasNext()){
+        QRegularExpressionMatch match = it.next();
+        QString key = match.captured(1);
+        QString value = match.captured(2);
+        if (!key.isEmpty() && !value.isEmpty()){
+            qDebug("Key: %s, Value: %s", qPrintable(key), qPrintable(value));
+            tagMap.insert(key, value);
+        }
+    }
+    return tagMap;
+}
+
 QString DownloadThread::bioSearchFO(QString html, QString key){
     QString value("");
-    QRegularExpression rx;
-    rx.setPattern(QString("<dt>%1:\\s?</dt>\\s*<dd>([^\n]+)</dd>").arg(key));
+    QRegularExpression rx(".*<dt>"+key+"</dt>[\\s\\r\\n\\t]*<dd>(.+)</dd>.*");
     QRegularExpressionMatch match = rx.match(html);
     if (match.hasMatch() && match.captured(1) != "Unknown"){
         value = match.captured(1);
@@ -140,18 +157,28 @@ bool DownloadThread::getFreeonesData(QString name, Biography *bio){
     if (html.isEmpty()){
         qWarning("Freeones Returned Empty HTML for '%s'", qPrintable(name));
         return false;
+    } else {
+        getFreeonesTags(html);
+        /*
+        QFile file(QString("./%1 Freeones HTML.html").arg(name));
+        if (file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Truncate)){
+            QTextStream out(&file);
+            out << html;
+            file.close();
+        }
+        */
     }
 
-    if (!bio->has("measurements"))  {   bio->setMeasurements(bioSearchFO(html, "Measurements"));    }
-    if (!bio->has("aliases"))       {   bio->setAliases(bioSearchFO(html, "Aliases"));              }
-    if (!bio->has("city"))          {   bio->setCity(bioSearchFO(html, "Place of Birth"));          }
-    if (!bio->has("nationality"))   {   bio->setNationality(bioSearchFO(html, "Country of Origin"));}
-    if (!bio->has("eyes"))          {   bio->setEyeColor(bioSearchFO(html, "Eye Color"));           }
-    if (!bio->has("hair"))          {   bio->setHairColor(bioSearchFO(html, "Hair Color"));         }
-    if (!bio->has("piercings"))     {   bio->setPiercings(bioSearchFO(html, "Piercings"));          }
-    if (!bio->has("tattoos"))       {   bio->setTattoos(bioSearchFO(html, "Tattoos"));              }
+    if (!bio->has("measurements"))  {   bio->setMeasurements(bioSearchFO(html, "Measurements:"));    }
+    if (!bio->has("aliases"))       {   bio->setAliases(bioSearchFO(html, "Aliases:"));              }
+    if (!bio->has("city"))          {   bio->setCity(bioSearchFO(html, "Place of Birth:"));           }
+    if (!bio->has("nationality"))   {   bio->setNationality(bioSearchFO(html, "Country of Origin:"));}
+    if (!bio->has("eyes"))          {   bio->setEyeColor(bioSearchFO(html, "Eye Color:"));           }
+    if (!bio->has("hair"))          {   bio->setHairColor(bioSearchFO(html, "Hair Color:"));         }
+    if (!bio->has("piercings"))     {   bio->setPiercings(bioSearchFO(html, "Piercings:"));          }
+    if (!bio->has("tattoos"))       {   bio->setTattoos(bioSearchFO(html, "Tattoos:"));              }
     if (!bio->has("birthdate"))     {
-        QString birthdayElement     = bioSearchFO(html, "Date of Birth");
+        QString birthdayElement     = bioSearchFO(html, "Date of Birth:");
         QRegularExpression birthdayRegex("([A-Za-z]+\\s\\d+,\\s\\d+)\\s*.*");
         QRegularExpressionMatch birthdayMatch = birthdayRegex.match(birthdayElement);
         if (birthdayMatch.hasMatch()){
@@ -188,6 +215,15 @@ bool DownloadThread::getIAFDData(QString name, Biography *bio){
     if (html.isEmpty()){
         qWarning("IAFD returned empty HTML for '%s'", qPrintable(name));
         return false;
+    } else {
+        /*
+        QFile file(QString("./%1 IAFD HTML.html").arg(name));
+        if (file.open(QIODevice::Text | QIODevice::WriteOnly | QIODevice::Truncate)){
+            QTextStream out(&file);
+            out << html;
+            file.close();
+        }
+        */
     }
     // PARSE OUT THE VALUES OF INTEREST
     bio->setName(name);
@@ -198,7 +234,7 @@ bool DownloadThread::getIAFDData(QString name, Biography *bio){
     if (!bio->has("piercings"))   {   bio->setPiercings(bioSearchIAFD(html, "Piercings"));              }
     if (!bio->has("hair"))        {   bio->setHairColor(bioSearchIAFD(html, "Hair Color"));             }
     if (!bio->has("nationality")) {   bio->setNationality(bioSearchIAFD(html, "Nationality"));          }
-    if (!bio->has("city"))        {   bio->setCity(bioSearchIAFD(html, "Birthplace"));                  }
+    //if (!bio->has("city"))        {   bio->setCity(bioSearchIAFD(html, "Birthplace"));                  }
     // SPECIALIZED PARSING
     if (!bio->birthdate.isValid() || bio->birthdate.isNull()){
         QString bday    = bioSearchIAFD(html, "Birthday");
@@ -208,13 +244,35 @@ bool DownloadThread::getIAFDData(QString name, Biography *bio){
     }
     if (bio->getWeight() <= 0){
         QString weightString = bioSearchIAFD(html, "Weight");
-        QRegularExpressionMatch weightMatch = QRegularExpression(".*([0-9]+)\\s*\\(.*\\).*").match(weightString);
-        if (weightMatch.hasMatch()){
-            bool ok = false;
-            int weight = weightMatch.captured(1).toInt(&ok);
-            if (ok){
-                bio->setWeight(weight);
+        qDebug("Weight String: '%s'", qPrintable(weightString));
+        QRegularExpression rx("[^0-9]*([0-9]+)\\s*lbs.*");
+        QRegularExpressionMatch m = rx.match(weightString);
+        out();
+        if (m.hasMatch()){
+            try{
+                bool ok = false;
+                int weight = m.captured(1).toInt(&ok);
+                qDebug("Converted Weight: %d", weight);
+                if (ok){
+                    bio->setWeight(weight);
+                }
+            } catch (std::exception &e){
+                qWarning("Exception Caught while attempting to process weight");
             }
+        }
+    }
+    out();
+    qDebug("Retrieving Height");
+    if (!bio->getHeight().nonZero()){
+        QString heightStr = bioSearchIAFD(html, "Height");
+        qDebug("Height String: '%s'", qPrintable(heightStr));
+        QRegularExpression rx("([0-6]) feet, ([0-9]{1,2}) inches.*");
+        QRegularExpressionMatch m = rx.match(heightStr);
+        if (m.hasMatch()){
+            int feet = m.captured(1).toInt();
+            int inches = m.captured(2).toInt();
+            qDebug("Height: %d' %d''", feet, inches);
+            bio->setHeight(feet, inches);
         }
     }
     QRegularExpressionMatch careerMatch = QRegularExpression("class=\"biodata\">([0-9]{4})-?([0-9]{4})? \\(Started").match(html);
@@ -257,12 +315,8 @@ void curlTool::downloadThreadComplete(){
     }
 }
 
-
 void curlTool::makeNewActors(QStringList nameList){
-    this->index = 0;
-    this->additions = 0;
-    this->threadsFinished = 0;
-    this->threadsStarted = 0;
+    resetCounters();
     this->actorList.clear();
     this->nameList = nameList;
     emit startProgress(QString("Updating the bios for %1 Actors").arg(nameList.size()), nameList.size());
@@ -277,7 +331,32 @@ void curlTool::makeNewActors(QStringList nameList){
     qDebug("*****************************\nAll Threads Started\n*****************************");
 }
 
-///SLOT
+void curlTool::updateBio(ActorPtr a){
+    this->currentActor = a;
+    QString name = currentActor->getName();
+    if (!name.isEmpty()){
+        Biography b(name);
+        DownloadThread::getFreeonesData(name, &b);
+        qDebug("Freeones profile returned a bio of size %d", b.size());
+        bool iafdProfileExists = DownloadThread::getIAFDData(name, &b);
+        qDebug("IAFD profile returned a bio of size %d", b.size());
+        QString headshot("");
+        if (iafdProfileExists){
+            headshot = downloadHeadshot(name);
+        }
+        this->currentActor = ActorPtr(new Actor(name, b, headshot));
+    }
+    qDebug("Returning Bio for %s", qPrintable(name));
+    emit updateSingleProfile(currentActor);
+}
+
+void curlTool::resetCounters(){
+    this->threadsFinished = 0;
+    this->threadsStarted = 0;
+    this->index = 0;
+    this->actorList.clear();
+    this->additions = 0;
+}
 
 /****************************************************************
  *                           PHOTOS                             *
@@ -316,13 +395,13 @@ bool DownloadThread::wget(QString url, QString filePath){
  */
 QString downloadHeadshot(QString actorName){
     QString returnValue("");
-    if (!headshotDownloaded(actorName)){
+    if (headshotDownloaded(actorName)){
         qDebug("Headshot for '%s' already downloaded", qPrintable(actorName));
         returnValue = getHeadshotName(actorName);
     } else {
         QString html = DownloadThread::getHTML(IAFD, actorName);
         if (!html.isEmpty()){
-            const QRegularExpression rx(".*<div id=\"headshot\">.*src=\"(.*)\">\\s*</div>\\s*<p class=\"headshotcaption\">.*");
+            QRegularExpression rx(".*\\\"(http://www.iafd.com/graphics/headshots/.+\\.jpg)\\\">.*");
             QRegularExpressionMatch m = rx.match(html);
             if (m.hasMatch()){
                 QString link = m.captured(1);

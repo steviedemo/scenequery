@@ -4,6 +4,7 @@
 #include "sql_definitions.h"
 #include "FilePath.h"
 #include "sqlconnection.h"
+#include "SceneList.h"
 #include <QMutex>
 #include <QtSql>
 #include <QSqlQuery>

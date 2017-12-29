@@ -16,7 +16,7 @@
 #include <QVector>
 #include <QMap>
 #include <QMutex>
-
+#include "SceneList.h"
 class FileScanner : public QThread
 {
     Q_OBJECT
@@ -34,7 +34,7 @@ public slots:
     void stopThread();
 private:
     QFileInfoList   recursiveScan   (QFileInfo rootFolder);
-    SceneList       makeScenes      (QFileInfoList fileList);
+    SceneList makeScenes      (QFileInfoList fileList);
     void            parseScene      (QFileInfo currentFile);
     QStringList     getNames        (SceneList list);
     ActorList parseActorList(SceneList);

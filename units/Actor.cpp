@@ -8,13 +8,13 @@
 #include <QPixmap>
 #include "curlTool.h"
 Actor::Actor(QString name):
-    Entry(), name(name){
+    Entry(), name(name), bio(name){
     this->dataUsage = 0.0;
     this->headshot = FilePath(getProfilePhoto(name));
     setup();
 }
 Actor::Actor(const Actor &a):
-    Entry(){
+    Entry(), bio(a.getName()){
     this->bio = a.bio;
     this->name = a.name;
     this->dataUsage = a.dataUsage;

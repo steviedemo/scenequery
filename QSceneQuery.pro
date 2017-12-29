@@ -79,7 +79,9 @@ SOURCES += \
     src-threads/sql.cpp \
     units/Entry.cpp \
     src/filenames.cpp \
-    src-views/ActorTableModel.cpp
+    src-views/ActorTableModel.cpp \
+    units/SceneList.cpp \
+    src-views/profiledialog.cpp
 
 HEADERS  += \
     src/config.h \
@@ -103,9 +105,12 @@ HEADERS  += \
     PSQL/src/database.h \
     units/Entry.h \
     src/filenames.h \
-    src-views/ActorTableModel.h
+    src-views/ActorTableModel.h \
+    units/SceneList.h \
+    src-views/profiledialog.h
 
-FORMS    += forms/mainwindow.ui
+FORMS    += forms/mainwindow.ui \
+    forms/profiledialog.ui
 
 QMAKE_CLEAN += \
     build/* \

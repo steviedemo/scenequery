@@ -6,11 +6,13 @@ class FilePath
 
 public:
     FilePath();
-    FilePath(QString  absolute_path);
+    FilePath(QString absolute_path);
     FilePath(QString path, QString name);
     FilePath(QString path, QString name, QString extensien);
     FilePath(const FilePath &other);
     ~FilePath();
+    void setFile        (QString);
+    void setFile        (const FilePath &f);
     QString getName     (void) const;
     QString getPath     (void) const;
     QString getExtension(void) const;

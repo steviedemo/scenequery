@@ -34,6 +34,29 @@ Height Height::operator =(Height other){
     Height h(other.getFeet(), other.getInches(), other.getCm());
     return h;
 }
+void Height::set(int feet, int inches){
+    this->cm = (feet*12 + inches)*CM_PER_INCH;
+    this->feet = feet;
+    this->inches = inches;
+}
+void Height::set(int cm){
+    this->cm = cm;
+    int totalInches = cm * INCH_PER_CM;
+    this->feet = totalInches/12;
+    this->inches=totalInches%12;
+}
+void Height::set(Height h){
+    this->cm = h.getCm();
+    this->feet = h.getFeet();
+    this->inches = h.getInches();
+}
+
+void Height::set(double d){
+    this->feet = (int)d;
+    this->inches = (int)((d - feet) * 12);
+    this->cm = (int)(d * 30.48);
+}
+
 bool Height::isEqual(Height other){
     return ((this->feet == other.feet) && (this->inches == other.inches));
 }

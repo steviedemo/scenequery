@@ -6,13 +6,12 @@
 #include "FileScanner.h"
 #include "Scene.h"
 #include "Actor.h"
+#include <QInputDialog>
 #include <QtGlobal>
 #include <QDebug>
 #include <QMessageBox>
 #include <QVector>
 #include <QFileDialog>
-#define IMAGE_WIDTH 250
-#define IMAGE_HEIGHT 300
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
@@ -22,6 +21,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
     qRegisterMetaType<QStringList>("QStringList");
+    qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<QSharedPointer<Scene>>("QSharedPointer<Scene>");
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
     qRegisterMetaType<QVector<QSharedPointer<Scene>>>("QVector<QSharedPointer<Scene>>");
@@ -103,6 +103,8 @@ void MainWindow::setupThreads(){
     /// Set up curl thread communications with main thread
     //connect(this,       SIGNAL(getHeadshots(ActorList)),    curlThread, SLOT(downloadPhotos(ActorList)));
     //connect(this,       SIGNAL(updateBios(ActorList)),      curlThread, SLOT(updateBios(ActorList)));
+    //connect(this,       SIGNAL(updateSingleBio(ActorPtr)),  curlThread, SLOT(updateBio(ActorPtr)));
+   // connect(curlThread, SIGNAL(updateSingleProfile(ActorPtr)), this,    SLOT(receiveSingleActor(ActorPtr)));
     connect(curlThread, SIGNAL(updateFinished(ActorList)),  this,       SLOT(receiveActors(ActorList)));
     connect(this,       SIGNAL(makeNewActors(QStringList)), curlThread, SLOT(makeNewActors(QStringList)));
     /// Set up the SQL Thread for communications with the main thread
@@ -123,7 +125,7 @@ void MainWindow::setupThreads(){
 }
 
 void MainWindow::showEvent(QShowEvent */*event*/){
-    emit loadActors(actorList);
+    //emit loadActors(actorList);
 }
 
 /** \brief Slot called when an item in the actor list is clicked
@@ -412,7 +414,6 @@ void MainWindow::loadActorProfile(ActorPtr a){
     ui->piercingsEdit->setText(bio.getPiercings());
     ui->tattoosEdit->setText(bio.getTattoos());
     FilePath photo = a->getHeadshot();
-
     if (photo.exists()){
         QPixmap profilePhoto(photo.absolutePath());
         ui->profile_photo->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
@@ -486,10 +487,10 @@ void MainWindow::on_measurementsLineEdit_textEdited(const QString &)        {   
 void MainWindow::on_aliasesEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
 void MainWindow::on_piercingsEdit_textChanged()                             {   setResetAndSaveButtons(true);   }
 void MainWindow::on_tattoosEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
+void MainWindow::on_actionUpdate_Database_triggered()                       {   emit saveActors(actorList);     }
+void MainWindow::on_actionLoad_Actors_triggered()                           {   emit loadActors(actorList);     }
 
-
-void MainWindow::on_actionParse_Scene_triggered()
-{
+void MainWindow::on_actionParse_Scene_triggered(){
     QString filename = QFileDialog::getOpenFileName(this, tr("Select Video to Parse"), "/Volumes");
     if (!filename.isEmpty()){
         ui->statusLabel->setText(QString("Parsing %1").arg(filename));
@@ -502,5 +503,61 @@ void MainWindow::on_actionParse_Scene_triggered()
         QMessageBox box(QMessageBox::NoIcon, tr("Scene Parser Test"), message, QMessageBox::Close, this, Qt::WindowStaysOnTopHint);
         box.exec();
         ui->statusLabel->setText("");
+    }
+}
+
+void MainWindow::on_downloadProfile_clicked(){
+    ActorPtr actor = currentActor;
+    if (!currentActor.isNull()){
+        emit updateSingleBio(actor);
+    }
+}
+
+void MainWindow::receiveSingleActor(ActorPtr a){
+    Biography bio1, bio2;
+    bio1 = a->getBio();
+    bio2 = currentActor->getBio();
+
+    if (bio1.size() > bio2.size()){
+        qDebug("Updating Bio for %s", qPrintable(a->getName()));
+        QString name = a->getName();
+        actorMap[name] = a;
+        qDebug("building new display item");
+        a->buildQStandardItem();
+
+    } else {
+        qDebug("not updating item, refreshing display");
+        currentActor->updateQStandardItem();
+    }
+}
+
+void MainWindow::on_actionCreate_Bio_triggered(){
+    QString name = QInputDialog::getText(this, tr("Test Bio Retrieval"), tr("Enter Actor Name"));
+    if (!name.isEmpty()){
+        this->curlTestThread = new curlTool();
+        connect(curlTestThread, SIGNAL(updateSingleProfile(ActorPtr)),  this,           SLOT(receiveTestBio(ActorPtr)));
+        connect(this,           SIGNAL(updateSingleBio(ActorPtr)),      curlTestThread, SLOT(updateBio(ActorPtr)));
+        curlTestThread->start();
+        ActorPtr a = ActorPtr(new Actor(name));
+        emit updateSingleBio(a);
+    }
+}
+
+void MainWindow::receiveTestBio(ActorPtr a){
+    qDebug("Receieved actor %s from Curl Test Thread", qPrintable(a->getName()));
+    this->profileDialog = new ProfileDialog(a, this);
+    connect(profileDialog, SIGNAL(closed()), this, SLOT(profileDialogClosed()));
+    this->profileDialog->show();
+}
+
+void MainWindow::profileDialogClosed(){
+
+    if (profileDialog){
+        profileDialog->deleteLater();
+    }
+    curlTestThread->terminate();
+    curlTestThread->wait();
+    if (curlTestThread){
+        curlTestThread->deleteLater();
     }
 }

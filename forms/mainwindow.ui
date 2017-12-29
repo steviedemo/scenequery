@@ -421,6 +421,12 @@ QRadioButton{
            </item>
            <item row="2" column="1">
             <widget class="QDateEdit" name="birthDateDateEdit">
+             <property name="minimumSize">
+              <size>
+               <width>315</width>
+               <height>20</height>
+              </size>
+             </property>
              <property name="alignment">
               <set>Qt::AlignCenter</set>
              </property>
@@ -1221,6 +1227,7 @@ QRadioButton{
      <string>Test</string>
     </property>
     <addaction name="actionParse_Scene"/>
+    <addaction name="actionCreate_Bio"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -1301,6 +1308,11 @@ QRadioButton{
   <action name="actionParse_Scene">
    <property name="text">
     <string>Parse Scene</string>
+   </property>
+  </action>
+  <action name="actionCreate_Bio">
+   <property name="text">
+    <string>Create Bio</string>
    </property>
   </action>
  </widget>

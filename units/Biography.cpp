@@ -2,6 +2,13 @@
 #include "Height.h"
 #include "curlTool.h"
 #include <QDate>
+Biography::Biography():
+    name(""), aliases(""), city(""), nationality(""), ethnicity(""),
+    eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
+    weight(0), fakeBoobs(false), retired(false),
+    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()){
+    this->illegalChars.setPattern(".*[\\<\\>\\\\]");
+}
 Biography::Biography(QString name):
     name(name), aliases(""), city(""), nationality(""), ethnicity(""),
     eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
@@ -15,19 +22,18 @@ Biography::Biography(const Biography &b){
 
 Biography::~Biography(){}
 void Biography::copy(const Biography &other){
-    this->name          = other.name;
-    this->aliases       = other.aliases;
-    this->city          = other.city;
-    this->nationality   = other.nationality;
-    this->ethnicity     = other.ethnicity;
-    this->eyes          = other.eyes;
-    this->hair          = other.hair;
-    this->measurements  = other.measurements;
-    this->tattoos       = other.tattoos;
-    this->piercings     = other.piercings;
-    this->weight        = other.weight;
-    this->birthdate     = other.birthdate;
-    this->height        = other.height;
+    this->aliases       = other.getAliases();
+    this->city          = other.getCity();
+    this->nationality   = other.getNationality();
+    this->ethnicity     = other.getEthnicity();
+    this->eyes          = other.getEyeColor();
+    this->hair          = other.getHairColor();
+    this->measurements  = other.getMeasurements();
+    this->tattoos       = other.getTattoos();
+    this->piercings     = other.getPiercings();
+    this->weight        = other.getWeight();
+    this->birthdate     = other.getBirthday();
+    this->height        = other.getHeight();
     this->retired       = other.retired;
     this->fakeBoobs     = other.fakeBoobs;
     this->careerEnd     = other.careerEnd;
@@ -90,25 +96,25 @@ void Biography::setWeight(int w){
 bool Biography::has(QString key){
     bool found = false;
     if (key.contains("alias", Qt::CaseInsensitive))
-        found = !(this->aliases.isEmpty() && this->aliases.contains("Unknown"));
+        found = (!this->aliases.isEmpty() && this->aliases.contains("Unknown"));
     else if (key.contains("city", Qt::CaseInsensitive))
-        found = !(city.isEmpty() && this->city.contains("Unknown"));
+        found = (!city.isEmpty() && this->city.contains("Unknown"));
     else if (key.contains("ethnic", Qt::CaseInsensitive))
-        found = !(ethnicity.isEmpty() && this->ethnicity.contains("Unknown"));
+        found = (!ethnicity.isEmpty() && this->ethnicity.contains("Unknown"));
     else if (key.contains("hair", Qt::CaseInsensitive))
-        found = !(hair.isEmpty() && this->hair.contains("Unknown"));
+        found = (!hair.isEmpty() && this->hair.contains("Unknown"));
     else if (key.contains("eye", Qt::CaseInsensitive))
-        found = !(eyes.isEmpty() && this->eyes.contains("Unknown"));
+        found = (!eyes.isEmpty() && this->eyes.contains("Unknown"));
     else if (key.contains("measure", Qt::CaseInsensitive))
-        found = !(measurements.isEmpty() && this->measurements.contains("Unknown"));
+        found = (!measurements.isEmpty() && this->measurements.contains("Unknown"));
     else if (key.contains("nation", Qt::CaseInsensitive))
-        found = !(nationality.isEmpty() && this->nationality.contains("Unknown"));
+        found = (!nationality.isEmpty() && this->nationality.contains("Unknown"));
     else if (key.contains("birthda", Qt::CaseInsensitive))
         found = (!birthdate.isNull() && birthdate.isValid());
     else if (key.contains("tattoo", Qt::CaseInsensitive))
-        found = !(tattoos.isEmpty() && this->tattoos.contains("Unknown") && this->tattoos != "None");
+        found = (!tattoos.isEmpty() && this->tattoos.contains("Unknown") && this->tattoos != "None");
     else if (key.contains("pierc", Qt::CaseInsensitive) || key.contains("peirc", Qt::CaseInsensitive))
-        found = !(piercings.isEmpty() && this->piercings.contains("Unknown") && this->piercings != "None");
+        found = (!piercings.isEmpty() && this->piercings.contains("Unknown") && this->piercings != "None");
     else if (key.contains("height", Qt::CaseInsensitive))
         found = height.isValid() && height.nonZero();
     else if (key.contains("weight", Qt::CaseInsensitive))
@@ -129,12 +135,10 @@ void    Biography::setAliases(QString a){
     }
 }
 
-
-
-void Biography::setHeight      (Height h)          {   this->height = h;               }
-void Biography::setHeight      (int cm)            {   this->height = Height(cm);      }
-void Biography::setHeight      (int f, int i)      {   this->height = Height(f, i);    }
-void Biography::setHeight      (double d)          {   this->height = Height(d);       }
+void Biography::setHeight      (Height h)          {   this->height.set(h);     }
+void Biography::setHeight      (int cm)            {   this->height.set(cm);    }
+void Biography::setHeight      (int f, int i)      {   this->height.set(f, i);  }
+void Biography::setHeight      (double d)          {   this->height.set(d);     }
 int Biography::size(){
     int size = 0;
     size += (aliases.isEmpty() ? 0 : 1);

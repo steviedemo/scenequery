@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "Actor.h"
 #include <QRegularExpression>
+#include <QPixmap>
 #define DEFAULT_PROFILE_PHOTO ":/Icons/blank_profile_photo.png"
 
 /** \brief  Format an actor's name into a filename that doesn't contain characters that need escaping.
@@ -25,9 +26,10 @@ QString getHeadshotName(QString actorName){
 bool headshotDownloaded(QString actorName){
     bool downloaded = false;
     QString filepath = getHeadshotName(actorName);
-    QFileInfo info = QFileInfo(filepath);
-    if (info.exists() && info.size() > 10){
-        downloaded = true;
+    QFile f(filepath);
+    qDebug("Searching for %s's headshot (filename: %s)...", qPrintable(actorName), qPrintable(filepath));
+    if (f.exists()){
+        downloaded = (QFileInfo(f).size() > 200);
     }
     return downloaded;
 }

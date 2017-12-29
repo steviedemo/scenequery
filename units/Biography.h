@@ -10,7 +10,8 @@ public:
     bool fakeBoobs, retired;
     class QDate birthdate, careerStart, careerEnd;
     int size();
-    Biography(QString name="");
+    Biography();
+    Biography(QString name);
     Biography(const Biography &b);
     ~Biography();
     bool has(QString key);

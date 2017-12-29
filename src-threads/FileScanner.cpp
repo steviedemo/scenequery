@@ -1,5 +1,6 @@
 #include "FileScanner.h"
 #include "Scene.h"
+#include "SceneList.h"
 #include "Actor.h"
 #include "sceneParser.h"
 #include <qtconcurrentrun.h>
@@ -9,7 +10,6 @@
 
 FileScanner::FileScanner(QString path):
     scanDir(path), index(0){
-    this->scenes = QVector<QSharedPointer<Scene>>();
     this->actors = QVector<QSharedPointer<Actor>>();
 }
 FileScanner::~FileScanner(){
@@ -28,7 +28,7 @@ void FileScanner::run(){
 
 void FileScanner::scanFolder(QString rootPath){
     this->index = 0;
-    SceneList sceneList = QVector<QSharedPointer<Scene>>();
+    SceneList sceneList;
     QStringList names;
     qDebug("Scanning '%s' for files...", qPrintable(rootPath));
     QFileInfoList fileList;

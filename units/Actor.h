@@ -54,7 +54,7 @@ public:
     void    setHeadshot (FilePath f);
     void    setHeadshot (QString s);
 
-    void    setBio      (Biography b)   {   this->bio = b;                  }
+    void    setBio      (Biography b)   {   this->bio.copy(b);              }
     void    setName     (QString n)     {   this->name = n; bio.setName(n); }
     void    setWeight   (int i)         {   this->bio.setWeight(i);         }
     void    setHeight   (Height h)      {   this->bio.setHeight(h);         }
@@ -73,21 +73,22 @@ public:
     void    setCareerEnd(QDate d)       {   this->bio.careerEnd = d;    this->bio.retired = true;   }
 
     // Getters
-    QString     getName         (void)  {   return this->name;                  }
-    Biography   getBio        	(void)  {   return this->bio;                   }
-    int			getWeight       (void)  {   return this->bio.getWeight();       }
+    QString     getName         (void)  const {   return this->name;                  }
+    Biography   getBio        	(void)  const {   return this->bio;                   }
+    int			getWeight       (void)  const {   return this->bio.getWeight();       }
    // int         getRetirement   (void)  {   return this->bio.retirement;      }
-    Height      getHeight   	(void)  {   return this->bio.getHeight();       }
-    QString		getAliases    	(void)  {   return this->bio.getAliases();      }
-    QString		getCity         (void)  {   return this->bio.getCity();         }
-    QDate       getBirthday		(void)  {   return this->bio.getBirthday();     }
-    QString		getNationality  (void)  {   return this->bio.getNationality();  }
-    QString		getMeasurements	(void)  {   return this->bio.getMeasurements(); }
-    QString		getHairColor	(void)  {   return this->bio.getHairColor();    }
-    QString		getEyeColor		(void)  {   return this->bio.getEyeColor();     }
-    QString     getTattoos  	(void)  {   return this->bio.getTattoos();      }
-    QString		getPiercings    (void)  {   return this->bio.getPiercings();    }
-    FilePath    getHeadshot    	(void)  {   return this->headshot;              }
+    Height      getHeight   	(void)  const {   return this->bio.getHeight();       }
+    QString		getAliases    	(void)  const {   return this->bio.getAliases();      }
+    QString		getCity         (void)  const {   return this->bio.getCity();         }
+    QString     getEthnicity    (void)  const {   return this->bio.getEthnicity();    }
+    QDate       getBirthday		(void)  const {   return this->bio.getBirthday();     }
+    QString		getNationality  (void)  const {   return this->bio.getNationality();  }
+    QString		getMeasurements	(void)  const {   return this->bio.getMeasurements(); }
+    QString		getHairColor	(void)  const {   return this->bio.getHairColor();    }
+    QString		getEyeColor		(void)  const {   return this->bio.getEyeColor();     }
+    QString     getTattoos  	(void)  const {   return this->bio.getTattoos();      }
+    QString		getPiercings    (void)  const {   return this->bio.getPiercings();    }
+    FilePath    getHeadshot    	(void)  const {   return this->headshot;              }
 
 };
 

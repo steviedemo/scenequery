@@ -1,12 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "definitions.h"
+#include "SceneList.h"
 #include "curlTool.h"
 #include "FileScanner.h"
 #include "Actor.h"
 #include "Scene.h"
 #include "sql.h"
 #include "ActorTableModel.h"
+#include "profiledialog.h"
 #include <QSortFilterProxyModel>
 #include <QMap>
 #include <QMainWindow>
@@ -31,7 +33,7 @@ private slots:
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveScanResult(SceneList, QStringList);
-
+    void receiveSingleActor(ActorPtr);
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -73,6 +75,15 @@ private slots:
 
     void on_actionParse_Scene_triggered();
 
+    void on_downloadProfile_clicked();
+
+    void on_actionUpdate_Database_triggered();
+
+    void on_actionLoad_Actors_triggered();
+
+    void on_actionCreate_Bio_triggered();
+    void receiveTestBio(ActorPtr);
+    void profileDialogClosed();
 private:
     void selectNewProfilePhoto();
     void setupThreads();
@@ -85,6 +96,7 @@ private:
     void loadActorProfile(ActorPtr);
     /// View
     Ui::MainWindow *ui;
+    ProfileDialog *profileDialog;
     QModelIndex currentActorIndex;
     ActorPtr currentActor;
     SceneList sceneList;
@@ -95,7 +107,7 @@ private:
     QPixmap *blankImage;
     QSortFilterProxyModel *proxyModel;
     QStringList names;
-
+    curlTool *curlTestThread;
     /// Threads
     FileScanner *scanner;
     curlTool    *curlThread;
@@ -106,7 +118,7 @@ private:
 signals:
     void closing();
     void stopThreads();
-
+    void updateSingleBio(ActorPtr);
     void updateBios(ActorList);
     void getHeadshots(ActorList);
     void saveActorChanges(ActorPtr);

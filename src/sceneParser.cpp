@@ -24,7 +24,7 @@ sceneParser::sceneParser(ScenePtr s):
     parsed(false), currPath(""), currName(""), title(""), company(""), series(""),
     height(0), width(0), size(0), sceneNumber(0), length(0.0),
     release(QDate()), accessed(QDate()), created(QDate()){
-    this->file = s->getFile();
+    this->file.setFile(s->getFile());
     this->title = s->getTitle();
     this->company = s->getCompany();
     this->height = s->getHeight();
@@ -206,7 +206,7 @@ void sceneParser::parse(FilePath f){
     QString fullpath = f.absolutePath();
     QFileInfo file(fullpath);
     // Add the file info.
-    this->file          = f;
+    this->file.setFile(f);
     this->currName      = f.getName();
     this->currPath      = f.getPath();
     // Use QFileInfo

@@ -23,6 +23,16 @@ FilePath::FilePath(QString path, QString name){
     this->extension = file.suffix();
 }
 FilePath::FilePath(QString fullPath){
+    setFile(fullPath);
+}
+
+void FilePath::setFile(const FilePath &f){
+    this->path = f.getPath();
+    this->name = f.getName();
+    this->extension = f.getExtension();
+}
+
+void FilePath::setFile(QString fullPath){
     this->path="";
     this->name ="";
     this->extension = "";
@@ -39,10 +49,9 @@ FilePath::FilePath(QString fullPath){
     }
 }
 
+
 FilePath::FilePath(const FilePath &f){
-    this->name = f.name;
-    this->path = f.path;
-    this->extension = f.extension;
+    setFile(f);
 }
 FilePath::~FilePath(){}
 

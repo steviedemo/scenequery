@@ -9,13 +9,13 @@
 #include <string>
 using namespace std;
 Scene::Scene():Entry(),
-    file(FilePath()), ID(0), length(0.0), height(0), width(0), size(0), sceneNumber(0),
+    ID(0), file(FilePath()), length(0.0), height(0), width(0), size(0), sceneNumber(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
 }
 Scene::Scene(sceneParser p):Entry(),
-    file(FilePath()), ID(0), length(0.0), height(0), width(0), size(0), sceneNumber(0),
+    ID(0), file(FilePath()), length(0.0), height(0), width(0), size(0), sceneNumber(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
@@ -23,7 +23,7 @@ Scene::Scene(sceneParser p):Entry(),
 }
 
 Scene::Scene(FilePath file) : Entry(),
-    file(file), ID(0), length(0.0), height(0), width(0), size(0), sceneNumber(0),
+    ID(0), file(file), length(0.0), height(0), width(0), size(0), sceneNumber(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
@@ -84,7 +84,7 @@ Scene::Scene(QSqlRecord r){
 }
 
 Scene::Scene(pqxx::result::const_iterator &i):Entry(),
-    file(FilePath()), ID(0), length(0.0), height(0), width(0), size(0), sceneNumber(0),
+    ID(0), file(FilePath()), length(0.0), height(0), width(0), size(0), sceneNumber(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
