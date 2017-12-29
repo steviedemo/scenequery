@@ -22,7 +22,6 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -41,58 +40,41 @@ private slots:
     void showError(QString);
     void showSuccess(QString);
 
+    /// Window Events
+    void showEvent(QShowEvent *event);
+
     /// Buttons
     void on_actionScan_Directory_triggered();
     void on_refreshScenes_clicked();
     void on_refreshActors_clicked();
     void on_radioButtonActors_clicked();
-
     void on_actorView_clicked(const QModelIndex &index);
-
     void on_saveScenes_clicked();
-
     void on_saveActors_clicked();
-
     void on_scanFiles_clicked();
-
     void on_updateActorBios_clicked();
-
     void on_updateDisplay_clicked();
-
-    void selectNewProfilePhoto();
-
     void on_closeProfile_clicked();
-
     void on_profile_photo_customContextMenuRequested(const QPoint &pos);
-
-
     void on_saveProfile_clicked();
-
-    void on_resetProfile_clicked();
-
+    void on_reloadProfile_clicked();
+    // Text Changed on profile.
     void on_birthDateDateEdit_userDateChanged(const QDate &date);
-
     void on_hairColorLineEdit_textChanged(const QString &arg1);
-
     void on_ethnicityLineEdit_textChanged(const QString &arg1);
-
     void on_nationalityLineEdit_textEdited(const QString &arg1);
-
     void on_heightLineEdit_textEdited(const QString &arg1);
-
     void on_weightLineEdit_textEdited(const QString &arg1);
-
     void on_eyeColorLineEdit_textEdited(const QString &arg1);
-
     void on_measurementsLineEdit_textEdited(const QString &arg1);
-
     void on_aliasesEdit_textChanged();
-
     void on_piercingsEdit_textChanged();
-
     void on_tattoosEdit_textChanged();
-    void showEvent(QShowEvent *event);
+
+    void on_actionParse_Scene_triggered();
+
 private:
+    void selectNewProfilePhoto();
     void setupThreads();
     void setupViews();
     void refreshSceneView();

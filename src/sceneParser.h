@@ -7,6 +7,7 @@
 #include <QStringList>
 #include "FilePath.h"
 #include "Rating.h"
+#include "definitions.h"
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
 #define SPACE_REGEX     "[\\s\\t]*"
@@ -27,14 +28,22 @@ private:
     QStringList bracketedData;
     void        bashScript        (class FilePath);
     QStringList parseActors       (QString);
-    QStringList parseTags         (QString);
+    void        parseParentheses  (QString);
     QString     parseCompany      (QString);
     int         parseSceneNumber  (QString);
     QDate       parseDateReleased (QString);
     QString     parseTitle        (QString);
+    // Reconstructing the filename
+    QString     formatActor();
+    QString     formatCompany();
+    QString     formatTitle();
+    QString     formatParentheses();
+    QString     newFilename;
+
 public:
     sceneParser();
     sceneParser(class FilePath f);
+    sceneParser(ScenePtr s);
     ~sceneParser();
     void        parse       (void);
     void        parse       (class FilePath);
@@ -56,6 +65,8 @@ public:
     QDate       getAdded()      {   return created; }
     QDate       getReleased()   {   return release; }
     class FilePath    getFile()       {   return file;    }
+    QString     formatFilename();
+    QString     displayInfo();
 
 };
 

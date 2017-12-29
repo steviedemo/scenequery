@@ -189,6 +189,7 @@ Query Actor::toQuery() const{
     q.add("EYES",           bio.getEyeColor());
     q.add("TATTOOS",        bio.getTattoos());
     q.add("PIERCINGS",      bio.getPiercings());
+    q.addCriteria("ID", QString::number(this->ID));
     return q;
 }
 

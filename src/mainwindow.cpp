@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "filenames.h"
 #include "ui_mainwindow.h"
+#include "sceneParser.h"
 #include "FilePath.h"
 #include "FileScanner.h"
 #include "Scene.h"
@@ -220,7 +221,7 @@ void MainWindow::closeProgress(QString status){
 
 void MainWindow::updateProgress(int value)  {   ui->progressBar->setValue(value);       }
 void MainWindow::on_closeProfile_clicked()  {   ui->profileView->hide();                }
-void MainWindow::on_resetProfile_clicked()  {   loadActorProfile(currentActor);         }
+void MainWindow::on_reloadProfile_clicked()  {   loadActorProfile(currentActor);         }
 void MainWindow::on_scanFiles_clicked()     {   on_actionScan_Directory_triggered();    }
 void MainWindow::updateStatus(QString s)    {   ui->statusLabel->setText(s);            }
 
@@ -470,13 +471,8 @@ void MainWindow::on_saveProfile_clicked(){
 }
 
 void MainWindow::setResetAndSaveButtons(bool enabled){
-    if (enabled){
-        ui->resetProfile->setEnabled(true);
-        ui->saveProfile->setEnabled(true);
-    } else {
-        ui->resetProfile->setDisabled(true);
-        ui->saveProfile->setDisabled(true);
-    }
+    ui->reloadProfile->setEnabled(enabled);
+    ui->saveProfile->setEnabled(enabled);
 }
 
 void MainWindow::on_birthDateDateEdit_userDateChanged(const QDate &/*date*/){   setResetAndSaveButtons(true);   }
@@ -490,3 +486,21 @@ void MainWindow::on_measurementsLineEdit_textEdited(const QString &)        {   
 void MainWindow::on_aliasesEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
 void MainWindow::on_piercingsEdit_textChanged()                             {   setResetAndSaveButtons(true);   }
 void MainWindow::on_tattoosEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
+
+
+void MainWindow::on_actionParse_Scene_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this, tr("Select Video to Parse"), "/Volumes");
+    if (!filename.isEmpty()){
+        ui->statusLabel->setText(QString("Parsing %1").arg(filename));
+        sceneParser input;
+        input.parse(FilePath(filename));
+        ScenePtr temp = ScenePtr(new Scene(input));
+        sceneParser output(temp);
+        output.formatFilename();
+        QString message = output.displayInfo();
+        QMessageBox box(QMessageBox::NoIcon, tr("Scene Parser Test"), message, QMessageBox::Close, this, Qt::WindowStaysOnTopHint);
+        box.exec();
+        ui->statusLabel->setText("");
+    }
+}

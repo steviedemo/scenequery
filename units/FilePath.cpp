@@ -17,14 +17,26 @@ FilePath::FilePath(QString path, QString name, QString extension){
 FilePath::FilePath(QString path, QString name){
     QFileInfo file(QString("%1/%2").arg(path).arg(name));
     this->path = path;
-    this->name = file.baseName();
+    file.completeBaseName();
+    file.fileName();
+
     this->extension = file.suffix();
 }
 FilePath::FilePath(QString fullPath){
-    QFileInfo file(fullPath);
-    this->path = file.canonicalPath();
-    this->name = file.baseName();
-    this->extension = file.suffix();
+    this->path="";
+    this->name ="";
+    this->extension = "";
+    QRegularExpression rx("(\\/.+)\\/(.+)\\.(.+)");
+    QRegularExpressionMatch m = rx.match(fullPath);
+    if (m.hasMatch()){
+        try{
+            this->path = m.captured(1);
+            this->name = m.captured(2);
+            this->extension = m.captured(3);
+        } catch(...){
+            qCritical("Caught Exception Parsing FilePath Object out of string '%s'", qPrintable(fullPath));
+        }
+    }
 }
 
 FilePath::FilePath(const FilePath &f){

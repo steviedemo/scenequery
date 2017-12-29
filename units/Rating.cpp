@@ -4,11 +4,13 @@ Rating::Rating(){
     this->ratingStr = "";
     this->stars = 0.0;
 }
-Rating::Rating(double d){
+Rating::Rating(double d):
+    stars(d){
     fromStars(d);
 }
-Rating::Rating(QString s){
-    fromString(s);
+Rating::Rating(QString s):
+    ratingStr(s){
+    this->stars = string2double(s);
 }
 Rating::Rating(const std::string s){
     fromString(QString::fromStdString(s));
