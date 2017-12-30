@@ -83,6 +83,8 @@ QToolBar#mainToolBar{
 	border: none;
 	border-top: 1px solid rgb(130,130,130);
 	border-bottom: 1px solid rgb(33,33,33);
+	spacing: 15px;
+	padding: 2px;
 }
 QMenu{
 	background-color: rgba(33,33,33,128);
@@ -233,9 +235,18 @@ QRadioButton{
         </property>
         <property name="maximumSize">
          <size>
-          <width>16777215</width>
+          <width>3000</width>
           <height>3000</height>
          </size>
+        </property>
+        <property name="font">
+         <font>
+          <family>Gill Sans</family>
+          <pointsize>14</pointsize>
+         </font>
+        </property>
+        <property name="contextMenuPolicy">
+         <enum>Qt::CustomContextMenu</enum>
         </property>
         <property name="editTriggers">
          <set>QAbstractItemView::NoEditTriggers</set>
@@ -852,6 +863,12 @@ QRadioButton{
         <layout class="QGridLayout" name="Buttons">
          <item row="1" column="2">
           <widget class="QToolButton" name="updateActorBios">
+           <property name="toolTip">
+            <string>Update Bios</string>
+           </property>
+           <property name="statusTip">
+            <string>Update Bios</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -970,6 +987,12 @@ QRadioButton{
          </item>
          <item row="0" column="2">
           <widget class="QToolButton" name="scanFiles">
+           <property name="toolTip">
+            <string>Scan Folder</string>
+           </property>
+           <property name="statusTip">
+            <string>Scan Folder</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -1243,6 +1266,8 @@ QRadioButton{
    <addaction name="actionScan_Directory"/>
    <addaction name="actionUpdate_Database"/>
    <addaction name="actionLoad_Actors"/>
+   <addaction name="actionRefresh_Display"/>
+   <addaction name="actionUpdate_Bios"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionScan_Directory">
@@ -1252,6 +1277,12 @@ QRadioButton{
    </property>
    <property name="text">
     <string>Scan Directory</string>
+   </property>
+   <property name="statusTip">
+    <string>Scan Folder</string>
+   </property>
+   <property name="whatsThis">
+    <string>Scan Folder</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -1296,7 +1327,7 @@ QRadioButton{
   <action name="actionLoad_Actors">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/Icons/cloud down.ico</normaloff>:/Icons/cloud down.ico</iconset>
+     <normaloff>:/Icons/flat_download_to_computer_icon.png</normaloff>:/Icons/flat_download_to_computer_icon.png</iconset>
    </property>
    <property name="text">
     <string>Load Actors</string>
@@ -1313,6 +1344,33 @@ QRadioButton{
   <action name="actionCreate_Bio">
    <property name="text">
     <string>Create Bio</string>
+   </property>
+  </action>
+  <action name="actionRefresh_Display">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/refresh_desktop_icon.png</normaloff>:/Icons/refresh_desktop_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh Display</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh Display Items</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionUpdate_Bios">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/flat_download_from_cloud_icon.png</normaloff>:/Icons/flat_download_from_cloud_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Update Bios</string>
+   </property>
+   <property name="toolTip">
+    <string>Update Bios</string>
    </property>
   </action>
  </widget>

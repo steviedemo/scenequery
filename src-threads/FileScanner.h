@@ -25,6 +25,7 @@ public:
     ~FileScanner();
     bool setPath(QString);
     void run();
+    bool generateThumbnail(ScenePtr s);
 
 public slots:
     void receiveFileVector(QVector<FilePath>);
@@ -33,8 +34,12 @@ public slots:
     void receiveUpdatedActors(ActorList);
     void stopThread();
 private:
+    QString         getThumbnailFormat  (QString sceneFilename);
+    QString         formatImageName     (QString filename, QString photoExtension="jpeg");
+    bool            getDimensions       (QString name, class Height &height, int &weight);
+
     QFileInfoList   recursiveScan   (QFileInfo rootFolder);
-    SceneList makeScenes      (QFileInfoList fileList);
+    SceneList       makeScenes      (QFileInfoList fileList);
     void            parseScene      (QFileInfo currentFile);
     QStringList     getNames        (SceneList list);
     ActorList parseActorList(SceneList);

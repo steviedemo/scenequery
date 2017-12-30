@@ -7,9 +7,6 @@ class SceneList : public QList<QSharedPointer<Scene>>
 {
 public:
     SceneList() : QList<QSharedPointer<Scene>>(){}
-    SceneList(const SceneList &s);
-    SceneList operator=(const SceneList &s);
-    friend SceneList operator+(const SceneList &s1, const SceneList &s2);
     SceneList withCompany(QString);
     SceneList withActor(ActorPtr);
     SceneList withActor(QString name);

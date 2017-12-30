@@ -13,6 +13,7 @@ FilePath::FilePath(QString path, QString name, QString extension){
     this->path = path;
     this->name = name;
     this->extension = extension;
+    this->absolute = QString("%1/%2.%3").arg(path).arg(name).arg(extension);
 }
 FilePath::FilePath(QString path, QString name){
     QFileInfo file(QString("%1/%2").arg(path).arg(name));
@@ -21,6 +22,7 @@ FilePath::FilePath(QString path, QString name){
     file.fileName();
 
     this->extension = file.suffix();
+    this->absolute = QString("%1/%2").arg(path).arg(name);
 }
 FilePath::FilePath(QString fullPath){
     setFile(fullPath);
@@ -30,9 +32,11 @@ void FilePath::setFile(const FilePath &f){
     this->path = f.getPath();
     this->name = f.getName();
     this->extension = f.getExtension();
+    this->absolute = QString("%1/%2.%3").arg(path).arg(name).arg(extension);
 }
 
 void FilePath::setFile(QString fullPath){
+    this->absolute = fullPath;
     this->path="";
     this->name ="";
     this->extension = "";
@@ -64,9 +68,9 @@ QString FilePath::getParent     (QString path)  {   return path.remove(QRegularE
 QString FilePath::getName       (void) const    {   return this->name;      }
 QString FilePath::getPath       (void) const    {   return this->path;      }
 QString FilePath::getExtension  (void) const    {   return this->extension; }
-QString FilePath::parentPath    (void) const    {   return getParent(path);         }
+QString FilePath::absolutePath  (void) const    {   return this->absolute;  }
+QString FilePath::parentPath    (void) const    {   return getParent(path); }
 bool    FilePath::isEmpty       (void) const    {   return (path.isEmpty() || name.isEmpty());  }
-QString FilePath::absolutePath  (void) const    {   return QString("%1/%2.%3").arg(path).arg(name).arg(extension);  }
 
 QString FilePath::sqlSafe() const {
     QString safe = this->absolutePath();
@@ -94,5 +98,14 @@ bool FilePath::exists(void) const{
         fileExists = QFileInfo(this->absolutePath()).exists();
     }
     return fileExists;
+}
+
+int FilePath::size() const{
+    int size = 0;
+    QFileInfo info(this->absolute);
+    if (info.exists()){
+        size = info.size();
+    }
+    return size;
 }
 

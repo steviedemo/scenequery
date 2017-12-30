@@ -2,26 +2,6 @@
 #include "Scene.h"
 #include "Actor.h"
 
-SceneList::SceneList(const SceneList &s):
-    QList<QSharedPointer<Scene>>(){
-    qDebug("SceneList copy constructor called");
-    QListIterator<ScenePtr> it(*this);
-    while(it.hasNext()){
-        this->push_back(it.next());
-    }
-}
-
-SceneList SceneList::operator =(const SceneList &s){
-    qDebug("SceneList = operator called");
-    this->clear();
-    QListIterator<ScenePtr> it(*this);
-    while(it.hasNext()){
-        this->push_back(it.next());
-    }
-    return *this;
-}
-
-
 SceneList SceneList::withCompany(QString c){
     SceneList newList;
     QListIterator<ScenePtr> it(*this);

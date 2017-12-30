@@ -5,15 +5,15 @@
 Biography::Biography():
     name(""), aliases(""), city(""), nationality(""), ethnicity(""),
     eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
-    weight(0), fakeBoobs(false), retired(false),
-    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()){
+    fakeBoobs(false), retired(false), birthdate(QDate()),
+    careerStart(QDate()), careerEnd(QDate()), weight(0){
     this->illegalChars.setPattern(".*[\\<\\>\\\\]");
 }
 Biography::Biography(QString name):
     name(name), aliases(""), city(""), nationality(""), ethnicity(""),
     eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
-    weight(0), fakeBoobs(false), retired(false),
-    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()){
+    fakeBoobs(false), retired(false),
+    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()), weight(0){
     this->illegalChars.setPattern(".*[\\<\\>\\\\]");
 }
 Biography::Biography(const Biography &b){

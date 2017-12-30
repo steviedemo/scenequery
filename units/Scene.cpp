@@ -6,6 +6,7 @@
 #include "query.h"
 #include <QSqlQuery>
 #include <QVariant>
+#include <QStringListIterator>
 #include <string>
 using namespace std;
 Scene::Scene():Entry(),
@@ -13,6 +14,7 @@ Scene::Scene():Entry(),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
+    displayBuilt = false;
 }
 Scene::Scene(sceneParser p):Entry(),
     ID(0), file(FilePath()), length(0.0), height(0), width(0), size(0), sceneNumber(0),
@@ -20,6 +22,7 @@ Scene::Scene(sceneParser p):Entry(),
     title(""), company(""), series(""), url(""){
     this->ages = {};
     this->fromParser(p);
+    displayBuilt = false;
 }
 
 Scene::Scene(FilePath file) : Entry(),
@@ -30,7 +33,7 @@ Scene::Scene(FilePath file) : Entry(),
     sceneParser p;
     p.parse(file);
     this->fromParser(p);
-
+    displayBuilt = false;
 }
 void Scene::fromParser(sceneParser p){
     if (!p.isEmpty()){
@@ -54,6 +57,7 @@ void Scene::fromParser(sceneParser p){
     } else {
         ages = {};
     }
+    displayBuilt = false;
 }
 
 
@@ -81,6 +85,7 @@ Scene::Scene(QSqlRecord r){
         int age = r.value(QString("age%1").arg(i)).toInt();
         ages.push_back(age);
     }
+    displayBuilt = false;
 }
 
 Scene::Scene(pqxx::result::const_iterator &i):Entry(),
@@ -89,6 +94,7 @@ Scene::Scene(pqxx::result::const_iterator &i):Entry(),
     title(""), company(""), series(""), url(""){
     this->ages = {};
     this->fromRecord(i);
+    displayBuilt = false;
 }
 
 void Scene::fromRecord(pqxx::result::const_iterator &i){
@@ -142,13 +148,57 @@ void Scene::fromRecord(pqxx::result::const_iterator &i){
 
 Scene::~Scene(){}
 
+bool Scene::hasDisplay(){
+    return displayBuilt;
+}
 
-QList<QStandardItem *> Scene::buildQStandardItem(){
-    qDebug("Placeholder for QStandardItem builder for Scene Class");
+QList<QStandardItem *> Scene::getDisplayItem(){
     return row;
 }
+
+QList<QStandardItem *> Scene::buildQStandardItem(){
+    this->itemTitle = ItemPtr(new QStandardItem(title));
+    this->itemCompany = ItemPtr(new QStandardItem(company));
+    QString date("");
+    if (released.isValid()){
+        date = released.toString("yyyy/MM/dd");
+    }
+    this->itemDate = ItemPtr(new QStandardItem(date));
+    QString quality = ((height > 0) ? QString("%1p").arg(height) : "");
+    this->itemQuality = ItemPtr(new QStandardItem(quality));
+    this->itemLength = ItemPtr(new QStandardItem(QString::number(length, 'f', 2)));
+    this->itemRating = ItemPtr(new QStandardItem(rating.toString()));
+    QString s("");
+    int index = 0;
+    foreach(QString a, actors){
+        s += a + ((index+1) == actors.size() ? ", " : "");
+    }
+    this->itemActors = ItemPtr(new QStandardItem(s));
+    row << itemTitle.data() << itemCompany.data() << itemActors.data() << itemQuality.data() << itemDate.data() << itemLength.data() << itemRating.data();
+    displayBuilt = true;
+    return row;
+}
+
 void Scene::updateQStandardItem(){
-    qDebug("Placeholder for QStandardItem Updater for the Scene Class");
+    if (displayBuilt){
+        QString s("");
+        int index = 0;
+        foreach(QString a, actors){
+            s += a + ((index+1) == actors.size() ? ", " : "");
+        }
+        this->itemActors->setText(s);
+        QString date("");
+        if (released.isValid()){
+            date = released.toString("yyyy/MM/dd");
+        }
+        this->itemDate->setText(date);
+        QString quality = ((height > 0) ? QString("%1p").arg(height) : "");
+        this->itemQuality->setText(quality);
+        this->itemTitle->setText(title);
+        this->itemLength->setText(QString::number(length, 'f', 2));
+        this->itemRating->setText(rating.toString());
+        this->itemCompany->setText(company);
+    }
 }
 
 bool Scene::inDatabase(void){

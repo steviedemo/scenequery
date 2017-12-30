@@ -40,6 +40,9 @@ public:
     QSharedPointer<QStandardItem> getNameItem();
     bool updateBio();
     bool hasBio();
+    bool isEmpty     (void);
+    int  size();
+    bool usingDefaultPhoto(void);
     // Operators
     Actor operator =  (Actor &other);
     bool  operator == (Actor &other) const;
@@ -54,7 +57,7 @@ public:
     void    setHeadshot (FilePath f);
     void    setHeadshot (QString s);
 
-    void    setBio      (Biography b)   {   this->bio.copy(b);              }
+    void    setBio      (const Biography &b);
     void    setName     (QString n)     {   this->name = n; bio.setName(n); }
     void    setWeight   (int i)         {   this->bio.setWeight(i);         }
     void    setHeight   (Height h)      {   this->bio.setHeight(h);         }
@@ -89,7 +92,7 @@ public:
     QString     getTattoos  	(void)  const {   return this->bio.getTattoos();      }
     QString		getPiercings    (void)  const {   return this->bio.getPiercings();    }
     FilePath    getHeadshot    	(void)  const {   return this->headshot;              }
-
+    QString     getHeadshotPath (void)  const {   return this->headshot.absolutePath(); }
 };
 
 #endif // ACTOR_H

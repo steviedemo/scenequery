@@ -11,6 +11,7 @@
 FileScanner::FileScanner(QString path):
     scanDir(path), index(0){
     this->actors = QVector<QSharedPointer<Actor>>();
+    this->setTerminationEnabled(true);
 }
 FileScanner::~FileScanner(){
 
@@ -173,6 +174,7 @@ void FileScanner::receiveFileVector(QVector<FilePath> fileVector){
 }
 
 void FileScanner::stopThread(){
+    qDebug("File Thread Stopping...");
     this->keepRunning = false;
 }
 
@@ -193,3 +195,20 @@ ActorList FileScanner::parseActorList(SceneList sceneList){
     return actorList;
 }
 
+
+//----------------------------------------------------------------
+//		THUMBNAILS
+//----------------------------------------------------------------
+
+/** \brief Generate Thumbnails for the video file that the Scene passed refers to. */
+#warning Incomplete function for thumbnail generation.
+bool FileScanner::generateThumbnail(ScenePtr s){
+    if (s->exists()){
+        /*
+        QString cmd = QString("ffmpg -i %1 -vf fps=%2 scale=\'min(%3, iw):-1\' %4").arg(file.unixSafe()).arg()
+        std::string command("ffmpeg -i " + file.unixSafe() + " -vf fps=" + THUMBNAIL_RATE + " scale=\'min(" + THUMBNAIL_MAX_SIZE + "\\, iw):-1\' " + destination);
+        shell_it(command);
+        */
+    }
+    return false;
+}

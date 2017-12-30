@@ -30,10 +30,7 @@ Height::Height(const Height &other){
     this->valid = other.valid;
 }
 Height::~Height(){}
-Height Height::operator =(Height other){
-    Height h(other.getFeet(), other.getInches(), other.getCm());
-    return h;
-}
+
 void Height::set(int feet, int inches){
     this->cm = (feet*12 + inches)*CM_PER_INCH;
     this->feet = feet;
@@ -45,7 +42,7 @@ void Height::set(int cm){
     this->feet = totalInches/12;
     this->inches=totalInches%12;
 }
-void Height::set(Height h){
+void Height::set(const Height &h){
     this->cm = h.getCm();
     this->feet = h.getFeet();
     this->inches = h.getInches();
@@ -57,20 +54,21 @@ void Height::set(double d){
     this->cm = (int)(d * 30.48);
 }
 
-bool Height::isEqual(Height other){
+bool Height::isEqual(Height &other) const {
     return ((this->feet == other.feet) && (this->inches == other.inches));
 }
-bool Height::isGreater(Height other){
-    return (this->getFeetDouble() > other.getFeetDouble());
+bool Height::isGreater(Height &other) const {
+    double thisHeight = (double)(feet) + (double)(inches/12.0);
+    return (thisHeight > other.getFeetDouble());
 }
-bool Height::nonZero(){ return (this->feet > 0);    }
+bool Height::nonZero() const { return (this->feet > 0);    }
 
-bool Height::operator ==(Height other){ return this->isEqual(other);    }
-bool Height::operator !=(Height other){ return !(this->isEqual(other)); }
-bool Height::operator > (Height other){ return isGreater(other);        }
-bool Height::operator >=(Height other){ return (isGreater(other) || isEqual(other));    }
-bool Height::operator < (Height other){ return (!isEqual(other) && !isGreater(other));  }
-bool Height::operator <=(Height other){ return (isEqual(other) || !isGreater(other));   }
+bool Height::operator ==(Height &other) const { return this->isEqual(other);    }
+bool Height::operator !=(Height &other) const { return !(this->isEqual(other)); }
+bool Height::operator > (Height &other) const { return isGreater(other);        }
+bool Height::operator >=(Height &other) const { return (isGreater(other) || isEqual(other));    }
+bool Height::operator < (Height &other) const { return (!isEqual(other) && !isGreater(other));  }
+bool Height::operator <=(Height &other) const { return (isEqual(other) || !isGreater(other));   }
 Height Height::fromText(QString s){
     QRegularExpression rx("([0-9])\\s*feet[\\s,]*([0-9])*(inches)?");
     QRegularExpressionMatch m = rx.match(s);
@@ -85,7 +83,7 @@ Height Height::fromText(QString s){
     return Height(ft, in);
 }
 
-bool Height::isValid(){
+bool Height::isValid() const {
     if (feet == 0 && inches == 0)
         return false;
     else

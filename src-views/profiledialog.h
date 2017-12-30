@@ -2,6 +2,7 @@
 #define PROFILEDIALOG_H
 #include "Actor.h"
 #include "definitions.h"
+#include <QCloseEvent>
 #include <QDialog>
 
 namespace Ui {
@@ -17,9 +18,8 @@ public:
     ~ProfileDialog();
 
 private slots:
-    void on_closeButton_clicked();
     void on_tryAgainButton_clicked();
-
+    void closeEvent(QCloseEvent *);
 private:
     Ui::ProfileDialog *ui;
     ActorPtr actor;

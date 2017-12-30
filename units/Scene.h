@@ -1,5 +1,6 @@
 #ifndef SCENE_H
 #define SCENE_H
+#include "definitions.h"
 #include "genericfunctions.h"
 #include <QDate>
 #include <QDateTime>
@@ -25,6 +26,8 @@ private:
     Rating rating;
     QVector<int> ages;
     void fromParser(class sceneParser p);
+    ItemPtr itemTitle, itemActors, itemCompany, itemRating, itemDate, itemQuality, itemLength;
+    bool displayBuilt;
 public:
     Scene   (void);
     Scene   (FilePath);
@@ -40,6 +43,7 @@ public:
     int     entrySize();
     QList<QStandardItem *> buildQStandardItem();
     void    updateQStandardItem();
+    QList<QStandardItem *> getDisplayItem();
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;
     bool    inDatabase(void);
@@ -47,6 +51,7 @@ public:
     void    setAge      (int, int);
     void    setAge      (QString, int);
     int     getAge      (QString name);
+    bool    hasDisplay  (void);
     bool    exists      (void)          { return file.exists(); }
     // Getters
     int         getID       (void)      {   return ID;          }

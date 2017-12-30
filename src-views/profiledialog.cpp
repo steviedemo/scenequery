@@ -6,8 +6,9 @@
 #include "filenames.h"
 #include "FilePath.h"
 ProfileDialog::ProfileDialog(ActorPtr a, QWidget *parent) :
-    QDialog(parent), actor(a),
-    ui(new Ui::ProfileDialog)
+    QDialog(parent),
+    ui(new Ui::ProfileDialog),
+    actor(a)
 {
     ui->setupUi(this);
     ui->labelName->setText(actor->getName());
@@ -27,7 +28,8 @@ ProfileDialog::ProfileDialog(ActorPtr a, QWidget *parent) :
     ui->tattoosEdit->setText(actor->getTattoos());
     ui->weightLineEdit->setText(QString::number(actor->getWeight()));
     FilePath photo = a->getHeadshot();
-    if (photo.exists()){
+
+    if (photo.exists() && photo.size() > 200){
         QPixmap profilePhoto(photo.absolutePath());
         ui->profilePhoto->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
     } else {
@@ -40,9 +42,9 @@ ProfileDialog::~ProfileDialog(){
     delete ui;
 }
 
-void ProfileDialog::on_closeButton_clicked(){
+void ProfileDialog::closeEvent(QCloseEvent *event){
     emit closed();
-    this->close();
+    event->accept();
 }
 
 void ProfileDialog::on_tryAgainButton_clicked(){

@@ -80,13 +80,22 @@ void Actor::setup(){
     }
     */
 }
-void Actor::setHeadshot(QString s){
-    this->headshot = FilePath(s);
+
+int Actor::size(){
+    int size = bio.size();
+    if (headshot.absolutePath() != DEFAULT_PROFILE_PHOTO){
+        size++;
+    }
+    if (!name.isEmpty()){
+        size++;
+    }
+    return size;
 }
 
-void Actor::setHeadshot(FilePath f){
-    this->headshot = f;
-}
+void Actor::setHeadshot(QString s)  {   this->headshot = FilePath(s);   }
+void Actor::setHeadshot(FilePath f) {   this->headshot = f;             }
+bool Actor::isEmpty()               {   return name.isEmpty();          }
+bool Actor::usingDefaultPhoto()     {   return (this->headshot.absolutePath() == DEFAULT_PROFILE_PHOTO);    }
 
 Actor Actor::operator =(Actor &obj){
     this->bio = obj.bio;
@@ -118,15 +127,11 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
     this->itemEthnicity = ItemPtr(new QStandardItem());
 
     this->itemName->setText(name);
-    if (headshotDownloaded(name)){
+    if (headshot.isEmpty()){
         QString photoPath = getProfilePhoto(name);
         qDebug("Profile Photo for %s: %s", qPrintable(name), qPrintable(photoPath));
-        if (QFileInfo(photoPath).exists()){
-            this->itemPhoto->setData(QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-        } else {
-            this->itemPhoto->setData(QVariant(QPixmap(":/Icons/blank_profile_photo.png").scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-        }
     }
+    this->itemPhoto->setData(QVariant(QPixmap(this->headshot.absolutePath()).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     QString hair, ethnicity;
     hair = bio.getHairColor();
     ethnicity = bio.getEthnicity();
@@ -139,15 +144,9 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
 
 void Actor::updateQStandardItem(){
     qDebug("Updating Display Item for %s", qPrintable(name));
-    if (headshotDownloaded(name)){
-        QString photoPath = getProfilePhoto(name);
-        qDebug("Profile Photo for %s: %s", qPrintable(name), qPrintable(photoPath));
-        if (QFileInfo(photoPath).exists()){
-            this->itemPhoto->setData(QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-        } else {
-            this->itemPhoto->setData(QVariant(QPixmap(":/Icons/blank_profile_photo.png").scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-        }
-    }
+    QString profilePhoto = getProfilePhoto(name);
+    this->headshot.setFile(profilePhoto);
+    this->itemPhoto->setData(QVariant(QPixmap(profilePhoto).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     if (itemHair->text().isEmpty()){
         QString hair = bio.getHairColor();
         itemHair->setText(hair);
@@ -157,6 +156,10 @@ void Actor::updateQStandardItem(){
         itemEthnicity->setText(ethnicity);
     }
     qDebug("%s's Display Item Updated", qPrintable(name));
+}
+void Actor::setBio(const Biography &other){
+    qDebug("Copying new Biography into %s's profile", qPrintable(name));
+    this->bio.copy(other);
 }
 
 bool Actor::inDatabase(){

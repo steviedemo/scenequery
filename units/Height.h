@@ -9,8 +9,8 @@ private:
     int inches;
     int cm;
     bool valid;
-    bool isEqual(Height other);
-    bool isGreater(Height other);
+    bool isEqual(Height &other) const;
+    bool isGreater(Height &other) const;
 public:
     Height(void);
     Height(int cm);
@@ -18,19 +18,18 @@ public:
     Height(double feet);
     Height(int feet, int inches, int cm);
     Height(const Height &other);
-    Height operator = (Height other);
     void set(int feet, int inches);
     void set(double);
     void set(int cm);
-    void set(Height h);
-    bool operator ==(Height other);
-    bool operator <(Height other);
-    bool operator !=(Height other);
-    bool operator <=(Height other);
-    bool operator >(Height other);
-    bool operator >=(Height other);
-    bool isValid();
-    bool nonZero();
+    void set(const Height &h);
+    bool operator ==(Height &other) const;
+    bool operator <(Height &other)  const;
+    bool operator !=(Height &other) const;
+    bool operator <=(Height &other) const;
+    bool operator >(Height &other)  const;
+    bool operator >=(Height &other) const;
+    bool isValid() const;
+    bool nonZero() const;
     static Height fromText(QString s);
     ~Height();
     double  getFeetDouble(void)         {   return (double)((inches/12.0)+feet);   }

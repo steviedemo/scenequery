@@ -31,6 +31,7 @@ private:
     QString name;
     QString path;
     QString extension;
+    QString absolute;
 };
 
 #endif // FILEPATH_H

@@ -16,7 +16,6 @@
 #define THUMBNAIL_PATH  "thumbs"
 enum Website { IAFD, Freeones };
 
-QString         downloadHeadshot    (QString name);
 
 
 //enum CurlRequest { IAFD, Freeones, Photo, Filmography };
@@ -26,14 +25,7 @@ public:
     DownloadThread(QString name);
     ~DownloadThread();
     void run();
-    static bool            getFreeonesData     (QString name, class Biography *bio);
-    static bool            getIAFDData         (QString name, class Biography *bio);
-    static class Biography freeones            (QString);
-    static class Biography iafd                (QString);
-    static bool            wget                (QString, QString);
-    static QString         getHTML             (Website w, QString name);
-    static QString         bioSearchIAFD       (QString html, QString key);
-    static QString         bioSearchFO         (QString html, QString key);
+
 private:
     void            makeActor           (QString name);
     QString name, html, photo;
@@ -51,9 +43,20 @@ public:
     ~curlTool();
     void run();
     /** Photos */
-    bool            generateThumbnail   (ScenePtr s);
-    bool     thumbnailExists     (ScenePtr s);
-
+    bool                    generateThumbnail   (ScenePtr s);
+    bool                    thumbnailExists     (ScenePtr s);
+    static bool             getFreeonesData     (QString name, class Biography &bio);
+    static bool             getIAFDData         (QString name, class Biography &bio);
+    static bool             getFreeonesData     (QString name, class Biography &bio, QString &html);
+    static bool             getIAFDData         (QString name, class Biography &bio, QString &html);
+    //static class Biography  freeones            (QString);
+    //static class Biography  iafd                (QString);
+    static QString          getHTML             (Website w, QString name);
+    static QString          bioSearchIAFD       (QString html, QString key);
+    static QString          bioSearchFO         (QString html, QString key);
+    static QMap<QString,QString> parseBioTags   (QString html, Website site);
+    static bool             downloadHeadshot    (ActorPtr a, QString html);
+    static QString          downloadHeadshot    (QString name);
 
 public slots:
     void            downloadPhoto       (ActorPtr a);
@@ -67,8 +70,9 @@ private slots:
     void            downloadThreadComplete();
 
 private:
+    static QString         getHeadshotLink     (QString);
+    static bool            wget                (QString, QString);
     void            resetCounters();
-    QMap<QString,QString> getFreeonesTags(QString);
     int             threadsStarted, threadsFinished;
     int             index;
     int             additions;
@@ -80,9 +84,7 @@ private:
     QStringList     nameList;
     ActorList       actorList;
     DownloadThread  *downloadThread;
-    QString         getThumbnailFormat  (QString sceneFilename);
-    QString         formatImageName     (QString filename, QString photoExtension="jpeg");
-    bool            getDimensions       (QString name, class Height &height, int &weight);
+
 signals:
     void            finishedProcessing(bool);
     void            startProgress(QString, int);
