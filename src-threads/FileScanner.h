@@ -17,6 +17,8 @@
 #include <QMap>
 #include <QMutex>
 #include "SceneList.h"
+
+
 class FileScanner : public QThread
 {
     Q_OBJECT
@@ -28,10 +30,8 @@ public:
     bool generateThumbnail(ScenePtr s);
 
 public slots:
-    void receiveFileVector(QVector<FilePath>);
     void scanForActors(SceneList, ActorList);
     void scanFolder(QString rootPath);
-    void receiveUpdatedActors(ActorList);
     void stopThread();
 private:
     QString         getThumbnailFormat  (QString sceneFilename);
@@ -52,7 +52,7 @@ private:
     int index;
     int added;
     bool keepRunning;
-    QMutex mx;
+    QMutex subMx, threadMx;
     bool waitingOnCurlThread;
 signals:
     /// Progress Updating

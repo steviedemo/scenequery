@@ -15,14 +15,16 @@
 #define HEADSHOT_PATH   "headshots"
 #define THUMBNAIL_PATH  "thumbs"
 enum Website { IAFD, Freeones };
-
-
+namespace Curl{
+    enum Task    { MAKE_BIO, UPDATE_BIO};
+}
 
 //enum CurlRequest { IAFD, Freeones, Photo, Filmography };
 class DownloadThread : public QObject, public QRunnable{
     Q_OBJECT
 public:
     DownloadThread(QString name);
+    DownloadThread(ActorPtr a);
     ~DownloadThread();
     void run();
 
@@ -30,6 +32,7 @@ private:
     void            makeActor           (QString name);
     QString name, html, photo;
     ActorPtr actor;
+    Curl::Task task;
 signals:
     void sendActor(ActorPtr);
     void finished();
@@ -62,7 +65,7 @@ public slots:
     void            downloadPhoto       (ActorPtr a);
     void            updateBio           (ActorPtr a);
 //  void            downloadPhotos      (ActorList a);
-//  void            updateBios          (ActorList a);
+    void            updateBios          (ActorList a);
     void            makeNewActors       (QStringList nameList);
     void            stopThread          (void);
 private slots:

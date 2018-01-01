@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql concurrent network
+QT       += core gui sql concurrent network multimedia widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -39,6 +39,7 @@ INCLUDEPATH += \
     units \
     src-threads \
     src-views \
+    forms \
     PSQL/src \
     -I/usr/local/opt/qt/bin \
     $${PQXX}/src \
@@ -81,7 +82,13 @@ SOURCES += \
     src/filenames.cpp \
     src-views/ActorTableModel.cpp \
     units/SceneList.cpp \
-    src-views/profiledialog.cpp
+    src-views/profiledialog.cpp \
+    src-threads/InitializationThread.cpp \
+    src-views/RatingDelegate.cpp \
+    src-views/RatingEditor.cpp \
+    src-views/SceneProxyModel.cpp \
+    src-views/SceneView.cpp \
+    forms/ActorProfileView.cpp
 
 HEADERS  += \
     src/config.h \
@@ -107,10 +114,17 @@ HEADERS  += \
     src/filenames.h \
     src-views/ActorTableModel.h \
     units/SceneList.h \
-    src-views/profiledialog.h
+    src-views/profiledialog.h \
+    src-threads/InitializationThread.h \
+    src-views/RatingDelegate.h \
+    src-views/RatingEditor.h \
+    src-views/SceneProxyModel.h \
+    src-views/SceneView.h \
+    forms/ActorProfileView.h
 
 FORMS    += forms/mainwindow.ui \
-    forms/profiledialog.ui
+    forms/profiledialog.ui \
+    forms/actorprofileview.ui
 
 QMAKE_CLEAN += \
     build/* \

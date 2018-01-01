@@ -1,5 +1,6 @@
 #ifndef ACTOR_H
 #define ACTOR_H
+#include "definitions.h"
 #include <QDate>
 #include <QString>
 #include <QSqlRecord>
@@ -10,6 +11,7 @@
 #include "Biography.h"
 #include "FilePath.h"
 #include "Entry.h"
+#include "SceneList.h"
 #include <pqxx/result>
 #define ACTOR_LIST_PHOTO_HEIGHT 40
 typedef QVector<QSharedPointer<class Actor>> ActorList;
@@ -21,9 +23,11 @@ private:
     Biography bio;
     double dataUsage;
     class FilePath headshot;
-    QSharedPointer<QStandardItem> itemName, itemAge, itemPhoto, itemHair, itemEthnicity;
+    QSharedPointer<QStandardItem> itemName, itemAge, itemPhoto, itemHair, itemEthnicity, itemSceneCount;
     QImage photo;
+    int sceneCount;
     bool displayItemCreated;
+    SceneList sceneList;
     void setup();
 
 public:
@@ -37,12 +41,14 @@ public:
     int  entrySize();
     QList<QStandardItem *> buildQStandardItem();
     void updateQStandardItem();
+    QList<QStandardItem *> getQStandardItem();
     QSharedPointer<QStandardItem> getNameItem();
     bool updateBio();
     bool hasBio();
     bool isEmpty     (void);
     int  size();
     bool usingDefaultPhoto(void);
+    void addScene();
     // Operators
     Actor operator =  (Actor &other);
     bool  operator == (Actor &other) const;
@@ -54,9 +60,11 @@ public:
     QString headshotTitle(void);
     void    setProfilePicture(QImage image);
     // Setters
+    void    setScenes   (class SceneList list);
     void    setHeadshot (FilePath f);
     void    setHeadshot (QString s);
-
+    void    setSceneCount(int i)        {   this->sceneCount = i;           }
+    void    addScene    (ScenePtr s);
     void    setBio      (const Biography &b);
     void    setName     (QString n)     {   this->name = n; bio.setName(n); }
     void    setWeight   (int i)         {   this->bio.setWeight(i);         }
@@ -76,6 +84,7 @@ public:
     void    setCareerEnd(QDate d)       {   this->bio.careerEnd = d;    this->bio.retired = true;   }
 
     // Getters
+    int         getSceneCount   (void)  const {   return this->sceneCount;            }
     QString     getName         (void)  const {   return this->name;                  }
     Biography   getBio        	(void)  const {   return this->bio;                   }
     int			getWeight       (void)  const {   return this->bio.getWeight();       }

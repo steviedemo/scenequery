@@ -55,8 +55,8 @@ public slots:
     void            saveChanges         (ScenePtr);
     void            updateActor         (ActorPtr);
     void            stopThread          ();
-    void            load                (ActorList actors);
-    void            load                (SceneList scenes);
+    void            load                (ActorList);
+    void            load                (SceneList);
     void            store               (ActorList actors);
     void            store               (SceneList scenes);
     bool            hasScene            (ScenePtr s, bool &queryRan);
@@ -70,14 +70,12 @@ protected:
     bool            insertOrUpdateScene (ScenePtr);
 private:
     operation_count count;
-    QSqlDatabase db;
     QString connectionName;
     sqlConnection connection;
     QMutex mx;
     SceneList scenes;
     ActorList actors;
     bool keepRunning;
-
 signals:
     void updateStatus(QString status);
     void startProgress(QString, int);

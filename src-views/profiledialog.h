@@ -19,7 +19,7 @@ public:
 
 private slots:
     void on_tryAgainButton_clicked();
-    void closeEvent(QCloseEvent *);
+
 private:
     Ui::ProfileDialog *ui;
     ActorPtr actor;

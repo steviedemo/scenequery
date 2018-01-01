@@ -13,6 +13,7 @@ public:
     Entry(int id);
     virtual QList<QStandardItem *>  buildQStandardItem() = 0;
     virtual void                    updateQStandardItem() = 0;
+    virtual QList<QStandardItem *>  getQStandardItem() = 0;
     //virtual void                    updateFromDatabase() = 0;
     virtual Query                   toQuery() const = 0;
     virtual void                    fromRecord(pqxx::result::const_iterator &record) = 0;

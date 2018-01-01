@@ -7,14 +7,18 @@
 #include "Actor.h"
 #include "Scene.h"
 #include "sql.h"
-#include "ActorTableModel.h"
 #include "profiledialog.h"
+#include "InitializationThread.h"
 #include <QSortFilterProxyModel>
+#include "SceneProxyModel.h"
+#include "SceneView.h"
 #include <QMap>
 #include <QMainWindow>
 #include <QListView>
+#include <QProgressDialog>
 #include <QTableView>
 #include <QStandardItem>
+#include <QShowEvent>
 #define NAME_COLUMN 1
 enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
@@ -30,10 +34,12 @@ public:
 
 private slots:
     /// Receivers
+    void initializationFinished(ActorList, SceneList);
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveScanResult(SceneList, QStringList);
     void receiveSingleActor(ActorPtr);
+
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -41,80 +47,69 @@ private slots:
     void updateStatus(QString);
     void showError(QString);
     void showSuccess(QString);
+    void newProgressDialog(QString, int);
+    void updateProgressDialog(int);
+    void updateProgressDialog(QString);
+    void closeProgressDialog();
 
     /// Window Events
     void showEvent(QShowEvent *event);
+
 
     /// Buttons
     void on_actionScan_Directory_triggered();
     void on_refreshScenes_clicked();
     void on_refreshActors_clicked();
-    void on_radioButtonActors_clicked();
     void on_actorView_clicked(const QModelIndex &index);
     void on_saveScenes_clicked();
     void on_saveActors_clicked();
-    void on_scanFiles_clicked();
-    void on_updateActorBios_clicked();
-    void on_updateDisplay_clicked();
-    void on_closeProfile_clicked();
-    void on_profile_photo_customContextMenuRequested(const QPoint &pos);
-    void on_saveProfile_clicked();
-    void on_reloadProfile_clicked();
-    // Text Changed on profile.
-    void on_birthDateDateEdit_userDateChanged(const QDate &date);
-    void on_hairColorLineEdit_textChanged(const QString &arg1);
-    void on_ethnicityLineEdit_textChanged(const QString &arg1);
-    void on_nationalityLineEdit_textEdited(const QString &arg1);
-    void on_heightLineEdit_textEdited(const QString &arg1);
-    void on_weightLineEdit_textEdited(const QString &arg1);
-    void on_eyeColorLineEdit_textEdited(const QString &arg1);
-    void on_measurementsLineEdit_textEdited(const QString &arg1);
-    void on_aliasesEdit_textChanged();
-    void on_piercingsEdit_textChanged();
-    void on_tattoosEdit_textChanged();
+    void reloadProfile();
 
     void on_actionParse_Scene_triggered();
 
-    void on_downloadProfile_clicked();
 
-    void on_actionUpdate_Database_triggered();
-
+    void on_actionSave_Scenes_triggered();
     void on_actionLoad_Actors_triggered();
-
     void on_actionCreate_Bio_triggered();
     void receiveTestBio(ActorPtr);
-    void profileDialogClosed();
-private:
+    void on_actionUpdate_Bios_triggered();
+    void on_actionRefresh_Display_triggered();
     void selectNewProfilePhoto();
+    void testProfileDialogClosed();
+private:
     void setupThreads();
     void setupViews();
     void refreshSceneView();
-    void sortActors();
     ActorPtr getSelectedActor();
     void setResetAndSaveButtons(bool enabled);
-
-    void loadActorProfile(ActorPtr);
+    void displaySceneSubset(SceneList);
+    void displayAllScenes(void);
+    void addSceneRow(ItemList);
+    void addActorRow(ItemList);
     /// View
     Ui::MainWindow *ui;
-    ProfileDialog *profileDialog;
-    QModelIndex currentActorIndex;
-    ActorPtr currentActor;
-    SceneList sceneList;
-    ActorList actorList;
+    ActorList actorList, updateList, displayActors;
+    ActorPtr currentActor, updatedActor;
+    ProfileDialog *testProfileDialog;
     QMap<QString, ActorPtr> actorMap;
+    QModelIndex currentActorIndex;
+    QProgressDialog *progressDialog;
+    QSharedPointer<QStandardItemModel> sceneSubsetModel, actorSubsetModel;
     QStandardItemModel *actorModel, *sceneModel;
     QStandardItem *actorParent, *sceneParent;
-    QPixmap *blankImage;
-    QSortFilterProxyModel *proxyModel;
-    QStringList names;
-    curlTool *curlTestThread;
+    QStringList names, actorHeaders, sceneHeaders;
+    QSortFilterProxyModel *actorProxyModel;
+    SceneProxyModel *sceneProxyModel;
+    SceneList sceneList, displayScenes;
+    SceneView *sceneView;
     /// Threads
+    curlTool *curlTestThread;
+    InitializationThread *initThread;
     FileScanner *scanner;
     curlTool    *curlThread;
     SQL         *sqlThread;
     bool itemSelected;
     Display currentDisplay;
-    void updateDisplayType();
 signals:
     void closing();
     void stopThreads();
@@ -130,6 +125,17 @@ signals:
     void saveActors(ActorList);
     void saveScenes(SceneList);
     void saveChangesToDB(ScenePtr);
+    void actorSelectionChanged(QString);
+    void loadActorProfile(ActorPtr a);
+
+    void startProgressBar(QString, int);
+    void updateProgressBar(int);
+    void closeProgressBar(QString);
+    void newProgressDialogBox(QString, int);
+    void updateProgressDialogBox(int);
+    void updateProgressDialogBox(QString);
+    void closeProgressDialogBox();
+    void updateStatusLabel(QString);
 };
 
 #endif // MAINWINDOW_H

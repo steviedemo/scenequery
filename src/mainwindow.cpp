@@ -6,17 +6,24 @@
 #include "FileScanner.h"
 #include "Scene.h"
 #include "Actor.h"
+#include "ActorProfileView.h"
+#include "InitializationThread.h"
 #include <QInputDialog>
 #include <QtGlobal>
 #include <QDebug>
 #include <QMessageBox>
 #include <QVector>
 #include <QFileDialog>
+#include <QRegExp>
+#define MINIMUM_BIO_SIZE 6
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
     actorList = {};
     sceneList = {};
+    updateList = {};
+    displayActors = {};
+    displayScenes = {};
     this->currentDisplay = DISPLAY_ACTORS;
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
@@ -32,40 +39,105 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<ActorList>("ActorList");
 
     setupViews();
-
-    this->blankImage = new QPixmap(":/Icons/blank_profile_photo.png");
-    ui->profile_photo->setPixmap(blankImage->scaledToHeight(IMAGE_HEIGHT));
-    setupThreads();
 }
 
 MainWindow::~MainWindow(){
     delete ui;
+    actorMap.clear();
     actorList.clear();
     sceneList.clear();
 }
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
-    QStringList headers;
-
-    headers << "" << "Name" << "Hair Color" << "Ethnicity";
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes";
+    sceneHeaders << "Main Actor" << "Title" << "Company" << "Quality" << "Featured Actors" << "Release Date" << "Length" << "Rating";
     sceneModel = new QStandardItemModel();
     actorModel = new QStandardItemModel();
+    sceneSubsetModel = QSharedPointer<QStandardItemModel>(new QStandardItemModel());
+    actorSubsetModel = QSharedPointer<QStandardItemModel>(new QStandardItemModel());
+
     sceneParent = sceneModel->invisibleRootItem();
     actorParent = actorModel->invisibleRootItem();
-    this->actorModel->setHorizontalHeaderLabels(headers);
-    this->proxyModel = new QSortFilterProxyModel(this);
-    this->proxyModel->setSourceModel(actorModel);
+    this->actorModel->setHorizontalHeaderLabels(actorHeaders);
+    this->sceneModel->setHorizontalHeaderLabels(sceneHeaders);
+    this->actorSubsetModel->setHorizontalHeaderLabels(actorHeaders);
+    this->sceneSubsetModel->setHorizontalHeaderLabels(sceneHeaders);
+    this->actorProxyModel = new QSortFilterProxyModel(this);
+    this->sceneProxyModel = new SceneProxyModel(this);
+    this->actorProxyModel->setSourceModel(actorModel);
+    this->sceneProxyModel->setSourceModel(sceneModel);
+    ui->sceneWidget->setSourceModel(sceneModel);
+    /// Set Up Profile Widget
     ui->actorView->setSortingEnabled(true);
     ui->actorView->setModel(actorModel);
-    //ui->actorView->horizontalHeader()->hide();
+
     ui->actorView->horizontalHeader()->setStyleSheet("background-color: rgb(73,73,73);");
     ui->actorView->verticalHeader()->hide();
-    ui->sceneView->setModel(sceneModel);
-    ui->profileView->hide();
+    ui->profileWidget->hide();
     ui->progressBar->setValue(0);
-    setResetAndSaveButtons(false);
+    connect(this, SIGNAL(actorSelectionChanged(QString)), ui->sceneWidget, SLOT(actorFilterChanged(QString)));
 }
+
+void MainWindow::showEvent(QShowEvent */*event*/){
+    this->initThread = new InitializationThread();
+    connect(initThread, SIGNAL(startProgress(QString,int)),             this, SLOT(newProgressDialog(QString, int)));
+    connect(initThread, SIGNAL(updateProgress(int)),                    this, SLOT(updateProgressDialog(int)));
+    connect(initThread, SIGNAL(sendInitialLists(ActorList,SceneList)),  this, SLOT(initializationFinished(ActorList, SceneList)));
+    initThread->start();
+    //emit loadActors(actorList);
+}
+
+void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
+    int index = 0;
+    qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
+    connect(this, SIGNAL(newProgressDialogBox(QString,int)),this, SLOT(newProgressDialog(QString,int)));
+    connect(this, SIGNAL(updateProgressDialogBox(int)),     this, SLOT(updateProgressDialog(int)));
+    connect(this, SIGNAL(closeProgressDialogBox()),         this, SLOT(closeProgressDialog()));
+
+    connect(this, SIGNAL(startProgressBar(QString,int)),    this, SLOT(startProgress(QString,int)));
+    connect(this, SIGNAL(updateProgressBar(int)),           this, SLOT(updateProgress(int)));
+    connect(this, SIGNAL(closeProgressBar(QString)),        this, SLOT(closeProgress(QString)));
+
+    connect(this, SIGNAL(updateStatusLabel(QString)),       this, SLOT(updateStatus(QString)));
+    // Start the progress bar & set the label
+    /*
+    ui->progressBar->setEnabled(true);
+    ui->progressBar->setRange(0, actors.size() + scenes.size());
+    ui->progressBar->setValue(0);
+    ui->statusLabel->setText(QString("Adding %1 Scenes to the model").arg(scenes.size()));
+    */
+    emit newProgressDialogBox(QString("Adding %1 Scenes to the model").arg(scenes.size()), actors.size() + scenes.size());
+    this->sceneList = scenes;
+    QStringList cast;
+    foreach(ScenePtr s, scenes){
+        /* ui->sceneWidget->addScene(s); */
+        sceneModel->appendRow(s->buildQStandardItem());
+        sceneList.push_back(s);
+        ++index;
+        if ((index % 300) == 0){
+            emit updateProgressDialogBox(index);
+        }
+    }
+    emit updateProgressDialogBox(QString("Adding %1 Actors to Model").arg(actors.size()));
+    foreach(ActorPtr a, actors){
+        if (!actorMap.contains(a->getName())){
+            a->setSceneCount(sceneList.countScenesWithActor(a->getName()));
+            actorMap.insert(a->getName(), a);
+            actorModel->appendRow(a->buildQStandardItem());
+        }
+        ++index;
+        if ((index % 50) == 0){
+           emit updateProgressDialogBox(index);
+        }
+    }
+
+    emit closeProgressDialogBox();
+    ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
+    ui->actorView->resizeColumnsToContents();
+    setupThreads();
+}
+
 
 /** \brief  Set up all persistent background threads, and connect their signals and slots to the main window.
  */
@@ -75,6 +147,7 @@ void MainWindow::setupThreads(){
     this->curlThread = new curlTool();
     this->scanner = new FileScanner();
     /// PROGRESS & STATUS BAR UPDATING
+
     connect(scanner,    SIGNAL(startProgress(QString,int)), this,       SLOT(startProgress(QString,int)));
     connect(curlThread, SIGNAL(startProgress(QString,int)), this,       SLOT(startProgress(QString,int)));
     connect(sqlThread,  SIGNAL(startProgress(QString,int)), this,       SLOT(startProgress(QString,int)));
@@ -102,9 +175,9 @@ void MainWindow::setupThreads(){
     connect(this,       SIGNAL(scanActors(SceneList,ActorList)),    scanner,    SLOT(scanForActors(SceneList,ActorList)));
     /// Set up curl thread communications with main thread
     //connect(this,       SIGNAL(getHeadshots(ActorList)),    curlThread, SLOT(downloadPhotos(ActorList)));
-    //connect(this,       SIGNAL(updateBios(ActorList)),      curlThread, SLOT(updateBios(ActorList)));
+    connect(this,       SIGNAL(updateBios(ActorList)),      curlThread, SLOT(updateBios(ActorList)));
     //connect(this,       SIGNAL(updateSingleBio(ActorPtr)),  curlThread, SLOT(updateBio(ActorPtr)));
-   // connect(curlThread, SIGNAL(updateSingleProfile(ActorPtr)), this,    SLOT(receiveSingleActor(ActorPtr)));
+    connect(curlThread, SIGNAL(updateSingleProfile(ActorPtr)), this,    SLOT(receiveSingleActor(ActorPtr)));
     connect(curlThread, SIGNAL(updateFinished(ActorList)),  this,       SLOT(receiveActors(ActorList)));
     connect(this,       SIGNAL(makeNewActors(QStringList)), curlThread, SLOT(makeNewActors(QStringList)));
     /// Set up the SQL Thread for communications with the main thread
@@ -118,14 +191,18 @@ void MainWindow::setupThreads(){
     connect(this,       SIGNAL(saveChangesToDB(ScenePtr)),  sqlThread,  SLOT(saveChanges(ScenePtr)));
 //    connect(sqlThread,  SIGNAL(sceneSaveComplete()),        this,       SLOT();
 //    connect(sqlThread,  SIGNAL(actorSaveComplete()),        this,       SLOT();
+    /// Connect Actor Profile Widget with Database & Curl Thread
+    ui->profileWidget->hide();
+    connect(ui->profileWidget, SIGNAL(saveToDatabase(ActorPtr)), sqlThread, SLOT(updateActor(ActorPtr)));
+    connect(ui->profileWidget, SIGNAL(updateFromWeb(ActorPtr)), curlThread, SLOT(updateBio(ActorPtr)));
+    connect(ui->profileWidget, SIGNAL(clearChanges()), this,  SLOT(reloadProfile()));
+    connect(this, SIGNAL(loadActorProfile(ActorPtr)), ui->profileWidget, SLOT(loadActorProfile(ActorPtr)));
+    connect(ui->profileWidget, SIGNAL(chooseNewPhoto()), this, SLOT(selectNewProfilePhoto()));
+
     /// Start the Threads
     this->sqlThread->start();
     this->curlThread->start();
     this->scanner->start();
-}
-
-void MainWindow::showEvent(QShowEvent */*event*/){
-    //emit loadActors(actorList);
 }
 
 /** \brief Slot called when an item in the actor list is clicked
@@ -138,10 +215,10 @@ void MainWindow::on_actorView_clicked(const QModelIndex &index){
         // Get the name of the selected actor.
         QString name = actorModel->data(actorModel->index(index.row(), NAME_COLUMN), Qt::DisplayRole).toString();
         if (actorMap.contains(name)){
-            ui->profileView->show();
             this->currentActor = actorMap.value(name);
-            loadActorProfile(currentActor);
-            setResetAndSaveButtons(false);
+            emit loadActorProfile(currentActor);
+            //loadActorProfile(currentActor);
+            emit actorSelectionChanged(name);
         } else {
             qCritical("Name not in map: %s", qPrintable(name));
         }
@@ -180,33 +257,16 @@ void MainWindow::on_actionScan_Directory_triggered(){
     }
 }
 
-void MainWindow::on_radioButtonActors_clicked(){
-    if (ui->radioButtonActors->isChecked()){
-        this->currentDisplay = DISPLAY_ACTORS;
-    } else {
-        this->currentDisplay = DISPLAY_SCENES;
-    }
-    updateDisplayType();
-}
-
-
-void MainWindow::updateDisplayType(){
-    if (currentDisplay == DISPLAY_SCENES){
-        ui->actorView->hide();
-    } else if (currentDisplay == DISPLAY_ACTORS){
-        ui->actorView->show();
-    }
-}
-
-
 /** \brief Initialize the progress bar to 0, set its new maximum value, and update the text on the status bar
  *  \param QString status:  Text to show on the status bar
  *  \param int max:         Upper boundary of progress bar.
  */
 void MainWindow::startProgress(QString status, int max){
+    qDebug("************* %s (%d items) ******************", qPrintable(status), max);
     ui->statusLabel->setText(status);
-    ui->progressBar->setMinimum(0);
     ui->progressBar->setMaximum(max);
+    ui->progressBar->setMinimum(0);
+    ui->progressBar->setValue(0);
     ui->progressBar->setEnabled(true);
 }
 
@@ -214,18 +274,56 @@ void MainWindow::startProgress(QString status, int max){
  *  \param QString status:  Text to show on the status bar.
  */
 void MainWindow::closeProgress(QString status){
+    qDebug("************** Task Complete (Message: '%s') *************************", qPrintable(status));
     ui->statusLabel->setText(status);
     ui->progressBar->setValue(ui->progressBar->maximum());
-    setResetAndSaveButtons(false);
 }
+/** \brief  Update the Main Window's built-in progress bar. */
+void MainWindow::updateProgress(int value)  {
+    ui->progressBar->setValue(value);
+}
+
+/** \brief  Open a New Progress Dialog Box.
+ *  \param  QString label:  Text to show on dialog
+ *  \param  int max:        value to use as 100%.
+ */
+void MainWindow::newProgressDialog(QString label, int max){
+    qDebug("***********%s**************", qPrintable(label));
+    this->progressDialog = new QProgressDialog(label, "", 0, max, this, Qt::WindowStaysOnTopHint);
+    this->progressDialog->resize(400, 200);
+    this->progressDialog->setCancelButton(nullptr);
+    this->progressDialog->setWindowModality(Qt::WindowModal);
+    this->progressDialog->setValue(0);
+    this->progressDialog->show();
+}
+/** \brief  Update the progress of a Pop-Up Progress Dialog */
+void MainWindow::updateProgressDialog(int value){
+    if (progressDialog){
+        this->progressDialog->setValue(value);
+    }
+}
+
+/** \brief  Close & Delete the pop-up progress dialog window */
+void MainWindow::closeProgressDialog(){
+    if (progressDialog){
+        this->progressDialog->setValue(progressDialog->maximum());
+        this->progressDialog->hide();
+        delete progressDialog;
+    }
+}
+/** \brief Update the text label on the progress dialog box */
+void MainWindow::updateProgressDialog(QString s){
+    if (progressDialog){
+        this->progressDialog->setLabelText(s);
+    }
+}
+
 /** \brief Update the status bar.
  *  \param int value:   value to set the progress bar to. */
-
-void MainWindow::updateProgress(int value)  {   ui->progressBar->setValue(value);       }
-void MainWindow::on_closeProfile_clicked()  {   ui->profileView->hide();                }
-void MainWindow::on_reloadProfile_clicked()  {   loadActorProfile(currentActor);         }
-void MainWindow::on_scanFiles_clicked()     {   on_actionScan_Directory_triggered();    }
-void MainWindow::updateStatus(QString s)    {   ui->statusLabel->setText(s);            }
+void MainWindow::updateStatus(QString s)    {
+    qDebug("\n\tUpdating Status to \"%s\"\n", qPrintable(s));
+    ui->statusLabel->setText(s);
+}
 
 /** \brief Slot to receive list of scenes. */
 void MainWindow::receiveScenes(SceneList list){
@@ -245,7 +343,7 @@ void MainWindow::receiveScenes(SceneList list){
 /** \brief Slot to Receive a list of Actors
  */
 void MainWindow::receiveActors(ActorList list){
-    if (!list.isEmpty()){
+    if (!list.isEmpty()){   // if the passed list has items in it, selectively add them to the main actor map.
         foreach(ActorPtr a, list){
             QString name = a->getName();
             if (!name.isEmpty()){
@@ -253,20 +351,60 @@ void MainWindow::receiveActors(ActorList list){
                     actorMap.insert(a->getName(), a);
                     actorModel->appendRow(a->buildQStandardItem());
                 } else {
-                    int currentBioSize = actorMap[name]->getBio().size();
                     Biography b = a->getBio();
-                    int storedBioSize = b.size();
-                    if (storedBioSize > currentBioSize){
-                        actorMap[name]->setBio(b);
-                        actorMap[name]->updateQStandardItem();
+                    int newBioSize = b.size();
+                    int oldBioSize = actorMap[name]->getBio().size();
+                    if (newBioSize > oldBioSize){
+                        if (name == currentActor->getName()){
+                            currentActor->setBio(b);
+                            currentActor->updateQStandardItem();
+                            emit loadActorProfile(currentActor);
+                        } else {
+                            actorMap[name]->setBio(b);
+                            actorMap[name]->updateQStandardItem();
+                        }
                     }
                 }
             }
         }
-        sortActors();
-        proxyModel->sort(NAME_COLUMN, Qt::AscendingOrder);
     }
+    actorProxyModel->sort(NAME_COLUMN, Qt::AscendingOrder);
     qDebug("Actor List updated.");
+}
+
+/** \brief Receive an actor that has had its profile updated via the curl thread.
+ *  Update the actor's stored data with the new data if the new bio has more information than the old one.
+ *  If the Actor that was updated is the currently selected actor, update the profile view (if open), and
+ *  save the new biographical details to the database.
+ */
+void MainWindow::receiveSingleActor(ActorPtr a){
+    QString name = a->getName();
+    if (actorMap.contains(name)){
+        this->updatedActor = actorMap.value(name);
+        Biography newBio = a->getBio();
+        Biography oldBio = updatedActor->getBio();
+        if (newBio.size() > oldBio.size()){
+            qDebug("Updating Bio for %s", qPrintable(name));
+            updatedActor->setBio(newBio);
+            updatedActor->updateQStandardItem();
+            if (name == currentActor->getName() && !ui->profileWidget->isHidden()){
+                qDebug("Updating Profile View");
+                emit loadActorProfile(updatedActor);
+                emit saveActorChanges(currentActor);
+            } else {
+                qDebug("Saving Updates to database");
+                emit saveActorChanges(updatedActor);
+            }
+        } else {
+            qDebug("not updating item, refreshing display");
+            currentActor->updateQStandardItem();
+        }
+    } else {
+        qDebug("Adding New Actor, %s", qPrintable(name));
+        actorMap.insert(name, a);
+        ActorList newList = { a };
+        emit saveActors(newList);
+    }
 }
 
 /** \brief  Receive a list of scenes that have been created by the file scanner thread, and a list of names
@@ -294,39 +432,29 @@ void MainWindow::on_saveScenes_clicked(){
 }
 
 void MainWindow::on_saveActors_clicked(){
-    if (actorList.size()  > 0){
+    if (actorMap.isEmpty()){
+        QMessageBox::warning(this, tr("Can't Save Actors"), tr("No Actors Loaded! Nothing to save."), QMessageBox::Close);
+    } else {
+        actorList = MapToList(actorMap);
         qDebug("Saving %d actors to database", actorList.size());
         emit saveActors(actorList);
-    } else {
-        qDebug("No Actors to save to database");
     }
 }
 
-void MainWindow::on_updateActorBios_clicked(){
-    if (this->names.isEmpty()){
-        qDebug("No Names to create actors from");
-    } else {
-        qDebug("Making actors out of names in list generated from scene scan");
-        emit makeNewActors(names);
-    }
-}
-
-void MainWindow::on_updateDisplay_clicked(){
-    if (actorList.size() > 0){
-        qDebug("Updating Display Items for %d Actors", actorList.size());
-        foreach(ActorPtr a, actorList){
-            a->updateQStandardItem();
-        }
-        ui->statusLabel->setText("Actor Displays Updated!");
-        qDebug("Actor Displays Updated!");
-    } else {
+/** \brief Triggered by a Button on Main Window. Updates all the display items. */
+void MainWindow::on_actionRefresh_Display_triggered(){
+    if (actorMap.isEmpty()){
+        QMessageBox::warning(this, tr("Nothing to Refresh"), tr("No Display Items are present, there's nothing to refresh!"), QMessageBox::Close);
         qDebug("No Actors Loaded yet!");
-    }
-}
-
-void MainWindow::sortActors(){
-    if (!actorList.isEmpty()){
-        qSort(actorList.begin(), actorList.end(), [](const ActorPtr &a, const ActorPtr &b){ return (a->getName() < b->getName()); });
+    } else {
+        qDebug("Updating Display Items for %d Actors", actorMap.size());
+        ActorIterator it(actorMap);
+        while(it.hasNext()){
+            it.next();
+            it.value()->updateQStandardItem();
+        }
+        ui->statusLabel->setText(QString("%1 Actor Displays Updated!").arg(actorMap.size()));
+        qDebug("Actor Displays Updated!");
     }
 }
 
@@ -343,6 +471,7 @@ void MainWindow::selectNewProfilePhoto(){
                 qDebug("Successfully copied %s to %s", qPrintable(source_filename), qPrintable(new_filename));
                 this->currentActor->setHeadshot(new_filename);
                 this->currentActor->updateQStandardItem();
+                emit loadActorProfile(currentActor);
             } else {
                 qWarning("Error Copying %s to %s", qPrintable(source_filename), qPrintable(new_filename));
             }
@@ -350,13 +479,8 @@ void MainWindow::selectNewProfilePhoto(){
     }
 }
 
-void MainWindow::on_profile_photo_customContextMenuRequested(const QPoint &pos){
-    QMenu rightClickMenu(tr("Profile Photo"), this);
-    QAction selectNew(tr("Choose New Profile Photo"), this);
-    connect(&selectNew, SIGNAL(triggered(bool)), this, SLOT(on_assignProfilePhoto_clicked()));
-    rightClickMenu.addAction(&selectNew);
-    rightClickMenu.exec(mapToGlobal(pos));
-}
+
+/** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
 ActorPtr MainWindow::getSelectedActor(){
     ActorPtr a = QSharedPointer<Actor>(0);
     if (currentActorIndex.isValid() && (currentActorIndex.row() > -1)){
@@ -370,126 +494,25 @@ ActorPtr MainWindow::getSelectedActor(){
     return a;
 }
 
-/** \brief Load & Display Details of Selected Actor
- *  \param ActorPtr a:  Actor whose Profile should be shown.
- */
-void MainWindow::loadActorProfile(ActorPtr a){
-    ui->display_name->setText(a->getName());
-    Biography bio = a->getBio();
-    ui->ethnicityLineEdit->setText(bio.getEthnicity());
-    ui->eyeColorLineEdit->setText(bio.getEyeColor());
-    ui->hairColorLineEdit->setText(bio.getHairColor());
-    ui->measurementsLineEdit->setText(bio.getMeasurements());
-    QString city = bio.getCity();
-    QString country = bio.getNationality();
-    /// Set the birthplace
-    QString birthplace("");
-    if (!city.isEmpty() && !country.isEmpty()){
-        birthplace = QString("%1, %2").arg(city).arg(country);
-    } else if (!country.isEmpty()) {
-        birthplace = country;
-    } else {
-        birthplace = "Unknown";
-    }
-    Height height = bio.getHeight();
-    if (height.nonZero()){
-        ui->heightLineEdit->setText(height.toString());
-    }
-    int weight = bio.getWeight();
-    if (weight > 0){
-        QString temp = QString::number(weight);
-        ui->weightLineEdit->setText(temp);
-    }
-    QString age("");
-    QDate birthday = bio.getBirthday();
-    QString birthdayLabel("Unknown");
-    if (!birthday.isNull() && birthday.isValid()){
-        ui->birthDateDateEdit->setDate(birthday);
-    } else {
-        ui->birthDateDateEdit->setDate(QDate(1900, 01, 01));
-    }
-    ui->nationalityLineEdit->setText(birthplace);
-    /// Set the content of the multi-line text boxes.
-    ui->aliasesEdit->setText(bio.getAliases());
-    ui->piercingsEdit->setText(bio.getPiercings());
-    ui->tattoosEdit->setText(bio.getTattoos());
-    FilePath photo = a->getHeadshot();
-    if (photo.exists()){
-        QPixmap profilePhoto(photo.absolutePath());
-        ui->profile_photo->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
-    } else {
-        QPixmap profilePhoto(":/Icons/blank_profile_photo.png");
-        ui->profile_photo->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
+/** \brief Load all entries from the Actor Table in the Database */
+void MainWindow::on_actionLoad_Actors_triggered(){
+    emit loadActors(actorList);
+}
+/** \brief Save all Actor Items to the Actor Table of the Database */
+void MainWindow::on_actionSave_Scenes_triggered(){
+    qDebug("Saving Actors to Database");
+    actorList = MapToList(actorMap);
+    emit saveActors(actorList);
+}
+/** \brief Reload the data shown in the current ActorProfileView Widget, if it is open. */
+void MainWindow::reloadProfile()  {
+    if (!ui->profileWidget->isHidden() && !currentActor.isNull()){
+        emit loadActorProfile(currentActor);
     }
 }
 
-/** \brief Save any changes made to the currently displayed profile */
-void MainWindow::on_saveProfile_clicked(){
-    ActorPtr a = getSelectedActor();
-    if (!a.isNull()){
-        a->setAliases(ui->aliasesEdit->toPlainText());
-        a->setPiercings(ui->piercingsEdit->toPlainText());
-        a->setEthnicity(ui->ethnicityLineEdit->text());
-        a->setEyes(ui->eyeColorLineEdit->text());
-        a->setHair(ui->hairColorLineEdit->text());
-        a->setMeasurements(ui->measurementsLineEdit->text());
-        a->setTattoos(ui->tattoosEdit->toPlainText());
-        // Read in Birthdate
-        QDate birthday = ui->birthDateDateEdit->date();
-        if (birthday != QDate(1900, 1, 1)){
-            a->setBirthday(birthday);
-        }
-        // Read in height
-        QRegularExpression heightRx("([0-9])\\'([1]?[0-9])\\\"");
-        QRegularExpressionMatch heightMatch = heightRx.match(ui->heightLineEdit->text());
-        if (heightMatch.hasMatch()){
-            bool feetOk = false, inchesOk = false;
-            int feet = heightMatch.captured(1).toInt(&feetOk);
-            int inches = heightMatch.captured(2).toInt(&inchesOk);
-            if (feetOk && inchesOk){
-                Height h(feet, inches);
-                a->setHeight(h);
-            }
-        }
-        // Read in weight
-        QString weightString = ui->weightLineEdit->text();
-        if (!weightString.isEmpty() && !weightString.isNull() && weightString != "0"){
-            bool ok = false;
-            int w = weightString.toInt(&ok);
-            if (ok){    a->setWeight(w); }
-        }
-        // Read in Birthplace
-        QRegularExpression birthplaceRx("([\\s\\'A-Za-z]+),\\s*(.+)");
-        QRegularExpressionMatch bpMatch = birthplaceRx.match(ui->nationalityLineEdit->text());
-        if (bpMatch.hasMatch()){
-            a->setCity(bpMatch.captured(1));
-            a->setNationality(bpMatch.captured(2));
-        } else {
-            a->setNationality(ui->nationalityLineEdit->text());
-        }
-        emit saveActorChanges(a);
-    }
-}
-
-void MainWindow::setResetAndSaveButtons(bool enabled){
-    ui->reloadProfile->setEnabled(enabled);
-    ui->saveProfile->setEnabled(enabled);
-}
-
-void MainWindow::on_birthDateDateEdit_userDateChanged(const QDate &/*date*/){   setResetAndSaveButtons(true);   }
-void MainWindow::on_hairColorLineEdit_textChanged(const QString &/*arg1*/)  {   setResetAndSaveButtons(true);   }
-void MainWindow::on_ethnicityLineEdit_textChanged(const QString &)          {   setResetAndSaveButtons(true);   }
-void MainWindow::on_nationalityLineEdit_textEdited(const QString &)         {   setResetAndSaveButtons(true);   }
-void MainWindow::on_heightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-void MainWindow::on_weightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-void MainWindow::on_eyeColorLineEdit_textEdited(const QString &)            {   setResetAndSaveButtons(true);   }
-void MainWindow::on_measurementsLineEdit_textEdited(const QString &)        {   setResetAndSaveButtons(true);   }
-void MainWindow::on_aliasesEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
-void MainWindow::on_piercingsEdit_textChanged()                             {   setResetAndSaveButtons(true);   }
-void MainWindow::on_tattoosEdit_textChanged()                               {   setResetAndSaveButtons(true);   }
-void MainWindow::on_actionUpdate_Database_triggered()                       {   emit saveActors(actorList);     }
-void MainWindow::on_actionLoad_Actors_triggered()                           {   emit loadActors(actorList);     }
-
+/** \brief Test Function to verify Lexical Parsing of Scene Titles.
+ *  Parses a single video file's title, and opens a dialog window showing the data extracted. */
 void MainWindow::on_actionParse_Scene_triggered(){
     QString filename = QFileDialog::getOpenFileName(this, tr("Select Video to Parse"), "/Volumes");
     if (!filename.isEmpty()){
@@ -506,31 +529,8 @@ void MainWindow::on_actionParse_Scene_triggered(){
     }
 }
 
-void MainWindow::on_downloadProfile_clicked(){
-    ActorPtr actor = currentActor;
-    if (!currentActor.isNull()){
-        emit updateSingleBio(actor);
-    }
-}
-
-void MainWindow::receiveSingleActor(ActorPtr a){
-    Biography bio1, bio2;
-    bio1 = a->getBio();
-    bio2 = currentActor->getBio();
-
-    if (bio1.size() > bio2.size()){
-        qDebug("Updating Bio for %s", qPrintable(a->getName()));
-        QString name = a->getName();
-        actorMap[name] = a;
-        qDebug("building new display item");
-        a->buildQStandardItem();
-
-    } else {
-        qDebug("not updating item, refreshing display");
-        currentActor->updateQStandardItem();
-    }
-}
-
+/** \brief Test Function to attempt to build an entirely new biography via web scraping based on a name alone.
+ *  When web scraping is complete, a pop-up dialog is shown with the biographical details retrieved (and some not retrieved) */
 void MainWindow::on_actionCreate_Bio_triggered(){
     QString name = QInputDialog::getText(this, tr("Test Bio Retrieval"), tr("Enter Actor Name"));
     if (!name.isEmpty()){
@@ -542,18 +542,18 @@ void MainWindow::on_actionCreate_Bio_triggered(){
         emit updateSingleBio(a);
     }
 }
-
+/** \brief Test Function, paired with on_actionCreate_Bio_triggered():
+ *  Receives updated actor object from curlThread and opens a dialog showing the details. */
 void MainWindow::receiveTestBio(ActorPtr a){
     qDebug("Receieved actor %s from Curl Test Thread", qPrintable(a->getName()));
-    this->profileDialog = new ProfileDialog(a, this);
-    connect(profileDialog, SIGNAL(closed()), this, SLOT(profileDialogClosed()));
-    this->profileDialog->show();
+    this->testProfileDialog = new ProfileDialog(a, this);
+    connect(testProfileDialog, SIGNAL(closed()), this, SLOT(testProfileDialogClosed()));
+    this->testProfileDialog->show();
 }
-
-void MainWindow::profileDialogClosed(){
-
-    if (profileDialog){
-        profileDialog->deleteLater();
+/** \brief Close and delete the test dialog for biography retrieval. */
+void MainWindow::testProfileDialogClosed(){
+    if (testProfileDialog){
+        testProfileDialog->deleteLater();
     }
     curlTestThread->terminate();
     curlTestThread->wait();
@@ -561,3 +561,17 @@ void MainWindow::profileDialogClosed(){
         curlTestThread->deleteLater();
     }
 }
+
+void MainWindow::on_actionUpdate_Bios_triggered(){
+    updateList.clear();
+    QMapIterator<QString, ActorPtr>it(actorMap);
+    while(it.hasNext()){
+        it.next();
+        ActorPtr a = it.value();
+        if (a->size() < MINIMUM_BIO_SIZE){
+            updateList.push_back(a);
+        }
+    }
+    emit updateBios(updateList);
+}
+

@@ -3,7 +3,6 @@
 #include "filenames.h"
 #include "Actor.h"
 #include "Scene.h"
-#include "definitions.h"
 #include "genericfunctions.h"
 #include <curl/curl.h>
 #include <stdio.h>
@@ -19,6 +18,7 @@
 #include <QStringList>
 #include <QThreadPool>
 #include <QVector>
+#include <QProcess>
 #define out();  qDebug("%s::%s::%d", __FILE__,__FUNCTION__,__LINE__);
 #define FREEONES_TAG_REGEX  "<dt>([^\\<]+):?</dt>\\s*<dd>([^\\<]+)</dd>"
 #define IAFD_TAG_REGEX      ".*<p class=\"bioheading\">([^\\<]+)</p>\\s*<p class=\"biodata\">([^\\<]+)</p>.*"
@@ -29,11 +29,12 @@ curlTool::curlTool(){
     this->setTerminationEnabled(true);
 }
 
-DownloadThread::DownloadThread(QString name){
-    this->name = name;
-    this->html = "";
-    this->photo = "";
+DownloadThread::DownloadThread(QString name): name(name), html(""),photo(""){
     this->actor = QSharedPointer<Actor>(new Actor(name));
+    task = Curl::MAKE_BIO;
+}
+DownloadThread::DownloadThread(ActorPtr a):name(a->getName()), html(""), photo(""), actor(a){
+    task = Curl::UPDATE_BIO;
 }
 
 curlTool::~curlTool(){}
@@ -44,7 +45,7 @@ void curlTool::run(){
     this->keepRunning = true;
     qDebug("curl Thread Started");
     while(keepRunning){
-        ;
+        sleep(1);
     }
     qDebug("curl thread Stopping");
 }
@@ -53,9 +54,11 @@ void curlTool::run(){
 /** \brief DownloadThread's Main Routine */
 void DownloadThread::run(){
     qDebug("Download Thread Started with '%s'", qPrintable(name));
-    this->actor = ActorPtr(new Actor());
     if (!name.isEmpty()){
         Biography b(name);
+        if (task == Curl::UPDATE_BIO){
+            b.copy(actor->getBio());
+        }
         QString html("");
         curlTool::getFreeonesData(name, b);
         if (curlTool::getIAFDData(name, b, html)){
@@ -319,6 +322,23 @@ void curlTool::downloadThreadComplete(){
         emit updateFinished(actorList);
     }
 }
+void curlTool::updateBios(ActorList list){
+    resetCounters();
+    this->actorList.clear();
+    this->nameList.clear();
+    emit startProgress(QString("Updating the Bios for %1 Actors").arg(list.size()), list.size());
+    for (int i = 0; i < list.size(); ++i){
+        ActorPtr a = list.at(i);
+        DownloadThread *d = new DownloadThread(a);
+        connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
+        connect(d, SIGNAL(finished()),          this, SLOT(downloadThreadComplete()));
+        this->threadPool.globalInstance()->start(d);
+        this->threadsStarted++;
+    }
+    if (threadsStarted > 0){
+        qDebug("*****************************\nAll Threads Started\n*****************************");
+    }
+}
 
 void curlTool::makeNewActors(QStringList nameList){
     resetCounters();
@@ -390,10 +410,28 @@ void curlTool::downloadPhoto(ActorPtr a){
  */
 bool curlTool::wget(QString url, QString filePath){
     bool success = false;
+    QStringList args;
+    args << url << "-O" << filePath;
+    QProcess *process = new QProcess();
+    QString command = "/usr/local/bin/wget";
+    process->start(command, args);
+    qDebug("wget Started, getting profile photo %s", qPrintable(filePath));
+    if (!process->waitForStarted()){
+        qWarning("Error Starting wget QProcess for %s", qPrintable(filePath));
+    } else if (!process->waitForFinished()){
+        qWarning("QProcess Timed out while waiting for wget");
+    } else {
+        qDebug("wget finished!");
+        success = QFileInfo(filePath).exists();
+    }
+    delete process;
+    qDebug("QProcess deleted");
+    /*
     QString cmd = QString("/usr/local/bin/wget %1 -O %2").arg(url).arg(filePath);
     if (!system_call(cmd).isEmpty()){
         success = QFileInfo(filePath).exists();
     }
+    */
     return success;
 }
 

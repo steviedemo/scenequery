@@ -6,6 +6,8 @@
 #include <qtconcurrentrun.h>
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
+#include <QMediaMetaData>
+#include <QVideoFrame>
 #include <QDir>
 
 FileScanner::FileScanner(QString path):
@@ -13,10 +15,9 @@ FileScanner::FileScanner(QString path):
     this->actors = QVector<QSharedPointer<Actor>>();
     this->setTerminationEnabled(true);
 }
-FileScanner::~FileScanner(){
+FileScanner::~FileScanner(){}
 
-}
-
+/** \brief Thread's Main Event Loop */
 void FileScanner::run(){
     this->keepRunning = true;
     qDebug("Scanner Thread Started.");
@@ -26,8 +27,14 @@ void FileScanner::run(){
     qDebug("Scanner Thread Stopped");
 }
 
+/** \brief Slot to break out of the thread's Event Loop */
+void FileScanner::stopThread(){
+    qDebug("File Thread Stopping...");
+    this->keepRunning = false;
+}
 
 void FileScanner::scanFolder(QString rootPath){
+    this->threadMx.lock();
     this->index = 0;
     SceneList sceneList;
     QStringList names;
@@ -46,6 +53,7 @@ void FileScanner::scanFolder(QString rootPath){
     } else {
         emit showError(QString("%1 doesn't exist!").arg(rootPath));
     }
+    this->threadMx.unlock();
     emit scanComplete(sceneList, names);
 }
 
@@ -89,16 +97,16 @@ SceneList FileScanner::makeScenes(QFileInfoList fileList){
  *  \param QFileInfo file:  File to parse
  */
 void FileScanner::parseScene(QFileInfo f){
-    mx.lock();
+    subMx.lock();
     FilePath file(f.absolutePath(), f.completeBaseName(), f.suffix());
-    mx.unlock();
+    subMx.unlock();
     sceneParser parser(file);
     parser.parse();
     ScenePtr scene = QSharedPointer<Scene>(new Scene(parser));
-    mx.lock();
+    subMx.lock();
     emit updateProgress(index++);
     scenes.push_back(scene);
-    mx.unlock();
+    subMx.unlock();
 }
 
 /** \brief Accept a list of Scenes and make a list of names of the actors in each scene.
@@ -163,21 +171,6 @@ void FileScanner::scanForActors(SceneList list, ActorList actors){
         }
     }
 }
-
-void FileScanner::receiveUpdatedActors(ActorList list){
-    this->actors = list;
-    emit scanComplete(actors);
-}
-
-void FileScanner::receiveFileVector(QVector<FilePath> fileVector){
-    this->files = fileVector;
-}
-
-void FileScanner::stopThread(){
-    qDebug("File Thread Stopping...");
-    this->keepRunning = false;
-}
-
 
 ActorList FileScanner::parseActorList(SceneList sceneList){
     ActorList actorList;

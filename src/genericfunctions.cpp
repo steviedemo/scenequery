@@ -2,8 +2,11 @@
 #include <QStringList>
 #include <QDir>
 #include <QDebug>
+#include <QProcess>
 #include <QRegularExpression>
 #include <QDate>
+#include "Actor.h"
+#include "SceneList.h"
 
 bool nonzero(double d){
     return d > 0;
@@ -28,6 +31,15 @@ QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList name
     return QDir(path).entryList(nameFilters, typeFilter);
 }
 
+ActorList MapToList(ActorMap actors){
+    ActorList list = {};
+    QMapIterator<QString, ActorPtr> it(actors);
+    while(it.hasNext()){
+        it.next();
+        list.push_back(it.value());
+    }
+    return list;
+}
 
 QString listToString(QStringList list){
     QStringListIterator it(list);
@@ -59,6 +71,29 @@ QString system_call(QString command){
     return output;
 }
 
+bool system_call_blocking(QString command, QStringList args, QString &output){
+    bool success = false;
+    QProcess *process = new QProcess();
+    if (args.isEmpty()){
+        args << "";
+    }
+    process->start(command, args);
+    if (!process->waitForStarted()){
+        qWarning("Error Starting QProcess with command '%s'", qPrintable(command));
+    } else if (!process->waitForFinished()){
+        qWarning("QProcess Timed out waiting for %s", qPrintable(command));
+    } else {
+        success = true;
+    }
+    output = process->readAllStandardOutput();
+    delete process;
+    return success;
+}
+
+bool system_call_blocking(QString command, QStringList args){
+    QString output("");
+    return system_call_blocking(command, args, output);
+}
 
 bool wordDateToStruct(QString s, QDate &d){
     bool success = true;

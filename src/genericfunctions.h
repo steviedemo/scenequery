@@ -1,6 +1,6 @@
 #ifndef GENERICFUNCTIONS_H
 #define GENERICFUNCTIONS_H
-
+#include "definitions.h"
 #include <QStringList>
 #include <QDateTime>
 #include <QDate>
@@ -8,6 +8,9 @@
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters);
 QString     listToString(QStringList);
 QString     system_call(QString);
+bool        system_call_blocking(QString command, QStringList args);
+bool        system_call_blocking(QString command, QStringList args, QString &output);
+ActorList   MapToList(ActorMap actors);
 //std::string qtos    (QString q)     {   return q.toStdString();                 }
 //QString     stoq    (std::string s) {   return QString::fromStdString(s);       }
 bool        empty   (QString s);

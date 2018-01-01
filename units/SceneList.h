@@ -7,16 +7,20 @@ class SceneList : public QList<QSharedPointer<Scene>>
 {
 public:
     SceneList() : QList<QSharedPointer<Scene>>(){}
-    SceneList withCompany(QString);
-    SceneList withActor(ActorPtr);
-    SceneList withActor(QString name);
-    SceneList withRating(class Rating r);
-    SceneList longerThan(double length);
-    SceneList shorterThan(double length);
-    SceneList minResolution(int h);
-    SceneList maxResolution(int h);
-    SceneList inSeries(QString s);
-    SceneList withTitle(QString s);
+    //bool contains(const QSharedPointer<Scene> &t) const;
+    SceneList withCompany(QString) const;
+    SceneList withActor(ActorPtr) const;
+    SceneList withActor(QString name) const;
+    SceneList withRating(class Rating r) const;
+    SceneList longerThan(double length) const;
+    SceneList shorterThan(double length) const;
+    SceneList minResolution(int h) const;
+    SceneList maxResolution(int h) const;
+    SceneList inSeries(QString s) const;
+    SceneList withTitle(QString s) const;
+    int countScenesWithActor(QString s) const;
+    int countScenesWithActor(ActorPtr a) const;
+
 };
 
 #endif // SCENELIST_H

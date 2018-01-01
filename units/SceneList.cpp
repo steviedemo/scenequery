@@ -1,8 +1,20 @@
 #include "SceneList.h"
 #include "Scene.h"
 #include "Actor.h"
-
-SceneList SceneList::withCompany(QString c){
+/*
+bool SceneList::contains(const QSharedPointer<Scene> &t) const{
+    bool found = false;
+    QListIterator<ScenePtr> it(*this);
+    while(it.hasNext() && !found){
+        ScenePtr s = it.next();
+        if (s->equals(t)){
+            found = true;
+        }
+    }
+    return found;
+}
+*/
+SceneList SceneList::withCompany(QString c) const{
     SceneList newList;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -14,7 +26,23 @@ SceneList SceneList::withCompany(QString c){
     return newList;
 }
 
-SceneList SceneList::withActor(QString name){
+int SceneList::countScenesWithActor(ActorPtr a) const{
+    return countScenesWithActor(a->getName());
+}
+
+int SceneList::countScenesWithActor(QString name) const{
+    int count = 0;
+    QListIterator<ScenePtr> it(*this);
+    while(it.hasNext()){
+        ScenePtr s = it.next();
+        if (s->getActors().contains(name)){
+            ++count;
+        }
+    }
+    return count;
+}
+
+SceneList SceneList::withActor(QString name) const{
     SceneList newList;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -26,24 +54,24 @@ SceneList SceneList::withActor(QString name){
     return newList;
 }
 
-SceneList SceneList::withActor(ActorPtr a){
+SceneList SceneList::withActor(ActorPtr a) const{
     return withActor(a->getName());
 }
 
-SceneList SceneList::withRating(Rating r){
-    QString str = r.toString();
+SceneList SceneList::withRating(Rating r) const{
+    int stars = r.stars();
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
         ScenePtr s = it.next();
-        if (s->getRating().toString() == str){
+        if (s->getRating().stars() == stars){
             list << s;
         }
     }
     return list;
 }
 
-SceneList SceneList::withTitle(QString title){
+SceneList SceneList::withTitle(QString title) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -55,7 +83,7 @@ SceneList SceneList::withTitle(QString title){
     return list;
 }
 
-SceneList SceneList::inSeries(QString series){
+SceneList SceneList::inSeries(QString series) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -67,7 +95,7 @@ SceneList SceneList::inSeries(QString series){
     return list;
 }
 
-SceneList SceneList::longerThan(double length){
+SceneList SceneList::longerThan(double length) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -78,7 +106,7 @@ SceneList SceneList::longerThan(double length){
     }
     return list;
 }
-SceneList SceneList::shorterThan(double length){
+SceneList SceneList::shorterThan(double length) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -90,7 +118,7 @@ SceneList SceneList::shorterThan(double length){
     return list;
 }
 
-SceneList SceneList::minResolution(int size){
+SceneList SceneList::minResolution(int size) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -102,7 +130,7 @@ SceneList SceneList::minResolution(int size){
     return list;
 }
 
-SceneList SceneList::maxResolution(int size){
+SceneList SceneList::maxResolution(int size) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){

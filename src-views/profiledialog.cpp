@@ -33,18 +33,14 @@ ProfileDialog::ProfileDialog(ActorPtr a, QWidget *parent) :
         QPixmap profilePhoto(photo.absolutePath());
         ui->profilePhoto->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
     } else {
-        QPixmap profilePhoto(":/Icons/blank_profile_photo.png");
+        QPixmap profilePhoto(DEFAULT_PROFILE_PHOTO);
         ui->profilePhoto->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
     }
 }
 
 ProfileDialog::~ProfileDialog(){
-    delete ui;
-}
-
-void ProfileDialog::closeEvent(QCloseEvent *event){
     emit closed();
-    event->accept();
+    delete ui;
 }
 
 void ProfileDialog::on_tryAgainButton_clicked(){

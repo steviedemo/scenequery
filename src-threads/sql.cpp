@@ -14,7 +14,7 @@
 #include <QString>
 #include <QVector>
 #include <QRegularExpression>
-
+#define trace(); qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 using namespace pqxx;
 
 #define START_PSQL "/usr/local/bin/pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
@@ -59,25 +59,6 @@ bool SQL::dropTable(Database::Table){
     return false;
 }
 
-
-
-// Use a Query String and a Parameter List to assemble a QSqlQuery object.
-QueryPtr SQL::assembleQuery(QString s, QStringList args, bool &ok){
-    QueryPtr query = QueryPtr(new QSqlQuery(db));
-    query->setForwardOnly(true);
-    ok = query->prepare(s);
-    if (!ok){
-        qWarning("Error Preparing Query %s: %s", qPrintable(s), qPrintable(db.lastError().text()));
-    } else {
-        QStringListIterator it(args);
-        foreach(QString s, args){
-            query->addBindValue(s);
-        }
-        ok = true;
-    }
-    return query;
-}
-
 /*------------------------------------------------------------------
  * Clear unused items out of the table.
  *------------------------------------------------------------------*/
@@ -100,18 +81,23 @@ void SQL::purgeScenes(void){
  * Retrieving a Vector of Items from the records in a table.
  *------------------------------------------------------------------*/
 void SQL::loadScene(pqxx::result::const_iterator &i){
-    ScenePtr scene = QSharedPointer<Scene>(new Scene(i));
-    if (!scenes.contains(scene)){
-        mx.lock();
-        count.addInsert();
-        emit updateStatus(QString("Loaded %1 Scenes").arg(count.added));
-        emit updateProgress(count.idx);
-        scenes.push_back(scene);
-        mx.unlock();
+    if (!i.empty()){
+        ScenePtr scene = QSharedPointer<Scene>(new Scene(i));
+        if (!scenes.contains(scene)){
+            mx.lock();
+            count.addInsert();
+            emit updateStatus(QString("Loaded %1 Scenes").arg(count.added));
+            emit updateProgress(count.idx);
+            scenes.push_back(scene);
+            mx.unlock();
+        } else {
+            mx.lock();
+            count.idx++;
+            emit updateProgress(count.idx);
+            mx.unlock();
+        }
     } else {
-        mx.lock();
-        emit updateProgress(++count.idx);
-        mx.unlock();
+        qWarning("Empty result iterator passed");
     }
 }
 void SQL::loadActor(pqxx::result::const_iterator &i){
@@ -142,33 +128,39 @@ void SQL::saveChanges(ScenePtr s){
 /** \brief Load scenes from the database into the list of scenes passed
  *  \param SceneList &scenes:   Scenes already in list.
  */
-void SQL::load(SceneList scenes){
-    this->scenes = scenes;
+void SQL::load(SceneList sceneList){
+    this->scenes = {};
+    if (!sceneList.isEmpty()){
+        this->scenes = sceneList;
+    }
     count.reset();
     qDebug("Loading Scenes From Database...");
-    emit updateStatus("Loading Scenes from Database");
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM scenes"));
     if (!sql->execute()){
         qWarning("Error Retrieving List of Scenes from the database");
         return;
     }
+    emit updateStatus("Loading Scenes from Database");
+    qDebug("SQL Statement Executed");
     pqxx::result resultList = sql->getResult();
+    qDebug("Getting Result");
     int total = resultList.size();
     emit startProgress(QString("Reading in %1 Scenes from database").arg(total), total);
-    QFutureSynchronizer<void> sync;
+    ///Crashes somewhere after this.
     for (pqxx::result::const_iterator i = resultList.begin(); i != resultList.end(); ++i){
-        sync.addFuture(QtConcurrent::run(this, &SQL::loadScene, i));
+        loadScene(i);
     }
-    sync.waitForFinished();
     emit closeProgress("Scenes Finished Loading");
-    scenes = this->scenes;
     delete sql;
     emit sendResult(scenes);
 }
 
 void SQL::load(QVector<QSharedPointer<Actor>> actors){
-    this->actors = actors;
-
+    this->actors = {};
+    if (!actors.isEmpty()){
+        this->actors = actors;
+    }
+    count.reset();
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM actors"));
     qDebug("Loading Actors");
     if (!sql->execute()){
@@ -178,12 +170,10 @@ void SQL::load(QVector<QSharedPointer<Actor>> actors){
     pqxx::result resultList = sql->getResult();
     int total = resultList.size();
     emit startProgress(QString("Reading in %1 Actors from database").arg(total), total);
-    QFutureSynchronizer<void> sync;
     for (pqxx::result::const_iterator i = resultList.begin(); i != resultList.end(); ++i){
-        sync.addFuture(QtConcurrent::run(this, &SQL::loadActor, i));
+        loadActor(i);
     }
-    sync.waitForFinished();
-    emit closeProgress("Scenes Finished Loading");
+    emit closeProgress("Actors Loaded");
     actors = this->actors;
     delete sql;
     emit sendResult(actors);
@@ -221,7 +211,10 @@ void SQL::updateActor(ActorPtr A){
     const char *name = qPrintable(A->getName());
     qDebug("Updating Entry for %s", name);
     Query query = A->toQuery();
-    sqlConnection *sql = new sqlConnection(query, SQL_UPDATE);
+    trace();
+    std::string statement = query.toPqxxUpdate("actors");
+    qDebug("SQL Statement: '%s'", statement.c_str());
+    sqlConnection *sql = new sqlConnection(statement);
     if (!sql->execute()){
         qWarning("Error Updating %s", name);
         emit updateStatus(QString("Error Updating %1").arg(A->getName()));

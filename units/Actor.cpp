@@ -1,4 +1,6 @@
 #include "Actor.h"
+#include "Scene.h"
+#include "SceneList.h"
 #include "Query.h"
 #include "curlTool.h"
 #include "filenames.h"
@@ -63,6 +65,8 @@ Actor::~Actor(){
 }
 
 void Actor::setup(){
+    this->sceneCount = 0;
+    this->sceneList = {};
     /*
     this->displayItemCreated = false;
     this->itemName = QSharedPointer<QStandardItem>(new QStandardItem());
@@ -79,6 +83,21 @@ void Actor::setup(){
         }
     }
     */
+}
+
+void Actor::addScene(ScenePtr s){
+    this->sceneList.push_back(s);
+    this->sceneCount = sceneList.size();
+    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+}
+void Actor::addScene(void){
+    this->sceneCount++;
+    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+}
+
+void Actor::setScenes(SceneList list){
+    this->sceneList = list;
+    this->itemSceneCount->setText(QString::number(sceneList.size()));
 }
 
 int Actor::size(){
@@ -116,29 +135,35 @@ bool Actor::hasBio(){
 QSharedPointer<QStandardItem> Actor::getNameItem(){
     return this->itemName;
 }
+QList<QStandardItem *> Actor::getQStandardItem(){
+    return row;
+}
 
 QList<QStandardItem *> Actor::buildQStandardItem(){
     this->row.clear();
-    qDebug("Creating Display item for %s", qPrintable(name));
+    //qDebug("Creating Display item for %s", qPrintable(name));
     this->itemName = QSharedPointer<QStandardItem>(new QStandardItem());
-//    this->itemAge = QSharedPointer<QStandardItem>(new QStandardItem());
     this->itemPhoto = QSharedPointer<QStandardItem>(new QStandardItem());
     this->itemHair  = ItemPtr(new QStandardItem());
     this->itemEthnicity = ItemPtr(new QStandardItem());
+    this->itemSceneCount = ItemPtr(new QStandardItem());
 
     this->itemName->setText(name);
+    QString photoPath = this->headshot.absolutePath();
     if (headshot.isEmpty()){
-        QString photoPath = getProfilePhoto(name);
-        qDebug("Profile Photo for %s: %s", qPrintable(name), qPrintable(photoPath));
+        photoPath = getProfilePhoto(name);
+//        qDebug("Profile Photo for %s: %s", qPrintable(name), qPrintable(photoPath));
     }
-    this->itemPhoto->setData(QVariant(QPixmap(this->headshot.absolutePath()).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+    this->itemPhoto->setData(QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     QString hair, ethnicity;
     hair = bio.getHairColor();
     ethnicity = bio.getEthnicity();
     this->itemHair->setText(hair);
     this->itemEthnicity->setText(ethnicity);
+    row << itemPhoto.data() << itemName.data() << itemHair.data() << itemEthnicity.data() << itemSceneCount.data();
     this->displayItemCreated = true;
-    row << itemPhoto.data() << itemName.data() << itemHair.data() << itemEthnicity.data();
+    //qDebug("%s's Display Item Created", qPrintable(name));
     return row;
 }
 
@@ -146,6 +171,7 @@ void Actor::updateQStandardItem(){
     qDebug("Updating Display Item for %s", qPrintable(name));
     QString profilePhoto = getProfilePhoto(name);
     this->headshot.setFile(profilePhoto);
+    this->itemSceneCount->setText(QString::number(sceneList.size()));
     this->itemPhoto->setData(QVariant(QPixmap(profilePhoto).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     if (itemHair->text().isEmpty()){
         QString hair = bio.getHairColor();
@@ -155,11 +181,13 @@ void Actor::updateQStandardItem(){
         QString ethnicity = bio.getEthnicity();
         itemEthnicity->setText(ethnicity);
     }
+    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
     qDebug("%s's Display Item Updated", qPrintable(name));
 }
 void Actor::setBio(const Biography &other){
     qDebug("Copying new Biography into %s's profile", qPrintable(name));
     this->bio.copy(other);
+    qDebug("%s's Bio is now of Size %d", qPrintable(name), this->bio.size());
 }
 
 bool Actor::inDatabase(){
@@ -178,13 +206,13 @@ Query Actor::toQuery() const{
     q.add("NAME",           name);
     q.add("ALIASES",        bio.getAliases());
     if (!bio.getBirthday().isNull() && bio.birthdate.isValid()){
-        q.add("BIRTHDAY",       bio.getBirthday());
+        q.add("BIRTHDAY",   bio.getBirthday());
     }
     q.add("CITY",           bio.getCity());
     q.add("COUNTRY",        bio.getNationality());
     q.add("ETHNICITY",      bio.getEthnicity());
     if (bio.getHeight().nonZero()){
-        q.add("HEIGHT",         bio.getHeight().toString());
+        q.add("HEIGHT",     bio.getHeight());
     }
     q.add("WEIGHT",         bio.getWeight());
     q.add("MEASUREMENTS",   bio.getMeasurements());
@@ -193,6 +221,7 @@ Query Actor::toQuery() const{
     q.add("TATTOOS",        bio.getTattoos());
     q.add("PIERCINGS",      bio.getPiercings());
     q.addCriteria("ID", QString::number(this->ID));
+    //qDebug("Actor Query Object Successfully Created");
     return q;
 }
 

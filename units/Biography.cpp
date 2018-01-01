@@ -3,17 +3,17 @@
 #include "curlTool.h"
 #include <QDate>
 Biography::Biography():
-    name(""), aliases(""), city(""), nationality(""), ethnicity(""),
-    eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
     fakeBoobs(false), retired(false), birthdate(QDate()),
-    careerStart(QDate()), careerEnd(QDate()), weight(0){
+    careerStart(QDate()), careerEnd(QDate()),
+    name(""), aliases(""), city(""), nationality(""), ethnicity(""),
+    eyes(""), hair(""), measurements(""), tattoos(""), piercings(""), weight(0){
     this->illegalChars.setPattern(".*[\\<\\>\\\\]");
 }
 Biography::Biography(QString name):
-    name(name), aliases(""), city(""), nationality(""), ethnicity(""),
-    eyes(""), hair(""), measurements(""), tattoos(""), piercings(""),
     fakeBoobs(false), retired(false),
-    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()), weight(0){
+    birthdate(QDate()), careerStart(QDate()), careerEnd(QDate()),
+    name(name), aliases(""), city(""), nationality(""), ethnicity(""),
+    eyes(""), hair(""), measurements(""), tattoos(""), piercings(""), weight(0){
     this->illegalChars.setPattern(".*[\\<\\>\\\\]");
 }
 Biography::Biography(const Biography &b){

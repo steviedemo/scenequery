@@ -1,17 +1,19 @@
 #ifndef SCENEPARSER_H
 #define SCENEPARSER_H
+#include <QByteArray>
 #include <QDate>
 #include <QDateTime>
 #include <QVector>
 #include <QString>
 #include <QStringList>
 #include "FilePath.h"
+#include <QMediaPlayer>
 #include "Rating.h"
 #include "definitions.h"
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
 #define SPACE_REGEX     "[\\s\\t]*"
-
+QByteArray checksum(const QString &absolutePath);
 class sceneParser
 {
 private:
@@ -26,7 +28,11 @@ private:
     QDate release;
     QDate accessed, created;
     QStringList bracketedData;
+    QMediaPlayer *player;
+    QStringList availableMetaDataKeys;
+    QByteArray  md5sum;
     void        bashScript        (class FilePath);
+    void        readMetadata      (QString);
     QStringList parseActors       (QString);
     void        parseParentheses  (QString);
     QString     parseCompany      (QString);

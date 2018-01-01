@@ -1,32 +1,49 @@
 #ifndef __RATING_H__
 #define __RATING_H__
 #include <QString>
-#include <string>
+#include <QMetaType>
+#include <QPointF>
+#include <QPolygon>
+#include <QPainter>
+#include <QVector>
+#define MAX_STAR_RATING 10
+#define MIN_STAR_RATING 0
+
 class Rating{
 public:
-    Rating();
-    Rating(double);
-    Rating(QString);
-    Rating(const std::string s);
-    // operators
-//    Rating operator = (const Rating &r) const;
-    bool operator == (Rating other) const;
-    bool operator <  (Rating other) const;
-    bool operator >  (Rating other) const;
-    bool operator <= (Rating other) const;
-    bool operator >= (Rating other) const;
-    bool operator != (Rating other) const;
-    bool isEmpty() const;
-    QString sqlSafe() const;
-    double toStars() const;
-    QString toString() const;
-    void fromStars(double d);
-    void fromString(QString s);
-private:
-    QString double2string(double d);
-    double  string2double(QString s);
-    QString ratingStr;
-    double stars;
-};
+    enum EditMode{ Editable, ReadOnly };
+    //Rating();
+    Rating(QString s="");
+    Rating(const Rating &other);
+    Rating operator=(const Rating &other);
+    /// View Item Functions
+    void    setupView();
+    void    paint(QPainter *painter, const QRect &rect, const QPalette &palette, EditMode mode) const;
+    QSize   sizeHint() const;
+    int     starCount() const    { return starRating; }
+    int     maxStarCount() const { return MAX_STAR_RATING;   }
+    void    setStarCount(int stars) {  fromStars(stars);    }
 
+    void    fromStars(int i);
+    void    fromString(QString s);
+    bool    equals(const Rating &other) const;
+    // operators
+    bool    operator == (Rating other) const;
+    bool    operator <  (Rating other) const;
+    bool    operator >  (Rating other) const;
+    bool    operator <= (Rating other) const;
+    bool    operator >= (Rating other) const;
+    bool    operator != (Rating other) const;
+    bool    isEmpty() const;
+    QString sqlSafe() const;
+    int     stars(void) const;
+    QString grade(void) const;
+private:
+    QPolygonF starPolygon, diamondPolygon;
+    QString StarsToGrade(int i);
+    int     GradeToStars(QString s);
+    QString gradeRating;
+    int     starRating;
+};
+Q_DECLARE_METATYPE(Rating)
 #endif

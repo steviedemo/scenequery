@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1394</width>
-    <height>976</height>
+    <height>1062</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -170,49 +170,61 @@ QRadioButton{
        </spacer>
       </item>
       <item>
-       <widget class="QTableView" name="actorView">
+       <widget class="QWidget" name="actorListWidget" native="true">
         <property name="maximumSize">
          <size>
           <width>400</width>
           <height>16777215</height>
          </size>
         </property>
-        <property name="font">
-         <font>
-          <family>Gill Sans</family>
-          <pointsize>14</pointsize>
-         </font>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
-        </property>
-        <property name="alternatingRowColors">
-         <bool>false</bool>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-        <property name="showGrid">
-         <bool>false</bool>
-        </property>
-        <property name="sortingEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="cornerButtonEnabled">
-         <bool>false</bool>
-        </property>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderHighlightSections">
-         <bool>false</bool>
-        </attribute>
+        <layout class="QVBoxLayout" name="verticalLayout">
+         <item>
+          <widget class="QTableView" name="actorView">
+           <property name="maximumSize">
+            <size>
+             <width>500</width>
+             <height>16777215</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>Gill Sans</family>
+             <pointsize>14</pointsize>
+            </font>
+           </property>
+           <property name="contextMenuPolicy">
+            <enum>Qt::CustomContextMenu</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
+           </property>
+           <property name="alternatingRowColors">
+            <bool>false</bool>
+           </property>
+           <property name="selectionBehavior">
+            <enum>QAbstractItemView::SelectRows</enum>
+           </property>
+           <property name="showGrid">
+            <bool>false</bool>
+           </property>
+           <property name="sortingEnabled">
+            <bool>true</bool>
+           </property>
+           <property name="cornerButtonEnabled">
+            <bool>false</bool>
+           </property>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
+           <attribute name="verticalHeaderHighlightSections">
+            <bool>false</bool>
+           </attribute>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
@@ -223,44 +235,17 @@ QRadioButton{
        </widget>
       </item>
       <item>
-       <layout class="QGridLayout" name="scene_grid_layout"/>
+       <widget class="SceneView" name="sceneWidget" native="true"/>
       </item>
       <item>
-       <widget class="QTableView" name="sceneView">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>300</height>
-         </size>
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
         </property>
-        <property name="maximumSize">
-         <size>
-          <width>3000</width>
-          <height>3000</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Gill Sans</family>
-          <pointsize>14</pointsize>
-         </font>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
-        </property>
-        <property name="showGrid">
-         <bool>false</bool>
-        </property>
-        <attribute name="horizontalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
        </widget>
+      </item>
+      <item>
+       <widget class="ActorProfileView" name="profileWidget" native="true"/>
       </item>
       <item>
        <spacer name="spacer_right">
@@ -278,533 +263,6 @@ QRadioButton{
         </property>
        </spacer>
       </item>
-      <item>
-       <widget class="QWidget" name="profileView" native="true">
-        <property name="font">
-         <font>
-          <family>Gill Sans</family>
-         </font>
-        </property>
-        <property name="styleSheet">
-         <string notr="true"/>
-        </property>
-        <layout class="QVBoxLayout" name="ProfileDetails">
-         <item alignment="Qt::AlignHCenter">
-          <widget class="QLabel" name="display_name">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="font">
-            <font>
-             <family>Futura</family>
-             <pointsize>24</pointsize>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Name</string>
-           </property>
-          </widget>
-         </item>
-         <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
-          <widget class="QLabel" name="profile_photo">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>200</width>
-             <height>200</height>
-            </size>
-           </property>
-           <property name="contextMenuPolicy">
-            <enum>Qt::CustomContextMenu</enum>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-           <property name="pixmap">
-            <pixmap resource="../resources/icons.qrc">:/Icons/blank_profile_photo.png</pixmap>
-           </property>
-           <property name="scaledContents">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item alignment="Qt::AlignHCenter">
-          <widget class="Line" name="line">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>300</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>385</width>
-             <height>1</height>
-            </size>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <layout class="QFormLayout" name="age_form">
-           <item row="0" column="0">
-            <widget class="QLabel" name="hairColorLabel">
-             <property name="text">
-              <string>Hair Color</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="hairColorLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="ethnicityLabel">
-             <property name="text">
-              <string>Ethnicity</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="ethnicityLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="birthDateLabel">
-             <property name="text">
-              <string>Birth Date</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="1">
-            <widget class="QDateEdit" name="birthDateDateEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>20</height>
-              </size>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="currentSection">
-              <enum>QDateTimeEdit::MonthSection</enum>
-             </property>
-             <property name="displayFormat">
-              <string>MMMM d, yyyy</string>
-             </property>
-             <property name="date">
-              <date>
-               <year>1988</year>
-               <month>1</month>
-               <day>1</day>
-              </date>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0">
-            <widget class="QLabel" name="nationalityLabel">
-             <property name="text">
-              <string>Birthplace</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="1">
-            <widget class="QLineEdit" name="nationalityLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="frame">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="0">
-            <widget class="QLabel" name="heightLabel">
-             <property name="text">
-              <string>Height</string>
-             </property>
-            </widget>
-           </item>
-           <item row="4" column="1">
-            <widget class="QLineEdit" name="heightLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="frame">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0">
-            <widget class="QLabel" name="weightLabel">
-             <property name="text">
-              <string>Weight</string>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="1">
-            <widget class="QLineEdit" name="weightLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="frame">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="0">
-            <widget class="QLabel" name="eyeColorLabel">
-             <property name="text">
-              <string>Eye Color</string>
-             </property>
-            </widget>
-           </item>
-           <item row="6" column="1">
-            <widget class="QLineEdit" name="eyeColorLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>17</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="frame">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="0">
-            <widget class="QLabel" name="measurementsLabel">
-             <property name="text">
-              <string>Measurements</string>
-             </property>
-            </widget>
-           </item>
-           <item row="7" column="1">
-            <widget class="QLineEdit" name="measurementsLineEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>18</height>
-              </size>
-             </property>
-             <property name="inputMethodHints">
-              <set>Qt::ImhMultiLine</set>
-             </property>
-             <property name="frame">
-              <bool>true</bool>
-             </property>
-             <property name="alignment">
-              <set>Qt::AlignCenter</set>
-             </property>
-             <property name="placeholderText">
-              <string>Unknown</string>
-             </property>
-             <property name="clearButtonEnabled">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="aliasesLabel">
-             <property name="text">
-              <string>Aliases</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QTextEdit" name="aliasesEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="midLineWidth">
-              <number>0</number>
-             </property>
-             <property name="placeholderText">
-              <string>None</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="0">
-            <widget class="QLabel" name="piercingsLabel">
-             <property name="text">
-              <string>Piercings</string>
-             </property>
-            </widget>
-           </item>
-           <item row="9" column="1">
-            <widget class="QTextEdit" name="piercingsEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="midLineWidth">
-              <number>0</number>
-             </property>
-             <property name="placeholderText">
-              <string>None</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="0">
-            <widget class="QLabel" name="tattoosLabel">
-             <property name="text">
-              <string>Tattoos</string>
-             </property>
-            </widget>
-           </item>
-           <item row="10" column="1">
-            <widget class="QTextEdit" name="tattoosEdit">
-             <property name="minimumSize">
-              <size>
-               <width>315</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="midLineWidth">
-              <number>0</number>
-             </property>
-             <property name="placeholderText">
-              <string>None</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
-          <layout class="QGridLayout" name="ProfileButtonLayout">
-           <item row="0" column="7">
-            <widget class="QToolButton" name="closeProfile">
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/Icons/flat_hide_icon.png</normaloff>:/Icons/flat_hide_icon.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="5">
-            <spacer name="horizontalSpacer">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>40</width>
-               <height>20</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-           <item row="0" column="0">
-            <widget class="QToolButton" name="reloadProfile">
-             <property name="toolTip">
-              <string>Reset All Changes</string>
-             </property>
-             <property name="whatsThis">
-              <string>Reselt all Changes</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/Icons/red_close_icon.png</normaloff>:/Icons/red_close_icon.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-             <property name="shortcut">
-              <string>Ctrl+S</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QToolButton" name="downloadProfile">
-             <property name="toolTip">
-              <string>Update Bio From Web</string>
-             </property>
-             <property name="statusTip">
-              <string>Update Bio from Web</string>
-             </property>
-             <property name="whatsThis">
-              <string>Updabet Bio from Web</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/Icons/flat_download_from_cloud_icon.png</normaloff>:/Icons/flat_download_from_cloud_icon.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="saveProfile">
-             <property name="toolTip">
-              <string>Save Changes</string>
-             </property>
-             <property name="statusTip">
-              <string>Save Changes</string>
-             </property>
-             <property name="whatsThis">
-              <string>Save Changes to local database</string>
-             </property>
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="../resources/icons.qrc">
-               <normaloff>:/Icons/flat_save_icon.png</normaloff>:/Icons/flat_save_icon.png</iconset>
-             </property>
-             <property name="iconSize">
-              <size>
-               <width>30</width>
-               <height>30</height>
-              </size>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-        </layout>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="scene_details"/>
-      </item>
      </layout>
     </item>
     <item row="7" column="0">
@@ -813,7 +271,7 @@ QRadioButton{
        <item>
         <layout class="QHBoxLayout" name="layout_progress">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="progressLabel">
            <property name="text">
             <string>Progress:</string>
            </property>
@@ -828,32 +286,13 @@ QRadioButton{
             </size>
            </property>
            <property name="value">
-            <number>24</number>
+            <number>0</number>
            </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="Line" name="line_2">
-           <property name="enabled">
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+           <property name="invertedAppearance">
             <bool>false</bool>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>1</width>
-             <height>16777215</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <kerning>false</kerning>
-            </font>
-           </property>
-           <property name="orientation">
-            <enum>Qt::Vertical</enum>
            </property>
           </widget>
          </item>
@@ -861,29 +300,6 @@ QRadioButton{
        </item>
        <item>
         <layout class="QGridLayout" name="Buttons">
-         <item row="1" column="2">
-          <widget class="QToolButton" name="updateActorBios">
-           <property name="toolTip">
-            <string>Update Bios</string>
-           </property>
-           <property name="statusTip">
-            <string>Update Bios</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../resources/icons.qrc">
-             <normaloff>:/Icons/flat_download_to_computer_icon.png</normaloff>:/Icons/flat_download_to_computer_icon.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="0">
           <widget class="QPushButton" name="saveActors">
            <property name="text">
@@ -891,31 +307,18 @@ QRadioButton{
            </property>
           </widget>
          </item>
-         <item row="1" column="3">
-          <widget class="QToolButton" name="updateDisplay">
-           <property name="statusTip">
-            <string>Refresh Display</string>
-           </property>
-           <property name="whatsThis">
-            <string>Refresh Display Items</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../resources/icons.qrc">
-             <normaloff>:/Icons/refresh_desktop_icon.png</normaloff>:/Icons/refresh_desktop_icon.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>40</width>
-             <height>40</height>
-            </size>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="4">
           <layout class="QHBoxLayout" name="SearchBar">
+           <item>
+            <widget class="QComboBox" name="searchFieldComboBox">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>16777215</height>
+              </size>
+             </property>
+            </widget>
+           </item>
            <item>
             <widget class="QLineEdit" name="searchBox">
              <property name="maximumSize">
@@ -985,29 +388,6 @@ QRadioButton{
            </property>
           </widget>
          </item>
-         <item row="0" column="2">
-          <widget class="QToolButton" name="scanFiles">
-           <property name="toolTip">
-            <string>Scan Folder</string>
-           </property>
-           <property name="statusTip">
-            <string>Scan Folder</string>
-           </property>
-           <property name="text">
-            <string>...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="../resources/icons.qrc">
-             <normaloff>:/Icons/add_folder_icon.png</normaloff>:/Icons/add_folder_icon.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>30</width>
-             <height>30</height>
-            </size>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QPushButton" name="refreshActors">
            <property name="text">
@@ -1015,31 +395,27 @@ QRadioButton{
            </property>
           </widget>
          </item>
-         <item row="0" column="3">
-          <layout class="QHBoxLayout" name="horizontalLayout_2">
-           <item>
-            <widget class="QRadioButton" name="radioButtonScenes">
-             <property name="text">
-              <string>Scenes</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QRadioButton" name="radioButtonActors">
-             <property name="text">
-              <string>Actors</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
          <item row="0" column="1">
           <widget class="QPushButton" name="refreshScenes">
            <property name="text">
             <string>Load Scenes</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QRadioButton" name="radioButtonActors">
+           <property name="text">
+            <string>Actors</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QRadioButton" name="radioButtonScenes">
+           <property name="text">
+            <string>Scenes</string>
            </property>
           </widget>
          </item>
@@ -1236,7 +612,7 @@ QRadioButton{
      <string>File</string>
     </property>
     <addaction name="actionScan_Directory"/>
-    <addaction name="actionUpdate_Database"/>
+    <addaction name="actionSave_Scenes"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -1264,9 +640,11 @@ QRadioButton{
     <bool>false</bool>
    </attribute>
    <addaction name="actionScan_Directory"/>
-   <addaction name="actionUpdate_Database"/>
-   <addaction name="actionLoad_Actors"/>
+   <addaction name="actionSave_Actors"/>
+   <addaction name="actionCleanDatabase"/>
    <addaction name="actionRefresh_Display"/>
+   <addaction name="actionSave_Scenes"/>
+   <addaction name="actionLoad_Actors"/>
    <addaction name="actionUpdate_Bios"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
@@ -1288,13 +666,22 @@ QRadioButton{
     <string>Ctrl+N</string>
    </property>
   </action>
-  <action name="actionUpdate_Database">
+  <action name="actionSave_Scenes">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/Icons/cloud up.ico</normaloff>:/Icons/cloud up.ico</iconset>
+     <normaloff>:/Icons/film-spool-icon.png</normaloff>:/Icons/film-spool-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Update Database</string>
+    <string>Store Scenes to Database</string>
+   </property>
+   <property name="toolTip">
+    <string>Store Scenes to Database</string>
+   </property>
+   <property name="statusTip">
+    <string>Store Scenes to Database</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="actionScenes">
@@ -1316,23 +703,21 @@ QRadioButton{
     <string>Ctrl+Alt+A</string>
    </property>
   </action>
-  <action name="actionSave_Actors">
-   <property name="text">
-    <string>Save Actors</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+S</string>
-   </property>
-  </action>
   <action name="actionLoad_Actors">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/Icons/flat_download_to_computer_icon.png</normaloff>:/Icons/flat_download_to_computer_icon.png</iconset>
+     <normaloff>:/Icons/female_silhouette_add.png</normaloff>:/Icons/female_silhouette_add.png</iconset>
    </property>
    <property name="text">
     <string>Load Actors</string>
    </property>
    <property name="toolTip">
+    <string>Load Actors from Database</string>
+   </property>
+   <property name="statusTip">
+    <string>Load Actors from Database</string>
+   </property>
+   <property name="whatsThis">
     <string>Load Actors from Database</string>
    </property>
   </action>
@@ -1349,12 +734,15 @@ QRadioButton{
   <action name="actionRefresh_Display">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/Icons/refresh_desktop_icon.png</normaloff>:/Icons/refresh_desktop_icon.png</iconset>
+     <normaloff>:/Icons/imac-icon.ico</normaloff>:/Icons/imac-icon.ico</iconset>
    </property>
    <property name="text">
     <string>Refresh Display</string>
    </property>
    <property name="toolTip">
+    <string>Refresh Display Items</string>
+   </property>
+   <property name="statusTip">
     <string>Refresh Display Items</string>
    </property>
    <property name="shortcut">
@@ -1364,7 +752,7 @@ QRadioButton{
   <action name="actionUpdate_Bios">
    <property name="icon">
     <iconset resource="../resources/icons.qrc">
-     <normaloff>:/Icons/flat_download_from_cloud_icon.png</normaloff>:/Icons/flat_download_from_cloud_icon.png</iconset>
+     <normaloff>:/Icons/update_female_icon.png</normaloff>:/Icons/update_female_icon.png</iconset>
    </property>
    <property name="text">
     <string>Update Bios</string>
@@ -1372,9 +760,56 @@ QRadioButton{
    <property name="toolTip">
     <string>Update Bios</string>
    </property>
+   <property name="statusTip">
+    <string>Update Actor Bios</string>
+   </property>
+  </action>
+  <action name="actionSave_Actors">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/flat_save_icon.png</normaloff>:/Icons/flat_save_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Actors</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Actors</string>
+   </property>
+   <property name="statusTip">
+    <string>Save Actors</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save Actors</string>
+   </property>
+  </action>
+  <action name="actionCleanDatabase">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/Broom_icon.svg</normaloff>:/Icons/Broom_icon.svg</iconset>
+   </property>
+   <property name="text">
+    <string>cleanDatabase</string>
+   </property>
+   <property name="statusTip">
+    <string>Clean Database entries</string>
+   </property>
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>SceneView</class>
+   <extends>QWidget</extends>
+   <header location="global">SceneView.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ActorProfileView</class>
+   <extends>QWidget</extends>
+   <header location="global">actorprofileview.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../resources/icons.qrc"/>
  </resources>

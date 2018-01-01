@@ -38,5 +38,34 @@
         <file>Icons/cloud-sync-icon.png</file>
         <file>Icons/database_sync_icon.png</file>
         <file>Icons/flat_save_icon_2.png</file>
+        <file>Icons/Refresh Display.png</file>
+        <file>Icons/update_female_icon.png</file>
+        <file>Icons/blank_profile_photo_female.png</file>
+        <file>Icons/silhouette_female_sideview.png</file>
+        <file>Icons/edit_profile_icon.png</file>
+        <file>Icons/user_add_icon.png</file>
+        <file>Icons/user_edit_female.ico</file>
+        <file>Icons/user_add_female.png</file>
+        <file>Icons/user_accept_female.png</file>
+        <file>Icons/Photo-icon.png</file>
+        <file>Icons/Broom_icon.svg</file>
+        <file>Icons/Preview-icon.png</file>
+        <file>Icons/film-spool-icon-3.jpg</file>
+        <file>Icons/icon-film-spool-2.png</file>
+        <file>Icons/film-spool-icon.png</file>
+        <file>Icons/film_folder_icon.png</file>
+        <file>Icons/imac-icon-2.ico</file>
+        <file>Icons/imac-icon.ico</file>
+        <file>Icons/female_silhouette_upload.png</file>
+        <file>Icons/female_silhouette_download.png</file>
+        <file>Icons/download_icon.png</file>
+        <file>Icons/female_silhouette_update.png</file>
+        <file>Icons/update_green.png</file>
+        <file>Icons/female_silhouette_save.png</file>
+        <file>Icons/disk-save.png</file>
+        <file>Icons/female_silhouette_edit.png</file>
+        <file>Icons/female_silhouette_database_sync.png</file>
+        <file>Icons/female_silhouette.png</file>
+        <file>Icons/female_silhouette_add.png</file>
     </qresource>
 </RCC>
