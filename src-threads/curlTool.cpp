@@ -53,7 +53,7 @@ void curlTool::run(){
 
 /** \brief DownloadThread's Main Routine */
 void DownloadThread::run(){
-    qDebug("Download Thread Started with '%s'", qPrintable(name));
+   // qDebug("Download Thread Started with '%s'", qPrintable(name));
     if (!name.isEmpty()){
         Biography b(name);
         if (task == Curl::UPDATE_BIO){
@@ -68,10 +68,10 @@ void DownloadThread::run(){
         if (!html.isEmpty()){
             curlTool::downloadHeadshot(actor, html);
         }
-        qDebug("Sending Actor Object for '%s'", qPrintable(name));
+        //qDebug("Sending Actor Object for '%s'", qPrintable(name));
         emit sendActor(actor);
     }
-    qDebug("Thread Finished for '%s'", qPrintable(name));
+ //   qDebug("Thread Finished for '%s'", qPrintable(name));
     emit finished();
 }
 
@@ -115,7 +115,7 @@ QString curlTool::getHTML(Website w, QString name){
         html = request(url);
     } else if (w == IAFD) {
         output << "www.iafd.com/person.rme/perfid=" << nameCopy_1.toLower().remove(QRegularExpression("[\\s\\.\\-\\']")) << "/gender=f/" << nameCopy_2.toLower().replace(" ", "-") << ".htm";
-        qDebug("Retrieving IAFD Bio from: %s", qPrintable(url));
+     //   qDebug("Retrieving IAFD Bio from: %s", qPrintable(url));
         html = system_call(QString("curl %1").arg(url));
     }
     return html;
@@ -172,7 +172,7 @@ bool curlTool::getFreeonesData(QString name, Biography &bio, QString &html){
     if (html.isEmpty()){
         qWarning("Freeones Returned Empty HTML for '%s'", qPrintable(name));
     } else {
-        parseBioTags(html, Freeones);
+        //parseBioTags(html, Freeones);
         if (!bio.has("measurements"))  {   bio.setMeasurements(bioSearchFO(html, "Measurements:"));    }
         if (!bio.has("aliases"))       {   bio.setAliases(bioSearchFO(html, "Aliases:"));              }
         if (!bio.has("city"))          {   bio.setCity(bioSearchFO(html, "Place of Birth:"));           }
@@ -198,7 +198,7 @@ bool curlTool::getFreeonesData(QString name, Biography &bio, QString &html){
             bio.retired = false;
         }
         success = true;
-        qDebug("Freeones Request for '%s' resulted in Bio of size %d", qPrintable(name), bio.size());
+   //     qDebug("Freeones Request for '%s' resulted in Bio of size %d", qPrintable(name), bio.size());
     }
     return success;
 }
@@ -206,13 +206,6 @@ bool curlTool::getFreeonesData(QString name, Biography &bio){
     QString html("");
     return getFreeonesData(name, bio, html);
 }
-
-//Biography curlTool::freeones(QString name){
-//    Biography bio(name);
-//    getFreeonesData(name, &bio);
-//    return bio;
-//}
-
 
 /** \brief Get Biographical Data from IAFD.com and set the passed bio data accordingly
  *  \param QString name:    Name of performer to get data about
@@ -245,7 +238,6 @@ bool curlTool::getIAFDData(QString name, Biography &bio, QString &html){
         }
         if (bio.getWeight() <= 0){
             QString weightString = bioSearchIAFD(html, "Weight");
-            qDebug("Weight String: '%s'", qPrintable(weightString));
             QRegularExpression rx("[^0-9]*([0-9]+)\\s*lbs.*");
             QRegularExpressionMatch m = rx.match(weightString);
             out();
@@ -253,7 +245,6 @@ bool curlTool::getIAFDData(QString name, Biography &bio, QString &html){
                 try{
                     bool ok = false;
                     int weight = m.captured(1).toInt(&ok);
-                    qDebug("Converted Weight: %d", weight);
                     if (ok){
                         bio.setWeight(weight);
                     }
@@ -263,16 +254,13 @@ bool curlTool::getIAFDData(QString name, Biography &bio, QString &html){
             }
         }
         out();
-        qDebug("Retrieving Height");
         if (!bio.getHeight().nonZero()){
             QString heightStr = bioSearchIAFD(html, "Height");
-            qDebug("Height String: '%s'", qPrintable(heightStr));
             QRegularExpression rx("([0-6]) feet, ([0-9]{1,2}) inches.*");
             QRegularExpressionMatch m = rx.match(heightStr);
             if (m.hasMatch()){
                 int feet = m.captured(1).toInt();
                 int inches = m.captured(2).toInt();
-                qDebug("Height: %d' %d''", feet, inches);
                 bio.setHeight(feet, inches);
             }
         }
@@ -289,7 +277,7 @@ bool curlTool::getIAFDData(QString name, Biography &bio, QString &html){
     } else {
         qWarning("IAFD returned empty HTML for '%s'", qPrintable(name));
     }
-    qDebug("IAFD Request for '%s' resulted in a bio of size %d", qPrintable(name), bio.size());
+  //  qDebug("IAFD Request for '%s' resulted in a bio of size %d", qPrintable(name), bio.size());
     return success;
 }
 bool curlTool::getIAFDData(QString name, Biography &bio){
@@ -297,17 +285,11 @@ bool curlTool::getIAFDData(QString name, Biography &bio){
     return getIAFDData(name, bio, html);
 }
 
-//Biography curlTool::iafd(QString name){
-//    Biography bio(name);
-//    getIAFDData(name, &bio);
-//    return bio;
-//}
-
 void curlTool::receiveActor(ActorPtr a){
     if (a.isNull()){
         qWarning("Received Null Actor");
     } else {
-        qDebug("Received Actor '%s'", qPrintable(a->getName()));
+     //   qDebug("Received Actor '%s'", qPrintable(a->getName()));
         this->actorList.push_back(a);
         this->additions++;
     }
@@ -317,26 +299,28 @@ void curlTool::downloadThreadComplete(){
     qDebug("%d/%d Threads Finished", this->threadsFinished, this->threadsStarted);
     emit updateProgress(threadsFinished);
     if (this->threadsFinished == this->threadsStarted){
-        qDebug("*****************************\nAll Threads Finished\n*****************************");
+     //   qDebug("*****************************\nAll Threads Finished\n*****************************");
         emit closeProgress(QString("Update Complete. %1 Names Searched, %2 Actor Objects Successfully Created (%3 items in list).").arg(nameList.size()).arg(additions).arg(actorList.size()));
         emit updateFinished(actorList);
     }
 }
 void curlTool::updateBios(ActorList list){
     resetCounters();
-    this->actorList.clear();
-    this->nameList.clear();
-    emit startProgress(QString("Updating the Bios for %1 Actors").arg(list.size()), list.size());
-    for (int i = 0; i < list.size(); ++i){
-        ActorPtr a = list.at(i);
-        DownloadThread *d = new DownloadThread(a);
-        connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
-        connect(d, SIGNAL(finished()),          this, SLOT(downloadThreadComplete()));
-        this->threadPool.globalInstance()->start(d);
-        this->threadsStarted++;
-    }
-    if (threadsStarted > 0){
-        qDebug("*****************************\nAll Threads Started\n*****************************");
+    if (list.size() > 0){
+        this->actorList.clear();
+        this->nameList.clear();
+        emit startProgress(QString("Updating the Bios for %1 Actors").arg(list.size()), list.size());
+        for (int i = 0; i < list.size(); ++i){
+            ActorPtr a = list.at(i);
+            DownloadThread *d = new DownloadThread(a);
+            connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
+            connect(d, SIGNAL(finished()),          this, SLOT(downloadThreadComplete()));
+            this->threadPool.globalInstance()->start(d);
+            this->threadsStarted++;
+        }
+        if (threadsStarted > 0){
+        //    qDebug("*****************************\nAll Threads Started\n*****************************");
+        }
     }
 }
 
@@ -353,7 +337,7 @@ void curlTool::makeNewActors(QStringList nameList){
         this->threadPool.globalInstance()->start(d);
         this->threadsStarted++;
     }
-    qDebug("*****************************\nAll Threads Started\n*****************************");
+    //qDebug("*****************************\nAll Threads Started\n*****************************");
 }
 
 void curlTool::updateBio(ActorPtr a){
@@ -363,10 +347,10 @@ void curlTool::updateBio(ActorPtr a){
         QString iafdHtml("");
         Biography b(name);
         if (getFreeonesData(name, b)){
-            qDebug("Freeones profile returned a bio of size %d", b.size());
+          //  qDebug("Freeones profile returned a bio of size %d", b.size());
         }
         if (getIAFDData(name, b, iafdHtml)){
-            qDebug("IAFD profile returned a bio of size %d", b.size());
+          //  qDebug("IAFD profile returned a bio of size %d", b.size());
         }
         this->currentActor = ActorPtr(new Actor(name, b, ""));
         QString headshot("");
@@ -374,7 +358,7 @@ void curlTool::updateBio(ActorPtr a){
             downloadHeadshot(currentActor, iafdHtml);
         }
     }
-    qDebug("Returning Bio for %s", qPrintable(name));
+    //qDebug("Returning Bio for %s", qPrintable(name));
     emit updateSingleProfile(currentActor);
 }
 
@@ -415,17 +399,15 @@ bool curlTool::wget(QString url, QString filePath){
     QProcess *process = new QProcess();
     QString command = "/usr/local/bin/wget";
     process->start(command, args);
-    qDebug("wget Started, getting profile photo %s", qPrintable(filePath));
     if (!process->waitForStarted()){
         qWarning("Error Starting wget QProcess for %s", qPrintable(filePath));
     } else if (!process->waitForFinished()){
         qWarning("QProcess Timed out while waiting for wget");
     } else {
-        qDebug("wget finished!");
+        //qDebug("wget got profile photo %s", qPrintable(filePath));
         success = QFileInfo(filePath).exists();
     }
     delete process;
-    qDebug("QProcess deleted");
     /*
     QString cmd = QString("/usr/local/bin/wget %1 -O %2").arg(url).arg(filePath);
     if (!system_call(cmd).isEmpty()){
@@ -476,7 +458,6 @@ QString curlTool::getHeadshotLink(QString html){
 }
 
 bool curlTool::downloadHeadshot(ActorPtr a, QString html){
-    qDebug("Running Curl Photo Downloader");
     bool success = false;
     if (!html.isEmpty()){
         QString link = getHeadshotLink(html);
@@ -487,27 +468,6 @@ bool curlTool::downloadHeadshot(ActorPtr a, QString html){
             if ((success = wget(link, photoPath))){
                 a->setHeadshot(photoPath);
             }
-            /*
-            QString fullpath = getHeadshotName(a->getName());
-            CURL *curl;
-            FILE *fp;
-            CURLcode res;
-            const char *url = qPrintable(link);
-            const char *outfilename = qPrintable(fullpath);
-            curl = curl_easy_init();
-            if (curl){
-                fp = fopen(outfilename, "wb");
-                curl_easy_setopt(curl, CURLOPT_URL, url);
-                curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-                curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-                curl_easy_cleanup(curl);
-                fclose(fp);
-                a->setHeadshot(fullpath);
-                success = true;
-            } else {
-                qWarning("Error initializing curl object for photo download");
-            }
-            */
         }
     }
     if (!success){

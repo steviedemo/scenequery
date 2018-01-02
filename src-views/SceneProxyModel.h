@@ -2,7 +2,15 @@
 #define SCENEPROXYMODEL_H
 #include <QDate>
 #include <QSortFilterProxyModel>
-
+#define NAME_COLUMN     0
+#define TITLE_COLUMN    1
+#define COMPANY_COLUMN  2
+#define QUALITY_COLUMN  3
+#define FEATURED_COLUMN 4
+#define DATE_COLUMN     5
+#define LENGTH_COLUMN   6
+#define RATING_COLUMN   7
+#define PATH_COLUMN     8
 class SceneProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
@@ -24,12 +32,14 @@ private:
     void setFilter(QString text);
     enum FilterKey{ NAME, COMPANY, TAG, QUALITY, NONE};
     bool getFilterData(FilterKey, int &column, QString &filterText) const;
+    QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
     const char *enumToString() const;
     void setDefaultValues();
-    bool nameMatchesFilter(QString name) const;
+    bool nameMatchesFilter(int row, const QModelIndex &index) const;
     bool companyMatchesFilter(QString company) const;
     bool tagMatchesFilter(QString tag) const;
     bool qualityMatchesFilter(QString qualityString) const;
+    QString currentFilter;
     QString nameFilter, companyFilter, tagFilter;
     int qualityFilter;
     FilterKey key;

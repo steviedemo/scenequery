@@ -31,7 +31,7 @@ private:
     Rating rating;
     QVector<int> ages;
     void fromParser(class sceneParser p);
-    ItemPtr itemTitle, itemActors, itemCompany, itemRating, itemDate, itemQuality, itemLength, itemSize, itemFeaturedActors;
+    ItemPtr itemTitle, itemActors, itemCompany, itemRating, itemDate, itemQuality, itemLength, itemSize, itemFeaturedActors, itemPath;
     bool displayBuilt;
     QByteArray md5sum;
     ItemList displayRow;

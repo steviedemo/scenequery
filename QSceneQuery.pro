@@ -11,7 +11,8 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET      = SceneQuery
 TEMPLATE    = app
 CONFIG      += debug
-
+ICON        += SceneQuery.icns
+QMAKE_INFO_PLIST = Info.plist
 MOC_DIR     = build
 OBJECTS_DIR = build
 UI_DIR      = build
@@ -88,7 +89,8 @@ SOURCES += \
     src-views/RatingEditor.cpp \
     src-views/SceneProxyModel.cpp \
     src-views/SceneView.cpp \
-    forms/ActorProfileView.cpp
+    forms/ActorProfileView.cpp \
+    src-threads/VideoPlayer.cpp
 
 HEADERS  += \
     src/config.h \
@@ -120,7 +122,8 @@ HEADERS  += \
     src-views/RatingEditor.h \
     src-views/SceneProxyModel.h \
     src-views/SceneView.h \
-    forms/ActorProfileView.h
+    forms/ActorProfileView.h \
+    src-threads/VideoPlayer.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

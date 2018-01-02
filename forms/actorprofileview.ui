@@ -6,9 +6,21 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>569</width>
-    <height>850</height>
+    <width>400</width>
+    <height>977</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>0</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>400</width>
+    <height>16777215</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -45,7 +57,133 @@ QLabel#label_name{
    </item>
    <item row="3" column="0">
     <layout class="QFormLayout" name="formLayout">
+     <item row="0" column="0">
+      <widget class="QLabel" name="ageLabel">
+       <property name="text">
+        <string>Age</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="ageLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
+      <widget class="QLabel" name="hairColorLabel">
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Hair Color</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="hairColorLineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="ethnicityLabel">
+       <property name="text">
+        <string>Ethnicity</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="ethnicityLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="scenesLabel">
+       <property name="text">
+        <string>Scenes</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="scenesLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhPreferNumbers</set>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
       <widget class="QLabel" name="birthDateLabel">
        <property name="font">
         <font>
@@ -57,7 +195,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="4" column="1">
       <widget class="QDateEdit" name="birthDateDateEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -67,13 +205,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -100,7 +238,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="5" column="0">
       <widget class="QLabel" name="birthCityLabel">
        <property name="font">
         <font>
@@ -112,7 +250,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="2" column="1">
+     <item row="5" column="1">
       <widget class="QLineEdit" name="birthCityLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -122,13 +260,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -137,9 +275,12 @@ QLabel#label_name{
          <family>Gill Sans</family>
         </font>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="6" column="0">
       <widget class="QLabel" name="nationalityLabel">
        <property name="font">
         <font>
@@ -151,7 +292,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
+     <item row="6" column="1">
       <widget class="QLineEdit" name="nationalityLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -161,13 +302,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -176,48 +317,12 @@ QLabel#label_name{
          <family>Gill Sans</family>
         </font>
        </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="hairColorLabel">
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>Hair Color</string>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="hairColorLineEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>458</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>600</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
+     <item row="7" column="0">
       <widget class="QLabel" name="eyeColorLabel">
        <property name="font">
         <font>
@@ -229,7 +334,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="7" column="1">
       <widget class="QLineEdit" name="eyeColorLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -239,13 +344,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -254,9 +359,12 @@ QLabel#label_name{
          <family>Gill Sans</family>
         </font>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
-     <item row="7" column="0">
+     <item row="8" column="0">
       <widget class="QLabel" name="weightLabel">
        <property name="font">
         <font>
@@ -268,7 +376,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="7" column="1">
+     <item row="8" column="1">
       <widget class="QLineEdit" name="weightLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -278,13 +386,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -293,9 +401,12 @@ QLabel#label_name{
          <family>Gill Sans</family>
         </font>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
-     <item row="8" column="0">
+     <item row="9" column="0">
       <widget class="QLabel" name="heightLabel">
        <property name="font">
         <font>
@@ -307,7 +418,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="8" column="1">
+     <item row="9" column="1">
       <widget class="QLineEdit" name="heightLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -317,13 +428,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -332,9 +443,38 @@ QLabel#label_name{
          <family>Gill Sans</family>
         </font>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
       </widget>
      </item>
      <item row="10" column="0">
+      <widget class="QLabel" name="measurementsLabel">
+       <property name="text">
+        <string>Measurements</string>
+       </property>
+      </widget>
+     </item>
+     <item row="10" column="1">
+      <widget class="QLineEdit" name="measurementsLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="11" column="0">
       <widget class="QLabel" name="aliasesLabel">
        <property name="font">
         <font>
@@ -346,7 +486,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="10" column="1">
+     <item row="11" column="1">
       <widget class="QTextEdit" name="aliasesTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -356,13 +496,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -373,7 +513,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="11" column="0">
+     <item row="12" column="0">
       <widget class="QLabel" name="piericingsLabel">
        <property name="font">
         <font>
@@ -385,7 +525,34 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="12" column="0">
+     <item row="12" column="1">
+      <widget class="QTextEdit" name="piercingsTextEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="13" column="0">
       <widget class="QLabel" name="tattoosLabel">
        <property name="font">
         <font>
@@ -397,34 +564,7 @@ QLabel#label_name{
        </property>
       </widget>
      </item>
-     <item row="11" column="1">
-      <widget class="QTextEdit" name="piercingsTextEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>458</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>600</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="1">
+     <item row="13" column="1">
       <widget class="QTextEdit" name="tattoosTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -434,13 +574,13 @@ QLabel#label_name{
        </property>
        <property name="minimumSize">
         <size>
-         <width>458</width>
+         <width>200</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>600</width>
+         <width>300</width>
          <height>16777215</height>
         </size>
        </property>
@@ -448,63 +588,6 @@ QLabel#label_name{
         <font>
          <family>Gill Sans</family>
         </font>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="ethnicityLabel">
-       <property name="text">
-        <string>Ethnicity</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="ethnicityLineEdit">
-       <property name="minimumSize">
-        <size>
-         <width>458</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="measurementsLabel">
-       <property name="text">
-        <string>Measurements</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QLineEdit" name="measurementsLineEdit">
-       <property name="minimumSize">
-        <size>
-         <width>458</width>
-         <height>0</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="scenesLabel">
-       <property name="text">
-        <string>Scenes</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="scenesLineEdit">
-       <property name="minimumSize">
-        <size>
-         <width>458</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="inputMethodHints">
-        <set>Qt::ImhPreferNumbers</set>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -571,9 +654,12 @@ QLabel#label_name{
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Maximum</enum>
+       </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>70</width>
          <height>20</height>
         </size>
        </property>

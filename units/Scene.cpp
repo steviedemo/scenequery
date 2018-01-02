@@ -334,6 +334,7 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemCompany = ItemPtr(new QStandardItem());
     this->itemCompany->setData(QVariant(company), Qt::DisplayRole);
     this->itemSize = ItemPtr(new QStandardItem(sizeString));
+    this->itemPath = ItemPtr(new QStandardItem(file.absolutePath()));
     QString date("");
     if (released.isValid()){
         date = released.toString("yyyy/MM/dd");
@@ -344,14 +345,14 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     qint64 seconds = (qint64)(length*60);
     QTime time = QTime(0,0,0);
     time = time.addSecs(seconds);
-    QString lenStr("");
-    if (length > 60.0){
-        lenStr = QString("%1 h, %2 min, %3 sec").arg(time.hour()).arg(time.minute()).arg(time.second());
-    } else if (length > 1.00){
-        lenStr = QString("%1 min, %2 sec").arg(time.minute()).arg(time.second());
-    } else {
-        lenStr = QString("%1 seconds").arg(time.second());
-    }
+    QString lenStr = QString("%1:%2:%3").arg(time.hour()).arg(time.minute()).arg(time.second());
+//    if (length > 60.0){
+//        lenStr = QString("%1 h, %2 min, %3 sec").arg(time.hour()).arg(time.minute()).arg(time.second());
+//    } else if (length > 1.00){
+//        lenStr = QString("%1 min, %2 sec").arg(time.minute()).arg(time.second());
+//    } else {
+//        lenStr = QString("%1 seconds").arg(time.second());
+//    }
     this->itemLength = ItemPtr(new QStandardItem(lenStr));
     this->itemRating = ItemPtr(new QStandardItem(rating.grade()));
     QString mainActor(""), featuredActors("");
@@ -369,7 +370,9 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemActors->setData(QVariant(mainActor), Qt::DisplayRole);
     this->itemFeaturedActors = ItemPtr(new QStandardItem());
     this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
-    row << itemActors.data() << itemTitle.data() << itemCompany.data() << itemQuality.data() << itemFeaturedActors.data() <<  itemSize.data() << itemLength.data() << itemDate.data() << itemRating.data();
+    row << itemActors.data() << itemTitle.data() << itemCompany.data() << itemQuality.data() \
+        << itemFeaturedActors.data() <<  itemSize.data() << itemLength.data() \
+        << itemDate.data() << itemRating.data() << itemPath.data();
     displayBuilt = true;
     return row;
 }

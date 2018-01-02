@@ -13,6 +13,7 @@ Actor::Actor(QString name):
     Entry(), name(name), bio(name){
     this->dataUsage = 0.0;
     this->headshot = FilePath(getProfilePhoto(name));
+
     setup();
 }
 Actor::Actor(const Actor &a):
@@ -31,6 +32,7 @@ Actor::Actor(QString actorName, Biography bio, QString headshot):
 
 Actor::Actor(pqxx::result::const_iterator &i):Entry(){
     this->fromRecord(i);
+    setup();
 }
 
 void Actor::fromRecord(pqxx::result::const_iterator &i){
@@ -87,7 +89,7 @@ void Actor::setup(){
 
 void Actor::addScene(ScenePtr s){
     this->sceneList.push_back(s);
-    this->sceneCount = sceneList.size();
+    this->sceneCount++;
     this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
 }
 void Actor::addScene(void){
@@ -154,7 +156,7 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
         photoPath = getProfilePhoto(name);
 //        qDebug("Profile Photo for %s: %s", qPrintable(name), qPrintable(photoPath));
     }
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+    this->itemSceneCount->setText(QString::number(sceneCount));
     this->itemPhoto->setData(QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     QString hair, ethnicity;
     hair = bio.getHairColor();

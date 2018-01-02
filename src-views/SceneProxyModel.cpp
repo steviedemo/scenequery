@@ -1,9 +1,5 @@
 #include <QtWidgets>
 #include "SceneProxyModel.h"
-#define NAME_COLUMN 0
-#define COMPANY_COLUMN 2
-#define QUALITY_COLUMN 3
-#define RATING_COLUMN 4
 
 SceneProxyModel::SceneProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent){
@@ -64,12 +60,10 @@ const char *SceneProxyModel::enumToString() const{
     }
     return qPrintable(s);
 }
+
 bool SceneProxyModel::getFilterData(FilterKey fk, int &column, QString &filterText) const {
     bool applyFilter = true;
-    if (fk == NAME){
-        column = NAME_COLUMN;
-        filterText = nameFilter;
-    } else if (fk == COMPANY){
+    if (fk == COMPANY){
         column = COMPANY_COLUMN;
         filterText = companyFilter;
     } else if (fk == QUALITY){
@@ -88,12 +82,11 @@ bool SceneProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
     int column;
     QString filterText("");
     bool accepted = true;
-    if (getFilterData(key, column, filterText)){
+    if (key == NAME && !nameFilter.isEmpty()){
+        accepted = nameMatchesFilter(sourceRow, sourceParent);
+    } else if (getFilterData(key, column, filterText)){
         QString data = sourceModel()->data(sourceModel()->index(sourceRow, column, sourceParent)).toString();
-        if (filterText.isEmpty()){
-            qWarning("Error - Filter String is empty");
-            accepted = true;
-        } else if (filterText == "*" || filterText == ".*"){
+        if (filterText == "*" || filterText == ".*"){
             accepted = true;
         } else if (data.isEmpty()){
             accepted = false;
@@ -106,10 +99,20 @@ bool SceneProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceP
     return accepted;
 }
 
-
-bool SceneProxyModel::nameMatchesFilter(QString name) const{
-    return (nameFilter.contains(name, Qt::CaseInsensitive));
+QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
+    return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();
 }
+
+bool SceneProxyModel::nameMatchesFilter(int row, const QModelIndex &currIndex) const{
+    bool match = false;
+    QString mainName = getCellData(row, NAME_COLUMN, currIndex);
+    QString featNames = getCellData(row, FEATURED_COLUMN, currIndex);
+    if(mainName.contains(nameFilter) || featNames.contains(nameFilter)){
+        match = true;
+    }
+    return match;
+}
+
 bool SceneProxyModel::qualityMatchesFilter(QString quality) const{
     bool match = true;
     if (qualityFilter > 0){

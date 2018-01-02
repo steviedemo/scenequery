@@ -129,6 +129,11 @@ Line{
 	width: 1px;
 	size: 1px;
 }
+QProgressDialog{
+	margin-right: 0px;
+	text-align: center;
+	border-radius: 0px;
+}
 QProgressBar:horizontal{
 	margin-right: 40px;
 	text-align: right;
@@ -148,6 +153,9 @@ QRadioButton{
 	background-color: rgba(0,0,0,0);
 }
 </string>
+  </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>true</bool>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -180,9 +188,15 @@ QRadioButton{
         <layout class="QVBoxLayout" name="verticalLayout">
          <item>
           <widget class="QTableView" name="actorView">
+           <property name="minimumSize">
+            <size>
+             <width>300</width>
+             <height>0</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>500</width>
+             <width>600</width>
              <height>16777215</height>
             </size>
            </property>

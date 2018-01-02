@@ -35,7 +35,7 @@ int SceneList::countScenesWithActor(QString name) const{
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
         ScenePtr s = it.next();
-        if (s->getActors().contains(name)){
+        if (s->hasActor(name)){
             ++count;
         }
     }

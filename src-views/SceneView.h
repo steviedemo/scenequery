@@ -13,9 +13,14 @@ public:
     void setSourceModel(QAbstractItemModel *model);
     QVBoxLayout *getLayout();
     void addScene(ScenePtr, const QModelIndex &parent = QModelIndex());
+public slots:
+    void receiveSceneCountRequest();
+
 private slots:
     void actorFilterChanged(QString name);
-
+    void actorFilterChanged(ActorPtr);
+    void clearFilter(void);
+    void rowDoubleClicked(const QModelIndex &index);
 private:
     void addData(int column, QString data);
     QWidget *parent;
@@ -24,7 +29,9 @@ private:
     QTableView *proxyView;
     QVBoxLayout *mainLayout;
     int newRow;
-
+signals:
+    void sendSceneCount(int);
+    void playFile(QString);
 };
 
 #endif // SCENEVIEW_H

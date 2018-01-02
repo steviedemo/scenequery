@@ -1,6 +1,8 @@
 #include "ActorProfileView.h"
 #include "ui_actorprofileview.h"
 #include "Actor.h"
+#include <unistd.h>
+#include <QTimer>
 ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ActorProfileView){
@@ -11,51 +13,84 @@ ActorProfileView::~ActorProfileView()
 {
     delete ui;
 }
+void ActorProfileView::clearFields(){
+    ui->scenesLineEdit->setText("");
+    ui->ethnicityLineEdit->setText("");
+    ui->aliasesTextEdit->setText("");
+    ui->birthCityLineEdit->setText("");
+    ui->ageLineEdit->setText("");
+    ui->measurementsLineEdit->setText("");
+    ui->nationalityLineEdit->setText("");
+    ui->hairColorLineEdit->setText("");
+    ui->eyeColorLineEdit->setText("");
+    ui->heightLineEdit->setText("");
+    ui->weightLineEdit->setText("");
+    ui->piercingsTextEdit->setText("");
+    ui->tattoosTextEdit->setText("");
+}
+
+void ActorProfileView::acceptSceneCount(int count){
+    ui->scenesLineEdit->setText(QString::number(count));
+}
 
 void ActorProfileView::loadActorProfile(ActorPtr a){
     this->current = a;
+    clearFields();
     this->show();
-
     ui->label_name->setText(a->getName());
     ui->saveProfile->setDisabled(true);
     ui->reloadFromDb->setDisabled(true);
     Biography bio = a->getBio();
+    /// Set Basic Fields
     ui->ethnicityLineEdit->setText(bio.getEthnicity());
     ui->eyeColorLineEdit->setText(bio.getEyeColor());
     ui->hairColorLineEdit->setText(bio.getHairColor());
     ui->measurementsLineEdit->setText(bio.getMeasurements());
-    QString city = bio.getCity();
-    QString country = bio.getNationality();
-    /// Set the birthplace
-    QString birthplace("");
-    if (!city.isEmpty() && !country.isEmpty()){
-        birthplace = QString("%1, %2").arg(city).arg(country);
-    } else if (!country.isEmpty()) {
-        birthplace = country;
-    } else {
-        birthplace = "Unknown";
-    }
+    // Put together the birthplace label
+    ui->birthCityLineEdit->setText(bio.getCity());
+    ui->nationalityLineEdit->setText(bio.getNationality());
+    // Put together the height label
     Height height = bio.getHeight();
     if (height.nonZero()){
         ui->heightLineEdit->setText(height.toString());
+    } else {
+        ui->heightLineEdit->setText("");
     }
     int weight = bio.getWeight();
     if (weight > 0){
         QString temp = QString::number(weight) + " lbs";
         ui->weightLineEdit->setText(temp);
+    } else {
+        ui->weightLineEdit->setText("");
     }
-    QString age("");
+    // Set Birthday & Age
     QDate birthday = bio.getBirthday();
     if (!birthday.isNull() && birthday.isValid()){
+        ui->birthDateLabel->show();
+        ui->birthDateDateEdit->show();
         ui->birthDateDateEdit->setDate(birthday);
+        int age = (birthday.daysTo(QDate::currentDate()))/365;
+        ui->ageLabel->show();
+        ui->ageLineEdit->show();
+        ui->ageLineEdit->setText(QString("%1 years old").arg(age));
+
+    } else {
+        ui->birthDateLabel->hide();
+        ui->birthDateDateEdit->hide();
+        ui->ageLabel->hide();
+        ui->ageLineEdit->hide();
     }
-    ui->nationalityLineEdit->setText(birthplace);
     /// Set the content of the multi-line text boxes.
     ui->aliasesTextEdit->setText(bio.getAliases());
     ui->piercingsTextEdit->setText(bio.getPiercings());
     ui->tattoosTextEdit->setText(bio.getTattoos());
     ui->profilePhoto->setPixmap(QPixmap(a->getHeadshotPath()).scaledToHeight(IMAGE_HEIGHT));
-    //sceneProxyModel->setFilterActor(a->getName());
+    /// Request The scene count in a few seconds, once the scene filtering has been performed.
+    QTimer::singleShot(3, this, SLOT(onTimeout()));
+}
+
+void ActorProfileView::onTimeout(){
+    emit requestSceneCount();
 }
 
 /** \brief Save any changes made to the currently displayed profile */
@@ -93,15 +128,8 @@ void ActorProfileView::on_saveProfile_clicked(){
             int w = weightString.toInt(&ok);
             if (ok){    current->setWeight(w); }
         }
-        // Read in Birthplace
-        QRegularExpression birthplaceRx("([\\s\\'A-Za-z]+),\\s*(.+)");
-        QRegularExpressionMatch bpMatch = birthplaceRx.match(ui->nationalityLineEdit->text());
-        if (bpMatch.hasMatch()){
-            current->setCity(bpMatch.captured(1));
-            current->setNationality(bpMatch.captured(2));
-        } else {
-            current->setNationality(ui->nationalityLineEdit->text());
-        }
+        current->setCity(ui->birthCityLineEdit->text());
+        current->setNationality(ui->nationalityLineEdit->text());
         emit saveToDatabase(a);
     }
 }
@@ -112,6 +140,7 @@ void ActorProfileView::on_updateFromWeb_clicked(){
 }
 
 void ActorProfileView::on_closeProfile_clicked(){
+    emit hidden();
     this->hide();
 }
 

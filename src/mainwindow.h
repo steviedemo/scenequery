@@ -9,9 +9,10 @@
 #include "sql.h"
 #include "profiledialog.h"
 #include "InitializationThread.h"
-#include <QSortFilterProxyModel>
 #include "SceneProxyModel.h"
 #include "SceneView.h"
+#include "VideoPlayer.h"
+#include <QSortFilterProxyModel>
 #include <QMap>
 #include <QMainWindow>
 #include <QListView>
@@ -19,7 +20,7 @@
 #include <QTableView>
 #include <QStandardItem>
 #include <QShowEvent>
-#define NAME_COLUMN 1
+#define ACTOR_NAME_COLUMN 1
 enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
 class MainWindow;
@@ -76,6 +77,8 @@ private slots:
     void on_actionRefresh_Display_triggered();
     void selectNewProfilePhoto();
     void testProfileDialogClosed();
+    void playVideo(QString);
+    void videoFinished();
 private:
     void setupThreads();
     void setupViews();
@@ -86,7 +89,9 @@ private:
     void displayAllScenes(void);
     void addSceneRow(ItemList);
     void addActorRow(ItemList);
+
     /// View
+    QIcon appIcon;
     Ui::MainWindow *ui;
     ActorList actorList, updateList, displayActors;
     ActorPtr currentActor, updatedActor;
@@ -94,14 +99,15 @@ private:
     QMap<QString, ActorPtr> actorMap;
     QModelIndex currentActorIndex;
     QProgressDialog *progressDialog;
-    QSharedPointer<QStandardItemModel> sceneSubsetModel, actorSubsetModel;
-    QStandardItemModel *actorModel, *sceneModel;
+    QStandardItemModel *sceneModel, *actorModel;
+    SceneProxyModel *sceneProxyModel;
+    QSortFilterProxyModel *actorProxyModel;
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
-    QSortFilterProxyModel *actorProxyModel;
-    SceneProxyModel *sceneProxyModel;
     SceneList sceneList, displayScenes;
     SceneView *sceneView;
+    VideoPlayer *videoPlayer;
+    bool videoOpen;
     /// Threads
     curlTool *curlTestThread;
     InitializationThread *initThread;

@@ -141,9 +141,9 @@ void SQL::load(SceneList sceneList){
         return;
     }
     emit updateStatus("Loading Scenes from Database");
-    qDebug("SQL Statement Executed");
+   // qDebug("SQL Statement Executed");
     pqxx::result resultList = sql->getResult();
-    qDebug("Getting Result");
+  //  qDebug("Getting Result");
     int total = resultList.size();
     emit startProgress(QString("Reading in %1 Scenes from database").arg(total), total);
     ///Crashes somewhere after this.
@@ -209,17 +209,15 @@ bool SQL::hasActor(ActorPtr a, bool &queryRan){
 
 void SQL::updateActor(ActorPtr A){
     const char *name = qPrintable(A->getName());
-    qDebug("Updating Entry for %s", name);
     Query query = A->toQuery();
-    trace();
     std::string statement = query.toPqxxUpdate("actors");
-    qDebug("SQL Statement: '%s'", statement.c_str());
+    //qDebug("SQL Statement: '%s'", statement.c_str());
     sqlConnection *sql = new sqlConnection(statement);
     if (!sql->execute()){
         qWarning("Error Updating %s", name);
         emit updateStatus(QString("Error Updating %1").arg(A->getName()));
     } else {
-        qDebug("%s Updated!", name);
+      //  qDebug("%s Updated!", name);
         emit updateStatus(QString("Successfully Updated %1").arg(A->getName()));
     }
     delete sql;
