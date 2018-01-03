@@ -24,7 +24,7 @@ private slots:
     void on_saveProfile_clicked();
     void on_closeProfile_clicked();
     void on_reloadFromDb_clicked();
-
+    void on_selectNewPhoto_clicked();
     void on_birthDateDateEdit_userDateChanged(const QDate &date);
     void on_hairColorLineEdit_textChanged(const QString &arg1);
     void on_ethnicityLineEdit_textChanged(const QString &arg1);

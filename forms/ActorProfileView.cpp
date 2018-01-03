@@ -33,6 +33,10 @@ void ActorProfileView::acceptSceneCount(int count){
     ui->scenesLineEdit->setText(QString::number(count));
 }
 
+void ActorProfileView::on_selectNewPhoto_clicked(){
+    emit chooseNewPhoto();
+}
+
 void ActorProfileView::loadActorProfile(ActorPtr a){
     this->current = a;
     clearFields();
@@ -131,6 +135,7 @@ void ActorProfileView::on_saveProfile_clicked(){
         current->setCity(ui->birthCityLineEdit->text());
         current->setNationality(ui->nationalityLineEdit->text());
         emit saveToDatabase(a);
+        current->updateQStandardItem();
     }
 }
 

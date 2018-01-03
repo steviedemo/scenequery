@@ -20,7 +20,7 @@
 #include <QVector>
 #include <QProcess>
 #define out();  qDebug("%s::%s::%d", __FILE__,__FUNCTION__,__LINE__);
-#define FREEONES_TAG_REGEX  "<dt>([^\\<]+):?</dt>\\s*<dd>([^\\<]+)</dd>"
+#define FREEONES_TAG_REGEX  "<dt>([^\\<]+)[:]?</dt>\\s*<dd>([^\\<]+)</dd>"
 #define IAFD_TAG_REGEX      ".*<p class=\"bioheading\">([^\\<]+)</p>\\s*<p class=\"biodata\">([^\\<]+)</p>.*"
 curlTool::curlTool(){
     this->dataPath = findDataLocation();
@@ -53,7 +53,6 @@ void curlTool::run(){
 
 /** \brief DownloadThread's Main Routine */
 void DownloadThread::run(){
-   // qDebug("Download Thread Started with '%s'", qPrintable(name));
     if (!name.isEmpty()){
         Biography b(name);
         if (task == Curl::UPDATE_BIO){
@@ -68,10 +67,8 @@ void DownloadThread::run(){
         if (!html.isEmpty()){
             curlTool::downloadHeadshot(actor, html);
         }
-        //qDebug("Sending Actor Object for '%s'", qPrintable(name));
         emit sendActor(actor);
     }
- //   qDebug("Thread Finished for '%s'", qPrintable(name));
     emit finished();
 }
 
@@ -87,7 +84,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
 QString request(QString urlString){
     CURL *curl;
     QString html("");
-   // char curl_errbuf[CURL_ERROR_SIZE];
     CURLcode res;
     std::string readBuffer;
     curl = curl_easy_init();
@@ -111,11 +107,9 @@ QString curlTool::getHTML(Website w, QString name){
     if (w == Freeones){
         nameCopy_1 = nameCopy_1.toLower();
         output << "www.freeones.ca/html/" << nameCopy_1.at(0) << "_links/" << nameCopy_2.remove('.').replace(" ", "_") << "/";
-        //qDebug("Retrieving Freeones bio from: %s", qPrintable(url));
         html = request(url);
     } else if (w == IAFD) {
         output << "www.iafd.com/person.rme/perfid=" << nameCopy_1.toLower().remove(QRegularExpression("[\\s\\.\\-\\']")) << "/gender=f/" << nameCopy_2.toLower().replace(" ", "-") << ".htm";
-     //   qDebug("Retrieving IAFD Bio from: %s", qPrintable(url));
         html = system_call(QString("curl %1").arg(url));
     }
     return html;
@@ -153,7 +147,7 @@ QMap<QString,QString> curlTool::parseBioTags(QString html, Website site){
 
 QString curlTool::bioSearchFO(QString html, QString key){
     QString value("");
-    QRegularExpression rx(".*<dt>"+key+"</dt>[\\s\\r\\n\\t]*<dd>(.+)</dd>.*");
+    QRegularExpression rx(".*<dt>"+key+":?</dt>\\s*<dd>([^\\<]+)</dd>.*");
     QRegularExpressionMatch match = rx.match(html);
     if (match.hasMatch() && match.captured(1) != "Unknown"){
         value = match.captured(1);
@@ -173,16 +167,16 @@ bool curlTool::getFreeonesData(QString name, Biography &bio, QString &html){
         qWarning("Freeones Returned Empty HTML for '%s'", qPrintable(name));
     } else {
         //parseBioTags(html, Freeones);
-        if (!bio.has("measurements"))  {   bio.setMeasurements(bioSearchFO(html, "Measurements:"));    }
-        if (!bio.has("aliases"))       {   bio.setAliases(bioSearchFO(html, "Aliases:"));              }
-        if (!bio.has("city"))          {   bio.setCity(bioSearchFO(html, "Place of Birth:"));           }
-        if (!bio.has("nationality"))   {   bio.setNationality(bioSearchFO(html, "Country of Origin:"));}
-        if (!bio.has("eyes"))          {   bio.setEyeColor(bioSearchFO(html, "Eye Color:"));           }
-        if (!bio.has("hair"))          {   bio.setHairColor(bioSearchFO(html, "Hair Color:"));         }
-        if (!bio.has("piercings"))     {   bio.setPiercings(bioSearchFO(html, "Piercings:"));          }
-        if (!bio.has("tattoos"))       {   bio.setTattoos(bioSearchFO(html, "Tattoos:"));              }
+        if (bio.getMeasurements().isEmpty())  {   bio.setMeasurements(bioSearchFO(html, "Measurements"));       }
+        if (bio.getAliases().isEmpty())       {   bio.setAliases(bioSearchFO(html, "Aliases"));                 }
+        if (bio.getCity().isEmpty())          {   bio.setCity(bioSearchFO(html, "Place of Birth"));             }
+        if (bio.getNationality().isEmpty())   {   bio.setNationality(bioSearchFO(html, "Country of Origin"));   }
+        if (bio.getEyeColor().isEmpty())      {   bio.setEyeColor(bioSearchFO(html, "Eye Color"));              }
+        if (bio.getHairColor().isEmpty())     {   bio.setHairColor(bioSearchFO(html, "Hair Color"));            }
+        if (bio.getPiercings().isEmpty())     {   bio.setPiercings(bioSearchFO(html, "Piercings"));             }
+        if (bio.getTattoos().isEmpty())       {   bio.setTattoos(bioSearchFO(html, "Tattoos"));                 }
         if (!bio.has("birthdate"))     {
-            QString birthdayElement     = bioSearchFO(html, "Date of Birth:");
+            QString birthdayElement     = bioSearchFO(html, "Date of Birth");
             QRegularExpression birthdayRegex("([A-Za-z]+\\s\\d+,\\s\\d+)\\s*.*");
             QRegularExpressionMatch birthdayMatch = birthdayRegex.match(birthdayElement);
             if (birthdayMatch.hasMatch()){
@@ -222,13 +216,12 @@ bool curlTool::getIAFDData(QString name, Biography &bio, QString &html){
         // PARSE OUT THE VALUES OF INTEREST
         bio.setName(name);
         if (!bio.has("height"))      {   bio.setHeight(Height::fromText(bioSearchIAFD(html, "Height")));  }
-        if (!bio.has("ethnicity"))   {   bio.setEthnicity(bioSearchIAFD(html, "Ethnicity"));              }
-        if (!bio.has("measurements")){   bio.setMeasurements(bioSearchIAFD(html, "Measurements"));        }
-        if (!bio.has("tattoos"))     {   bio.setTattoos(bioSearchIAFD(html, "Tattoos"));                  }
-        if (!bio.has("piercings"))   {   bio.setPiercings(bioSearchIAFD(html, "Piercings"));              }
-        if (!bio.has("hair"))        {   bio.setHairColor(bioSearchIAFD(html, "Hair Color"));             }
-        if (!bio.has("nationality")) {   bio.setNationality(bioSearchIAFD(html, "Nationality"));          }
-        //if (!bio.has("city"))        {   bio.setCity(bioSearchIAFD(html, "Birthplace"));                  }
+        if (bio.getEthnicity().isEmpty())       {   bio.setEthnicity(bioSearchIAFD(html, "Ethnicity"));              }
+        if (bio.getMeasurements().isEmpty())    {   bio.setMeasurements(bioSearchIAFD(html, "Measurements"));        }
+        if (bio.getTattoos().isEmpty())         {   bio.setTattoos(bioSearchIAFD(html, "Tattoos"));                  }
+        if (bio.getPiercings().isEmpty())       {   bio.setPiercings(bioSearchIAFD(html, "Piercings"));              }
+        if (bio.getHairColor().isEmpty())       {   bio.setHairColor(bioSearchIAFD(html, "Hair Color"));             }
+        if (bio.getNationality().isEmpty())     {   bio.setNationality(bioSearchIAFD(html, "Nationality"));          }
         // SPECIALIZED PARSING
         if (!bio.birthdate.isValid() || bio.birthdate.isNull()){
             QString bday    = bioSearchIAFD(html, "Birthday");
@@ -353,9 +346,12 @@ void curlTool::updateBio(ActorPtr a){
           //  qDebug("IAFD profile returned a bio of size %d", b.size());
         }
         this->currentActor = ActorPtr(new Actor(name, b, ""));
-        QString headshot("");
-        if (!iafdHtml.isEmpty()){
-            downloadHeadshot(currentActor, iafdHtml);
+        if (a->usingDefaultPhoto()){
+            if (!iafdHtml.isEmpty()){
+                downloadHeadshot(currentActor, iafdHtml);
+            }
+        } else {
+            currentActor->setHeadshot(a->getHeadshot());
         }
     }
     //qDebug("Returning Bio for %s", qPrintable(name));
