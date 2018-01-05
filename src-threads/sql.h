@@ -55,6 +55,7 @@ public slots:
     void            saveChanges         (ScenePtr);
     void            updateActor         (ActorPtr);
     void            stopThread          ();
+    void            drop                (ActorPtr);
     void            load                (ActorList);
     void            load                (SceneList);
     void            store               (ActorList actors);

@@ -67,5 +67,10 @@
         <file>Icons/female_silhouette_database_sync.png</file>
         <file>Icons/female_silhouette.png</file>
         <file>Icons/female_silhouette_add.png</file>
+        <file>Icons/female_silhouette_download_2.png</file>
+        <file>Icons/female_silhouette_delete.png</file>
+        <file>Icons/image_add.png</file>
+        <file>Icons/image_delete.png</file>
+        <file>Icons/image_download.png</file>
     </qresource>
 </RCC>

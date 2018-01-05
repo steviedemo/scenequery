@@ -59,6 +59,17 @@ bool SQL::dropTable(Database::Table){
     return false;
 }
 
+void SQL::drop(ActorPtr a){
+    qDebug("Deleting '%s' from the actors table", qPrintable(a->getName()));
+    QString name = QString("%1").arg(a->getName());
+    name.replace('\'', "\'\'");
+    name.prepend('\'');
+    name.append('\'');
+    QString statement = QString("DELETE from actors where NAME = %1").arg(name);
+    sqlConnection sql(statement.toStdString());
+    sql.execute();
+}
+
 /*------------------------------------------------------------------
  * Clear unused items out of the table.
  *------------------------------------------------------------------*/

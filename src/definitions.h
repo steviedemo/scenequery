@@ -7,7 +7,7 @@
 #include <QVector>
 #include <QMapIterator>
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
-
+#define ACTOR_LIST_PHOTO_HEIGHT 40
 typedef QSharedPointer<class Scene>         ScenePtr;
 typedef QSharedPointer<class Actor>         ActorPtr;
 typedef QSharedPointer<class QStandardItem> ItemPtr;

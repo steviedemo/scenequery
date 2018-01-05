@@ -378,7 +378,7 @@ void curlTool::downloadPhoto(ActorPtr a){
         success = true;
         a->setHeadshot(FilePath(photo));
     }
-    emit finishedProcessing(success);
+    emit updateSingleProfile(a);
 }
 ///SLOT
 

@@ -1,3 +1,6 @@
 [submodule "PSQL"]
 	path = PSQL
 	url = git@github.com:steviedemo/PSQL.git
+[submodule "ImageCropper"]
+	path = ImageCropper
+	url = https://github.com/dimkanovikov/ImageCropper.git

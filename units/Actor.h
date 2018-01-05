@@ -13,7 +13,7 @@
 #include "Entry.h"
 #include "SceneList.h"
 #include <pqxx/result>
-#define ACTOR_LIST_PHOTO_HEIGHT 40
+
 typedef QVector<QSharedPointer<class Actor>> ActorList;
 
 class Actor : public Entry
@@ -24,10 +24,10 @@ private:
     double dataUsage;
     class FilePath headshot;
     QSharedPointer<QStandardItem> itemName, itemAge, itemPhoto, itemHair, itemEthnicity, itemSceneCount;
-    QImage photo;
     int sceneCount;
-    bool displayItemCreated;
+    bool displayItemCreated, photoItemCreated;
     SceneList sceneList;
+    QVariant profilePhoto;
     void setup();
 
 public:
@@ -58,11 +58,13 @@ public:
     Query   toQuery (void) const;
     bool    inDatabase  (void);
     QString headshotTitle(void);
-    void    setProfilePicture(QImage image);
-    // Setters
-    void    setScenes   (class SceneList list);
     void    setHeadshot (FilePath f);
     void    setHeadshot (QString s);
+    void    setDefaultHeadshot();
+    void    buildScaledProfilePhoto(void);
+    void    setScaledProfilePhoto(QVariant);
+    // Setters
+    void    setScenes   (class SceneList list);
     void    setSceneCount(int i)        {   this->sceneCount = i;           }
     void    addScene    (ScenePtr s);
     void    setBio      (const Biography &b);

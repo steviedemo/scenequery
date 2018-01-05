@@ -44,7 +44,8 @@ INCLUDEPATH += \
     PSQL/src \
     -I/usr/local/opt/qt/bin \
     $${PQXX}/src \
-    $${PQXX}/include
+    $${PQXX}/include \
+    ImageCropper/src
 
 PKGCONFIG  = /usr/local/opt/qt/lib/pkgconfig
 
@@ -81,7 +82,6 @@ SOURCES += \
     src-threads/sql.cpp \
     units/Entry.cpp \
     src/filenames.cpp \
-    src-views/ActorTableModel.cpp \
     units/SceneList.cpp \
     src-views/profiledialog.cpp \
     src-threads/InitializationThread.cpp \
@@ -90,7 +90,9 @@ SOURCES += \
     src-views/SceneProxyModel.cpp \
     src-views/SceneView.cpp \
     forms/ActorProfileView.cpp \
-    src-threads/VideoPlayer.cpp
+    src-threads/VideoPlayer.cpp \
+    forms/imageeditor.cpp \
+    ImageCropper/src/imagecropper.cpp
 
 HEADERS  += \
     src/config.h \
@@ -114,7 +116,6 @@ HEADERS  += \
     PSQL/src/database.h \
     units/Entry.h \
     src/filenames.h \
-    src-views/ActorTableModel.h \
     units/SceneList.h \
     src-views/profiledialog.h \
     src-threads/InitializationThread.h \
@@ -123,7 +124,9 @@ HEADERS  += \
     src-views/SceneProxyModel.h \
     src-views/SceneView.h \
     forms/ActorProfileView.h \
-    src-threads/VideoPlayer.h
+    src-threads/VideoPlayer.h \
+    forms/imageeditor.h \
+    ImageCropper/src/imagecropper.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
@@ -134,8 +137,7 @@ QMAKE_CLEAN += \
     QSceneQuery.pro.user \
     Makefile
 
-STATECHARTS += \
-    forms/GUI_State_chart.scxml
+STATECHARTS +=
 
 DISTFILES += \
     scripts/collect_exif.sh \

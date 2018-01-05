@@ -20,6 +20,7 @@
 #include <QTableView>
 #include <QStandardItem>
 #include <QShowEvent>
+#include <QShortcut>
 #define ACTOR_NAME_COLUMN 1
 enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
@@ -40,7 +41,7 @@ private slots:
     void receiveActors(ActorList);
     void receiveScanResult(SceneList, QStringList);
     void receiveSingleActor(ActorPtr);
-
+    void refreshCurrentActor(void);
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -55,7 +56,7 @@ private slots:
 
     /// Window Events
     void showEvent(QShowEvent *event);
-
+    void deleteActor(ActorPtr a);
 
     /// Buttons
     void on_actionScan_Directory_triggered();
@@ -72,24 +73,29 @@ private slots:
     void on_actionSave_Scenes_triggered();
     void on_actionLoad_Actors_triggered();
     void on_actionCreate_Bio_triggered();
-    void receiveTestBio(ActorPtr);
+    void receiveTestBio             (ActorPtr);
     void on_actionUpdate_Bios_triggered();
     void on_actionRefresh_Display_triggered();
-    void selectNewProfilePhoto();
-    void testProfileDialogClosed();
-    void playVideo(QString);
-    void videoFinished();
+    void selectNewProfilePhoto      (void);
+    void testProfileDialogClosed    (void);
+    void playVideo                  (QString);
+    void videoFinished              (void);
+    void shortcut_UpdateCurrentActor();
+    void shortcut_SaveCurrentActor();
 private:
-    void setupThreads();
-    void setupViews();
-    void refreshSceneView();
-    ActorPtr getSelectedActor();
+    void setupThreads       (void);
+    void setupViews         (void);
+    void refreshSceneView   (void);
+    ActorPtr getSelectedActor(void);
     void setResetAndSaveButtons(bool enabled);
     void displaySceneSubset(SceneList);
-    void displayAllScenes(void);
-    void addSceneRow(ItemList);
-    void addActorRow(ItemList);
+    void displayAllScenes   (void);
+    void addSceneRow        (ItemList);
+    void addActorRow        (ItemList);
+    void threaded_profile_photo_scaler(ActorPtr);
 
+    QShortcut *sc_downloadCurrentProfile;
+    QShortcut *sc_saveChangesToActor;
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
@@ -116,27 +122,34 @@ private:
     SQL         *sqlThread;
     bool itemSelected;
     Display currentDisplay;
+    int threadedProgressCounter;
+    QMutex mx;
 signals:
     void closing();
     void stopThreads();
-    void updateSingleBio(ActorPtr);
-    void updateBios(ActorList);
-    void getHeadshots(ActorList);
-    void saveActorChanges(ActorPtr);
-    void scanFolder(QString);
-    void scanActors(SceneList, ActorList);
-    void makeNewActors(QStringList);
-    void loadActors(ActorList);
-    void loadScenes(SceneList);
-    void saveActors(ActorList);
-    void saveScenes(SceneList);
-    void saveChangesToDB(ScenePtr);
-    void actorSelectionChanged(QString);
-    void loadActorProfile(ActorPtr a);
 
-    void startProgressBar(QString, int);
-    void updateProgressBar(int);
-    void closeProgressBar(QString);
+    void scanFolder         (QString);
+    void scanActors         (SceneList, ActorList);
+
+    void loadScenes         (SceneList);
+    void saveScenes         (SceneList);
+    void saveChangesToDB    (ScenePtr);
+
+    void dropActor          (ActorPtr);
+    void saveActors         (ActorList);
+    void saveActorChanges   (ActorPtr);
+    void updateBios         (ActorList);
+    void loadActors         (ActorList);
+    void loadActorProfile   (ActorPtr);
+    void updateSingleBio    (ActorPtr);
+    void makeNewActors      (QStringList);
+    void getHeadshots       (ActorList);
+    void actorSelectionChanged(QString);
+
+    /** Progress Bar & Dialog */
+    void startProgressBar   (QString, int);
+    void updateProgressBar  (int);
+    void closeProgressBar   (QString);
     void newProgressDialogBox(QString, int);
     void updateProgressDialogBox(int);
     void updateProgressDialogBox(QString);

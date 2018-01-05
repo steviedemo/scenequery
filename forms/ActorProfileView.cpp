@@ -1,8 +1,12 @@
 #include "ActorProfileView.h"
 #include "ui_actorprofileview.h"
+#include "filenames.h"
 #include "Actor.h"
 #include <unistd.h>
 #include <QTimer>
+#include <QMessageBox>
+#include <QFileDialog>
+#include "imageeditor.h"
 ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ActorProfileView){
@@ -19,6 +23,7 @@ void ActorProfileView::clearFields(){
     ui->aliasesTextEdit->setText("");
     ui->birthCityLineEdit->setText("");
     ui->ageLineEdit->setText("");
+    ui->birthDateDateEdit->setDate(QDate(1988, 1, 1));
     ui->measurementsLineEdit->setText("");
     ui->nationalityLineEdit->setText("");
     ui->hairColorLineEdit->setText("");
@@ -33,8 +38,52 @@ void ActorProfileView::acceptSceneCount(int count){
     ui->scenesLineEdit->setText(QString::number(count));
 }
 
+void ActorProfileView::on_deletePhoto_clicked(){
+    if (!current->usingDefaultPhoto()){
+        QString filename = getHeadshotName(current->getName());
+        QFile file(filename);
+        if (file.exists()){
+            file.remove();
+            current->setDefaultHeadshot();
+            ui->profilePhoto->setPixmap(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(IMAGE_HEIGHT));
+        }
+    }
+}
+
+void ActorProfileView::on_clearFields_clicked(){
+    clearFields();
+}
+
 void ActorProfileView::on_selectNewPhoto_clicked(){
-    emit chooseNewPhoto();
+    QString sourceFile("");
+    QString saveFile = getHeadshotName(this->current->getName());
+    QString temp = QFileDialog::getOpenFileName(this, tr("Select Image"), QString(), "*.jpg;*.jpeg;*.png");
+    if (!temp.isEmpty()){
+        if (QFileInfo(temp).exists()){
+            sourceFile = temp;
+        } else {
+            QMessageBox::warning(this, tr("Error"), QString("Unable to open %1").arg(temp), QMessageBox::Ok);
+        }
+    }
+    if (!sourceFile.isEmpty()){
+        this->editor = new ImageEditor(sourceFile, saveFile, this);
+        connect(editor, SIGNAL(saved()), this, SLOT(reloadProfilePhoto()));
+        connect(editor, SIGNAL(finished()), this, SLOT(editorClosed()));
+        editor->show();
+    }
+}
+
+void ActorProfileView::editorClosed(){
+    if (editor){
+        delete editor;
+    }
+}
+
+void ActorProfileView::reloadProfilePhoto(){
+    if (!this->isHidden() && !this->current.isNull()){
+        current->updateQStandardItem();
+        ui->profilePhoto->setPixmap(QPixmap(current->getHeadshotPath()).scaledToHeight(IMAGE_HEIGHT));
+    }
 }
 
 void ActorProfileView::loadActorProfile(ActorPtr a){
@@ -95,6 +144,13 @@ void ActorProfileView::loadActorProfile(ActorPtr a){
 
 void ActorProfileView::onTimeout(){
     emit requestSceneCount();
+}
+
+void ActorProfileView::on_deleteActor_clicked(){
+    emit deleteActor(current);
+}
+void ActorProfileView::on_downloadPhoto_clicked(){
+    emit downloadPhoto(current);
 }
 
 /** \brief Save any changes made to the currently displayed profile */
@@ -166,4 +222,13 @@ void ActorProfileView::on_tattoosTextEdit_textChanged()                         
 void ActorProfileView::setResetAndSaveButtons(bool enabled){
     ui->reloadFromDb->setEnabled(enabled);
     ui->saveProfile->setEnabled(enabled);
+}
+
+void ActorProfileView::on_editProfile_clicked(){
+    if (ui->birthDateDateEdit->isHidden()){
+        ui->birthDateDateEdit->show();
+        ui->birthDateLabel->show();
+        ui->ageLabel->show();
+        ui->ageLineEdit->show();
+    }
 }

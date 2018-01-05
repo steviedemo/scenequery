@@ -8,6 +8,7 @@
 #include "Actor.h"
 #include "ActorProfileView.h"
 #include "InitializationThread.h"
+#include <QtConcurrent>
 #include <QInputDialog>
 #include <QtGlobal>
 #include <QDebug>
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
     setupViews();
+    this->sc_downloadCurrentProfile = new QShortcut(QKeySequence("Ctrl+R"), this);
+    this->sc_saveChangesToActor     = new QShortcut(QKeySequence("Ctrl+S"), this);
     this->videoOpen = false;
 }
 
@@ -47,6 +50,8 @@ MainWindow::~MainWindow(){
     actorMap.clear();
     actorList.clear();
     sceneList.clear();
+    delete sc_downloadCurrentProfile;
+    delete sc_saveChangesToActor;
 }
 
 /** \brief Set up the main display */
@@ -75,6 +80,7 @@ void MainWindow::setupViews(){
     ui->profileWidget->hide();
     ui->progressBar->setValue(0);
     connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearFilter()));
+    connect(ui->profileWidget,  SIGNAL(reloadProfile()),                this,               SLOT(refreshCurrentActor()));
     connect(ui->sceneWidget,    SIGNAL(sendSceneCount(int)),            ui->profileWidget,  SLOT(acceptSceneCount(int)));
     connect(ui->profileWidget,  SIGNAL(requestSceneCount()),            ui->sceneWidget,    SLOT(receiveSceneCountRequest()));
     connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
@@ -95,6 +101,23 @@ void MainWindow::showEvent(QShowEvent */*event*/){
     //emit loadActors(actorList);
 }
 
+
+void MainWindow::threaded_profile_photo_scaler(ActorPtr a){
+    qDebug("Setting profile photo for %s", qPrintable(a->getName()));
+    QString path_to_photo = getProfilePhoto(a->getName());
+    QPixmap photo;
+    mx.lock();
+    photo = QPixmap(path_to_photo);
+    mx.unlock();
+    a->setScaledProfilePhoto(QVariant(photo.scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)));
+    mx.lock();
+    ++threadedProgressCounter;
+    if (threadedProgressCounter % 50 == 0){
+        emit updateProgressDialogBox(threadedProgressCounter);
+    }
+    mx.unlock();
+}
+
 void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     int index = 0;
     qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
@@ -108,7 +131,7 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
 
     connect(this, SIGNAL(updateStatusLabel(QString)),       this, SLOT(updateStatus(QString)));
     // Start the progress bar & set the label
-    emit newProgressDialogBox(QString("Adding %1 Scenes to the model").arg(scenes.size()), actors.size() + scenes.size());
+    emit newProgressDialogBox(QString("Adding %1 Scenes to the model").arg(scenes.size()), scenes.size());
     this->sceneList = scenes;
     QStringList cast;
     foreach(ScenePtr s, scenes){
@@ -120,7 +143,17 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
             emit updateProgressDialogBox(index);
         }
     }
-    emit updateProgressDialogBox(QString("Adding %1 Actors to Model").arg(actors.size()));
+    emit closeProgressDialogBox();
+    this->threadedProgressCounter = 0;
+    emit newProgressDialogBox(QString("Building Scaled Profile Photos for %1 Actors").arg(actors.size()), actors.size());
+    QFutureSynchronizer<void> sync;
+    for(int i = 0; i < actors.size(); ++i){
+        ActorPtr curr = actors.at(i);
+        sync.addFuture(QtConcurrent::run(this, &MainWindow::threaded_profile_photo_scaler, curr));
+    }
+    sync.waitForFinished();
+    emit closeProgressDialogBox();
+    emit newProgressDialogBox(QString("Adding %1 Actors to Model").arg(actors.size()), actors.size());
     foreach(ActorPtr a, actors){
         if (!actorMap.contains(a->getName())){
             a->setSceneCount(sceneList.countScenesWithActor(a));
@@ -195,11 +228,26 @@ void MainWindow::setupThreads(){
     ui->profileWidget->hide();
     connect(ui->profileWidget,  SIGNAL(saveToDatabase(ActorPtr)),   sqlThread,          SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(updateFromWeb(ActorPtr)),    curlThread,         SLOT(updateBio(ActorPtr)));
+    connect(ui->profileWidget,  SIGNAL(downloadPhoto(ActorPtr)),    curlThread,         SLOT(downloadPhoto(ActorPtr)));
+    connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      this,               SLOT(deleteActor(ActorPtr)));
+    connect(sc_downloadCurrentProfile,  SIGNAL(activated()),        this,               SLOT(shortcut_UpdateCurrentActor()));
+    connect(sc_saveChangesToActor,      SIGNAL(activated()),        this,               SLOT(shortcut_SaveCurrentActor()));
 
             /// Start the Threads
     this->sqlThread->start();
     this->curlThread->start();
     this->scanner->start();
+}
+
+void MainWindow::shortcut_SaveCurrentActor(){
+    if (!this->currentActor.isNull()){
+        emit saveActorChanges(currentActor);
+    }
+}
+void MainWindow::shortcut_UpdateCurrentActor(){
+    if (!this->currentActor.isNull()){
+        emit updateSingleBio(currentActor);
+    }
 }
 
 /** \brief Slot called when an item in the actor list is clicked
@@ -456,6 +504,18 @@ void MainWindow::on_actionRefresh_Display_triggered(){
     }
 }
 
+void MainWindow::refreshCurrentActor(){
+    if (!this->currentActor.isNull()){
+        QString new_filename = getHeadshotName(this->currentActor->getName());
+        QFileInfo info(new_filename);
+        if (info.exists() && info.size() > 10){
+            this->currentActor->setHeadshot(new_filename);
+            this->currentActor->updateQStandardItem();
+            emit loadActorProfile(currentActor);
+        }
+    }
+}
+
 /** \brief  Assign a new profile picture for the currently selected actor
  */
 void MainWindow::selectNewProfilePhoto(){
@@ -557,6 +617,26 @@ void MainWindow::testProfileDialogClosed(){
     curlTestThread->wait();
     if (curlTestThread){
         curlTestThread->deleteLater();
+    }
+}
+
+void MainWindow::deleteActor(ActorPtr a){
+    if (!a.isNull()){
+        if (!this->currentActor.isNull() && (a->getName() == currentActor->getName())){
+            qDebug("Deleting Currently Selected Actor, %s", qPrintable(currentActor->getName()));
+            emit dropActor(currentActor);
+            qDebug("Removing '%s' list item", qPrintable(currentActor->getName()));
+            actorModel->removeRow(currentActorIndex.row());
+            actorMap.remove(currentActor->getName());
+            // Delete the Photo
+            if (!currentActor->usingDefaultPhoto()){
+                QFile file(currentActor->getHeadshotPath());
+                if (file.exists()){
+                    file.remove();
+                }
+            }
+            ui->profileWidget->hide();
+        }
     }
 }
 
