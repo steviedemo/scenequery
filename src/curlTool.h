@@ -69,6 +69,7 @@ public slots:
     void            makeNewActors       (QStringList nameList);
     void            stopThread          (void);
     void            db_to_ct_buildActors(QStringList);
+    void            pd_to_ct_getActor   (QString);
 private slots:
     void            receiveActor        (ActorPtr);
     void            downloadThreadComplete();
@@ -91,7 +92,7 @@ private:
 
 signals:
     void            ct_to_db_storeActors(ActorList);
-
+    void            ct_to_pd_sendActor(ActorPtr);
     void            finishedProcessing(bool);
     void            startProgress(QString, int);
     void            updateProgress(int);

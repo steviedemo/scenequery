@@ -71,17 +71,16 @@ SOURCES += \
     src/sceneParser.cpp \
     src-objects/Actor.cpp \
     src-objects/Biography.cpp \
+    src-objects/Entry.cpp \
     src-objects/FilePath.cpp \
     src-objects/Height.cpp \
     src-objects/Rating.cpp \
     src-objects/Scene.cpp \
-    qtcurl/QtCUrl.cpp \
+    src-objects/SceneList.cpp \
     PSQL/src/query.cpp \
     PSQL/src/sqlconnection.cpp \
     src/sql.cpp \
-    src-objects/Entry.cpp \
     src-helpers/filenames.cpp \
-    src-objects/SceneList.cpp \
     forms/profiledialog.cpp \
     src/InitializationThread.cpp \
     forms/RatingDelegate.cpp \
@@ -107,7 +106,6 @@ HEADERS  += \
     src-objects/Height.h \
     src-objects/Rating.h \
     src-objects/Scene.h \
-    qtcurl/QtCUrl.h \
     PSQL/src/query.h \
     src/sql.h \
     PSQL/src/sqlconnection.h \

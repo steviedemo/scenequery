@@ -333,6 +333,21 @@ void curlTool::makeNewActors(QStringList nameList){
     //qDebug("*****************************\nAll Threads Started\n*****************************");
 }
 
+void curlTool::pd_to_ct_getActor(QString name){
+    this->currentActor = ActorPtr();
+    if (!name.isEmpty()){
+        QString iafdHtml("");
+        Biography b(name);
+        getFreeonesData(name, b);
+        getIAFDData(name, b, iafdHtml);
+        this->currentActor = ActorPtr(new Actor(name, b, ""));
+        if (!iafdHtml.isEmpty()){
+            downloadHeadshot(currentActor, iafdHtml);
+        }
+    }
+    emit ct_to_pd_sendActor(currentActor);
+}
+
 void curlTool::updateBio(ActorPtr a){
     this->currentActor = a;
     QString name = currentActor->getName();

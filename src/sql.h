@@ -44,7 +44,8 @@ public:
     void            loadActor           (pqxx::result::const_iterator &i);
     bool            sceneSql            (ScenePtr S, queryType type);
     bool            actorSql            (ActorPtr A, queryType type);
-
+    void            getActorID          (QString name);
+    void            getSceneID          (QString filename);
     // Static Functions
     static void     sqlAppend           (QString &fields, QStringList &list, QString name, QString item);
     static void     sqlAppend           (QString &fields, QString &values, QStringList &list, QString name, QString item);
@@ -70,6 +71,7 @@ public slots:
     void            fs_to_db_storeScenes(SceneList);
     void            fs_to_db_checkNames (QStringList);
     void            ct_to_db_storeActors(ActorList);
+    void            pd_to_db_saveActor  (ActorPtr);
 protected:
     // Single-Thread helper functions for multi-threaded routines.
     bool            insertOrUpdateActor (ActorPtr);
@@ -85,10 +87,12 @@ private:
     bool keepRunning;
     int initIndex;
     void threaded_profile_photo_scaler(ActorPtr a);
+
 signals:
     void db_to_mw_sendActors(ActorList);
     void db_to_mw_sendScenes(SceneList);
     void db_to_ct_buildActors(QStringList);
+    void db_to_pd_sendBackWithID(ActorPtr);
 
     void initializationFinished(ActorList, SceneList);
     void updateStatus(QString status);

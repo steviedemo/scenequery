@@ -70,8 +70,9 @@ void MainWindow::setupViews(){
     /// Set Up Profile Widget
     ui->actorView->setSortingEnabled(true);
     ui->actorView->setModel(actorModel);
-    ui->actorView->setMinimumWidth(400);
-    ui->actorView->setMaximumWidth(1000);
+
+    //ui->actorView->setMinimumWidth(400);
+    //ui->actorView->setMaximumWidth(1000);
     ui->actorView->horizontalHeader()->setStyleSheet("background-color: rgb(73,73,73);");
     ui->actorView->verticalHeader()->hide();
     ui->profileWidget->hide();
@@ -98,9 +99,8 @@ void MainWindow::showEvent(QShowEvent */*event*/){
     connect(sqlThread, SIGNAL(closeProgress()),                             this, SLOT(closeProgressDialog()));
     sqlThread->start();
     if (this->runMode == Release){
-        emit
+        emit loadActors(actorList);
     }
-    //emit loadActors(actorList);
 }
 
 
@@ -253,13 +253,35 @@ void MainWindow::setupThreads(){
     connect(scanner,    SIGNAL(fs_to_db_checkNames(QStringList)),   sqlThread, SLOT(fs_to_db_checkNames(QStringList)));
     connect(scanner,    SIGNAL(fs_to_db_storeScenes(SceneList)),    sqlThread, SLOT(fs_to_db_storeScenes(SceneList)));
     connect(sqlThread,  SIGNAL(db_to_ct_buildActors(QStringList)),  curlThread,SLOT(db_to_ct_buildActors(QStringList)));
-    //connect(sqlThread,  SIGNAL(db_to_mw_sendActors(ActorList)),     this,       SLOT(db_))
+    connect(sqlThread,  SIGNAL(db_to_mw_sendActors(ActorList)),     this,      SLOT(db_to_mw_receiveActors(ActorList)));
     connect(curlThread, SIGNAL(ct_to_db_storeActors(ActorList)),    sqlThread, SLOT(ct_to_db_storeActors(ActorList)));
-    //connect(sqlThread,  SIGNAL(db_to_mw_sendScenes(SceneList)),     this,
+    connect(sqlThread,  SIGNAL(db_to_mw_sendScenes(SceneList)),     this,      SLOT(db_to_mw_receiveScenes(SceneList)));
 
     /// Start the Threads
     this->curlThread->start();
     this->scanner->start();
+}
+
+void MainWindow::db_to_mw_receiveActors(ActorList list){
+    qDebug("Adding %d Actors...", list.size());
+    foreach(ActorPtr a, list){
+        QString name = a->getName();
+        qDebug("Adding %s with ID %d to actorMap", qPrintable(name), a->getID());
+        actorModel->addRow(a->buildQStandardItem());
+        actorMap.insert(name, a);
+        actorModel->sort(NAME_COLUMN, Qt::AscendingOrder);
+    }
+    qDebug("Finished Adding %d actors!", list.size());
+}
+
+void MainWindow::db_to_mw_receiveScenes(SceneList list){
+    qDebug("Adding %d Scenes to view...", list.size());
+    foreach(ScenePtr s, list){
+        qDebug("Adding Scene with ID %d to List", s->getID());
+        s->buildQStandardItem();
+        sceneList.push_back(s);
+    }
+    qDebug("Added %d Scenes!", list.size());
 }
 
 /** \brief Slot called when an item in the actor list is clicked
@@ -438,25 +460,17 @@ void MainWindow::receiveSingleActor(ActorPtr a){
     if (actorMap.contains(name)){
         this->updatedActor = actorMap.value(name);
         Biography newBio = a->getBio();
-        Biography oldBio = updatedActor->getBio();
-        //if (newBio.size() > oldBio.size()){
-            qDebug("Updating Bio for %s", qPrintable(name));
-            updatedActor->setBio(newBio);
-            updatedActor->updateQStandardItem();
-            if (name == currentActor->getName() && !ui->profileWidget->isHidden()){
-                qDebug("Updating Profile View");
-                emit loadActorProfile(updatedActor);
-                emit saveActorChanges(currentActor);
-            } else {
-                qDebug("Saving Updates to database");
-                emit saveActorChanges(updatedActor);
-            }
-        /*
+        qDebug("Updating Bio for %s", qPrintable(name));
+        updatedActor->setBio(newBio);
+        updatedActor->updateQStandardItem();
+        if (name == currentActor->getName() && !ui->profileWidget->isHidden()){
+            qDebug("Updating Profile View");
+            emit loadActorProfile(updatedActor);
+            emit saveActorChanges(currentActor);
         } else {
-            qDebug("not updating item, refreshing display");
-            currentActor->updateQStandardItem();
+            qDebug("Saving Updates to database");
+            emit saveActorChanges(updatedActor);
         }
-        */
     } else {
         qDebug("Adding New Actor, %s", qPrintable(name));
         actorMap.insert(name, a);
@@ -599,6 +613,35 @@ void MainWindow::on_actionParse_Scene_triggered(){
     }
 }
 
+
+/** Open a Dialog that allows the user to 'manually' add an actor by entering a name and looking up the corrosponding profile. */
+void MainWindow::showAddActorDialog(void){
+    this->addProfileDialog = new ProfileDialog(this);
+    connect(addProfileDialog, SIGNAL(pd_to_ct_getProfile(QString)),     curlThread, SLOT(pd_to_ct_getActor(QString)));
+    connect(addProfileDialog, SIGNAL(pd_to_db_saveProfile(ActorPtr)),   sqlThread,  SLOT(pd_to_db_saveActor(ActorPtr)));
+    connect(curlThread,       SIGNAL(ct_to_pd_sendActor(ActorPtr)),     addProfileDialog, SLOT(ct_to_pd_receiveProfile(ActorPtr)));
+    connect(sqlThread,        SIGNAL(db_to_pd_sendBackWithID(ActorPtr)),addProfileDialog, SLOT(db_to_pd_receiveProfileWithID(ActorPtr)));
+    connect(addProfileDialog, SIGNAL(pd_to_mw_addDisplayItem(ActorPtr)), this, SLOT(pd_to_mw_addActorToDisplay(ActorPtr)));
+    connect(addProfileDialog, SIGNAL(closed()),                         this,       SLOT(closeAddActorDialog()));
+    addProfileDialog->show();
+}
+
+void MainWindow::closeAddActorDialog(){
+    addProfileDialog->deleteLater();
+}
+
+void MainWindow::pd_to_mw_addActorToDisplay(ActorPtr a){
+    if (!a.isNull()){
+        if (!actorMap.contains(a->getName())){
+            qDebug("Adding %s to List", qPrintable(a->getName()));
+            a->buildScaledProfilePhoto();
+            this->actorModel->appendRow(a->buildQStandardItem());
+            actorMap.insert(a->getName(), a);
+        }
+    }
+}
+
+
 /** \brief Test Function to attempt to build an entirely new biography via web scraping based on a name alone.
  *  When web scraping is complete, a pop-up dialog is shown with the biographical details retrieved (and some not retrieved) */
 void MainWindow::on_actionCreate_Bio_triggered(){
@@ -620,6 +663,7 @@ void MainWindow::receiveTestBio(ActorPtr a){
     connect(testProfileDialog, SIGNAL(closed()), this, SLOT(testProfileDialogClosed()));
     this->testProfileDialog->show();
 }
+
 /** \brief Close and delete the test dialog for biography retrieval. */
 void MainWindow::testProfileDialogClosed(){
     if (testProfileDialog){

@@ -1,9 +1,9 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "definitions.h"
-#include "SceneList.h"
 #include "curlTool.h"
 #include "FileScanner.h"
+#include "SceneList.h"
 #include "Actor.h"
 #include "Scene.h"
 #include "sql.h"
@@ -42,7 +42,11 @@ private slots:
     void receiveScanResult(SceneList, QStringList);
     void receiveSingleActor(ActorPtr);
     void refreshCurrentActor(void);
-
+    void showAddActorDialog();
+    void closeAddActorDialog();
+    void pd_to_mw_addActorToDisplay(ActorPtr);
+    void db_to_mw_receiveActors(ActorList);
+    void db_to_mw_receiveScenes(SceneList);
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -111,7 +115,7 @@ private:
     bool videoOpen;
     /// Threads
     SceneView *sceneView;
-    ProfileDialog *testProfileDialog;
+    ProfileDialog *testProfileDialog, *addProfileDialog;
     InitializationThread *initThread;
     VideoPlayer *videoPlayer;
     curlTool    *curlTestThread;

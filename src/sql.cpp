@@ -94,6 +94,29 @@ void SQL::db_to_mw_sendScenes(SceneList list){
     }
     qDebug("Scenes stored to database");
     emit db_to_mw_sendScenes(list);
+    delete sql;
+}
+
+int SQL::getActorID(QString name){
+    int id = -1;
+    QString sqlStatement = QString("SELECT id FROM actors WHERE name=%1").arg(Query::sqlSafe(name));
+    try{
+        sqlConnection sql(sqlStatement.toStdString());
+        if (sql.execute()){
+            pqxx::result r = sql.getResult();
+            if (r.size() > 0){
+                pqxx::result::const_iterator i = r.begin();
+                id = i["id"].as<int>();
+            } else {
+                qWarning("Unable to get ID for '%s'", qPrintable(name));
+            }
+        } else {
+            qWarning("Failed to execute query '%s'", qPrintable(sqlStatement));
+        }
+    } catch (std::exception &e) {
+        qWarning("Caught Exception while attempting to run query: '%s':\s\t", qPrintable(sqlStatement), e.what());
+    }
+    return id;
 }
 
 /** Called:  curlTool ---> SQL
@@ -103,23 +126,16 @@ void SQL::db_to_mw_sendScenes(SceneList list){
  */
 void SQL::ct_to_db_storeActors(ActorList list){
     sqlConnection *sql = new sqlConnection();
-    foreach(ActorList a, list){
+    foreach(ActorPtr a, list){
         Query q = a->toQuery();
         if (sql->execute(q, SQL_INSERT)){
             QString statement = QString("SELECT id FROM actors WHERE name=%1").arg(Query::sqlSafe(a->getName()));
             const std::string statement_str = statement.toStdString();
             if (sql->execute(statement_str)){
-                pqxx::result R = sql->getResult();
-                if (R.size() > 0){
-                    try{
-                        pqxx::result::const_iterator i = R.begin();
-                        a->setID(i["id"].as<int>());
-                    } catch (std::exception &e){
-                        qWarning("Error Setting ID for Actor %s", qPrintable(a->getName()));
-                    }
-                } else {
-                    qWarning("Error Retrieving ID for Actor %s", qPrintable(a->getName()));
-                }
+               int id = getActorID(a->getName());
+               if (id > 0){
+                   a->setID(id);
+               }
             } else {
                 qWarning("Error Retrieving %s from database", qPrintable(a->getName()));
             }
@@ -128,7 +144,32 @@ void SQL::ct_to_db_storeActors(ActorList list){
         }
     }
     qDebug("Actors stored to database");
-    db_to_mw_sendActors(list);
+    emit db_to_mw_sendActors(list);
+    delete sql;
+}
+
+void SQL::pd_to_db_saveActor(ActorPtr a){
+    bool inDatabase = false;
+    if (!hasActor(a->getName())){
+        sqlConnection *sql = new sqlConnection(a->toQuery, SQL_INSERT);
+        if (sql->execute()){
+            qDebug("Successfully added %s to the database", qPrintable(a->getName()));
+            inDatabase = true;
+        } else {
+            qWarning("Error Adding actor to database");
+        }
+    } else {
+        inDatabase = true;
+    }
+    if (inDatabase){
+        int id = getActorID(a->getName());
+        if (id > 0){
+            a->setID(id);
+        } else {
+            qWarning("Error Setting ID for '%s'", qPrintable(a->getName()));
+        }
+    }
+    emit db_to_pd_sendBackWithID(a);
 }
 
 /** Called:  FileScanner ---> SQL.

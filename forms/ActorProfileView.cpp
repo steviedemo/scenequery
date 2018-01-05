@@ -20,27 +20,43 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     connect(sc_chooseNewPhoto,          SIGNAL(activated()), this, SLOT(on_selectNewPhoto_clicked()));
 }
 
-ActorProfileView::~ActorProfileView()
-{
+ActorProfileView::~ActorProfileView(){
     delete sc_downloadCurrentProfile;
     delete sc_saveChangesToActor;
+    delete sc_chooseNewPhoto;
+    delete sc_hideProfile;
     delete ui;
 }
+void ActorProfileView::setupFields(){
+    lineEdits.push_back(ui->scenesLineEdit);
+    lineEdits.push_back(ui->ethnicityLineEdit);
+    lineEdits.push_back(ui->birthCityLineEdit);
+    lineEdits.push_back(ui->ageLineEdit);
+    lineEdits.push_back(ui->measurementsLineEdit);
+    lineEdits.push_back(ui->nationalityLineEdit);
+    lineEdits.push_back(ui->hairColorLineEdit);
+    lineEdits.push_back(ui->eyeColorLineEdit);
+    lineEdits.push_back(ui->heightLineEdit);
+    lineEdits.push_back(ui->weightLineEdit);
+    textEdits.push_back(ui->aliasesTextEdit);
+    textEdits.push_back(ui->piercingsTextEdit);
+    textEdits.push_back(ui->tattoosTextEdit);
+    foreach(QLineEdit *le, lineEdits){
+        le->setPlaceholderText("Unknown");
+    }
+    foreach(QTextEdit *te, textEdits){
+        te->setPlaceholderText("Unknown");
+    }
+    ui->birthDateDateEdit->setDate(QDate(1988, 1, 1));
+}
 void ActorProfileView::clearFields(){
-    ui->scenesLineEdit->clear();
-    ui->ethnicityLineEdit->clear();
-    ui->aliasesTextEdit->clear();
-    ui->birthCityLineEdit->clear();
-    ui->ageLineEdit->clear();
-    ui->birthDateDateEdit->clear(); //setDate(QDate(1988, 1, 1));
-    ui->measurementsLineEdit->clear();
-    ui->nationalityLineEdit->clear();
-    ui->hairColorLineEdit->clear();
-    ui->eyeColorLineEdit->clear();
-    ui->heightLineEdit->clear();
-    ui->weightLineEdit->clear();
-    ui->piercingsTextEdit->clear();
-    ui->tattoosTextEdit->clear();
+    foreach(QLineEdit *le, lineEdits){
+        le->clear();
+    }
+    foreach(QTextEdit *te, textEdits){
+        te->clear();
+    }
+    ui->birthDateDateEdit->clear();
 }
 
 void ActorProfileView::acceptSceneCount(int count){

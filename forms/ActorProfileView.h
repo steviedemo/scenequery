@@ -1,11 +1,12 @@
 #ifndef ACTORPROFILEVIEW_H
 #define ACTORPROFILEVIEW_H
-#include "ui_actorprofileview.h"
+#include "ui_ActorProfileView.h"
 #include "definitions.h"
 #include "imageeditor.h"
 #include <QWidget>
 #include <QShortcut>
-
+#include <QLineEdit>
+#include <QTextEdit>
 namespace Ui {
 class ActorProfileView;
 }
@@ -61,7 +62,8 @@ private:
     QShortcut *sc_saveChangesToActor;
     QShortcut *sc_hideProfile;
     QShortcut *sc_chooseNewPhoto;
-
+    QVector<QLineEdit *> lineEdits;
+    QVector<QTextEdit *> textEdits;
 signals:
     void requestSceneCount();
     void updateFromWeb  (ActorPtr a);
