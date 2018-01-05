@@ -1,5 +1,4 @@
 #include "ActorProfileView.h"
-#include "ui_actorprofileview.h"
 #include "filenames.h"
 #include "Actor.h"
 #include <unistd.h>
@@ -11,27 +10,37 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ActorProfileView){
     ui->setupUi(this);
+    this->sc_downloadCurrentProfile = new QShortcut(QKeySequence("Ctrl+d"), this);
+    this->sc_saveChangesToActor = new QShortcut(QKeySequence("Ctrl+s"), this);
+    this->sc_chooseNewPhoto = new QShortcut(QKeySequence("Ctrl+n"), this);
+    this->sc_hideProfile = new QShortcut(QKeySequence("Esc"), this);
+    connect(sc_downloadCurrentProfile,  SIGNAL(activated()), this, SLOT(on_updateFromWeb_clicked()));
+    connect(sc_saveChangesToActor,      SIGNAL(activated()), this, SLOT(on_saveProfile_clicked()));
+    connect(sc_hideProfile,             SIGNAL(activated()), this, SLOT(on_closeProfile_clicked()));
+    connect(sc_chooseNewPhoto,          SIGNAL(activated()), this, SLOT(on_selectNewPhoto_clicked()));
 }
 
 ActorProfileView::~ActorProfileView()
 {
+    delete sc_downloadCurrentProfile;
+    delete sc_saveChangesToActor;
     delete ui;
 }
 void ActorProfileView::clearFields(){
-    ui->scenesLineEdit->setText("");
-    ui->ethnicityLineEdit->setText("");
-    ui->aliasesTextEdit->setText("");
-    ui->birthCityLineEdit->setText("");
-    ui->ageLineEdit->setText("");
-    ui->birthDateDateEdit->setDate(QDate(1988, 1, 1));
-    ui->measurementsLineEdit->setText("");
-    ui->nationalityLineEdit->setText("");
-    ui->hairColorLineEdit->setText("");
-    ui->eyeColorLineEdit->setText("");
-    ui->heightLineEdit->setText("");
-    ui->weightLineEdit->setText("");
-    ui->piercingsTextEdit->setText("");
-    ui->tattoosTextEdit->setText("");
+    ui->scenesLineEdit->clear();
+    ui->ethnicityLineEdit->clear();
+    ui->aliasesTextEdit->clear();
+    ui->birthCityLineEdit->clear();
+    ui->ageLineEdit->clear();
+    ui->birthDateDateEdit->clear(); //setDate(QDate(1988, 1, 1));
+    ui->measurementsLineEdit->clear();
+    ui->nationalityLineEdit->clear();
+    ui->hairColorLineEdit->clear();
+    ui->eyeColorLineEdit->clear();
+    ui->heightLineEdit->clear();
+    ui->weightLineEdit->clear();
+    ui->piercingsTextEdit->clear();
+    ui->tattoosTextEdit->clear();
 }
 
 void ActorProfileView::acceptSceneCount(int count){

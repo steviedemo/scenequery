@@ -72,5 +72,12 @@
         <file>Icons/image_add.png</file>
         <file>Icons/image_delete.png</file>
         <file>Icons/image_download.png</file>
+        <file>Icons/profile_add_new.png</file>
+        <file>Icons/profile_delete.png</file>
+        <file>Icons/profile_download.png</file>
+        <file>Icons/profile_edit.png</file>
+        <file>Icons/profile_icon.png</file>
+        <file>Icons/profile_refresh.png</file>
+        <file>Icons/profile_save.png</file>
     </qresource>
 </RCC>

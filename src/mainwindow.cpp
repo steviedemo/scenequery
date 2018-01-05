@@ -19,6 +19,7 @@
 #define MINIMUM_BIO_SIZE 11
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
+    this->runMode = Release;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
     ui->setupUi(this);
     actorList = {};
@@ -40,8 +41,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
     setupViews();
-    this->sc_downloadCurrentProfile = new QShortcut(QKeySequence("Ctrl+R"), this);
-    this->sc_saveChangesToActor     = new QShortcut(QKeySequence("Ctrl+S"), this);
     this->videoOpen = false;
 }
 
@@ -50,8 +49,6 @@ MainWindow::~MainWindow(){
     actorMap.clear();
     actorList.clear();
     sceneList.clear();
-    delete sc_downloadCurrentProfile;
-    delete sc_saveChangesToActor;
 }
 
 /** \brief Set up the main display */
@@ -93,11 +90,16 @@ void MainWindow::setupViews(){
 }
 
 void MainWindow::showEvent(QShowEvent */*event*/){
-    this->initThread = new InitializationThread();
-    connect(initThread, SIGNAL(startProgress(QString,int)),             this, SLOT(newProgressDialog(QString, int)));
-    connect(initThread, SIGNAL(updateProgress(int)),                    this, SLOT(updateProgressDialog(int)));
-    connect(initThread, SIGNAL(sendInitialLists(ActorList,SceneList)),  this, SLOT(initializationFinished(ActorList, SceneList)));
-    initThread->start();
+    this->sqlThread = new SQL();
+    connect(this,      SIGNAL(startInitialization()),                  sqlThread, SLOT(initialize()));
+    connect(sqlThread, SIGNAL(initializationFinished(ActorList,SceneList)), this, SLOT(initializationFinished(ActorList,SceneList)));
+    connect(sqlThread, SIGNAL(startProgress(QString,int)),                  this, SLOT(newProgressDialog(QString, int)));
+    connect(sqlThread, SIGNAL(updateProgress(int)),                         this, SLOT(updateProgressDialog(int)));
+    connect(sqlThread, SIGNAL(closeProgress()),                             this, SLOT(closeProgressDialog()));
+    sqlThread->start();
+    if (this->runMode == Release){
+        emit
+    }
     //emit loadActors(actorList);
 }
 
@@ -119,8 +121,18 @@ void MainWindow::threaded_profile_photo_scaler(ActorPtr a){
 }
 
 void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
-    int index = 0;
     qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
+    foreach(ScenePtr s, scenes){
+        sceneModel->appendRow(s->buildQStandardItem());
+        sceneList.push_back(s);
+    }
+    foreach(ActorPtr a, actors){
+        actorModel->appendRow(a->buildQStandardItem());
+        actorMap.insert(a->getName(), a);
+    }
+    qDebug("All items added to GUI");
+    /*
+    int index = 0;
     connect(this, SIGNAL(newProgressDialogBox(QString,int)),this, SLOT(newProgressDialog(QString,int)));
     connect(this, SIGNAL(updateProgressDialogBox(int)),     this, SLOT(updateProgressDialog(int)));
     connect(this, SIGNAL(closeProgressDialogBox()),         this, SLOT(closeProgressDialog()));
@@ -135,7 +147,7 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     this->sceneList = scenes;
     QStringList cast;
     foreach(ScenePtr s, scenes){
-        /* ui->sceneWidget->addScene(s); */
+        // ui->sceneWidget->addScene(s);
         sceneModel->appendRow(s->buildQStandardItem());
         sceneList.push_back(s);
         ++index;
@@ -166,6 +178,8 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
         }
     }
     emit closeProgressDialogBox();
+    */
+
     ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
     ui->actorView->resizeColumnsToContents();
     setupThreads();
@@ -179,6 +193,10 @@ void MainWindow::setupThreads(){
     this->sqlThread = new SQL();
     this->curlThread = new curlTool();
     this->scanner = new FileScanner();
+    disconnect(sqlThread, SIGNAL(initializationFinished(ActorList,SceneList)),  this,   SLOT(initializationFinished(ActorList,SceneList)));
+    disconnect(sqlThread, SIGNAL(startProgress(QString,int)),                   this,   SLOT(newProgressDialog(QString,int)));
+    disconnect(sqlThread, SIGNAL(updateProgress(int)),                          this,   SLOT(updateProgressDialog(int)));
+    disconnect(sqlThread, SIGNAL(closeProgressDialog()),                        this,   SLOT(closeProgress(QString)));
     /// PROGRESS & STATUS BAR UPDATING
 
     connect(scanner,    SIGNAL(startProgress(QString,int)), this,       SLOT(startProgress(QString,int)));
@@ -230,24 +248,18 @@ void MainWindow::setupThreads(){
     connect(ui->profileWidget,  SIGNAL(updateFromWeb(ActorPtr)),    curlThread,         SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(downloadPhoto(ActorPtr)),    curlThread,         SLOT(downloadPhoto(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      this,               SLOT(deleteActor(ActorPtr)));
-    connect(sc_downloadCurrentProfile,  SIGNAL(activated()),        this,               SLOT(shortcut_UpdateCurrentActor()));
-    connect(sc_saveChangesToActor,      SIGNAL(activated()),        this,               SLOT(shortcut_SaveCurrentActor()));
 
-            /// Start the Threads
-    this->sqlThread->start();
+    /** Scanning Routing Data Passing **/
+    connect(scanner,    SIGNAL(fs_to_db_checkNames(QStringList)),   sqlThread, SLOT(fs_to_db_checkNames(QStringList)));
+    connect(scanner,    SIGNAL(fs_to_db_storeScenes(SceneList)),    sqlThread, SLOT(fs_to_db_storeScenes(SceneList)));
+    connect(sqlThread,  SIGNAL(db_to_ct_buildActors(QStringList)),  curlThread,SLOT(db_to_ct_buildActors(QStringList)));
+    //connect(sqlThread,  SIGNAL(db_to_mw_sendActors(ActorList)),     this,       SLOT(db_))
+    connect(curlThread, SIGNAL(ct_to_db_storeActors(ActorList)),    sqlThread, SLOT(ct_to_db_storeActors(ActorList)));
+    //connect(sqlThread,  SIGNAL(db_to_mw_sendScenes(SceneList)),     this,
+
+    /// Start the Threads
     this->curlThread->start();
     this->scanner->start();
-}
-
-void MainWindow::shortcut_SaveCurrentActor(){
-    if (!this->currentActor.isNull()){
-        emit saveActorChanges(currentActor);
-    }
-}
-void MainWindow::shortcut_UpdateCurrentActor(){
-    if (!this->currentActor.isNull()){
-        emit updateSingleBio(currentActor);
-    }
 }
 
 /** \brief Slot called when an item in the actor list is clicked

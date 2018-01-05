@@ -55,6 +55,10 @@ private:
     QMutex subMx, threadMx;
     bool waitingOnCurlThread;
 signals:
+    /** Scan Process **/
+    void fs_to_db_storeScenes(SceneList);
+    void fs_to_db_checkNames(QStringList);
+
     /// Progress Updating
     void startProgress(QString, int);
     void closeProgress(QString);

@@ -42,6 +42,7 @@ private slots:
     void receiveScanResult(SceneList, QStringList);
     void receiveSingleActor(ActorPtr);
     void refreshCurrentActor(void);
+
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -69,7 +70,6 @@ private slots:
 
     void on_actionParse_Scene_triggered();
 
-
     void on_actionSave_Scenes_triggered();
     void on_actionLoad_Actors_triggered();
     void on_actionCreate_Bio_triggered();
@@ -80,9 +80,8 @@ private slots:
     void testProfileDialogClosed    (void);
     void playVideo                  (QString);
     void videoFinished              (void);
-    void shortcut_UpdateCurrentActor();
-    void shortcut_SaveCurrentActor();
 private:
+    RunMode runMode;
     void setupThreads       (void);
     void setupViews         (void);
     void refreshSceneView   (void);
@@ -94,16 +93,14 @@ private:
     void addActorRow        (ItemList);
     void threaded_profile_photo_scaler(ActorPtr);
 
-    QShortcut *sc_downloadCurrentProfile;
-    QShortcut *sc_saveChangesToActor;
+
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
+    QModelIndex currentActorIndex;
+    QMap<QString, ActorPtr> actorMap;
     ActorList actorList, updateList, displayActors;
     ActorPtr currentActor, updatedActor;
-    ProfileDialog *testProfileDialog;
-    QMap<QString, ActorPtr> actorMap;
-    QModelIndex currentActorIndex;
     QProgressDialog *progressDialog;
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
@@ -111,12 +108,13 @@ private:
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
     SceneList sceneList, displayScenes;
-    SceneView *sceneView;
-    VideoPlayer *videoPlayer;
     bool videoOpen;
     /// Threads
-    curlTool *curlTestThread;
+    SceneView *sceneView;
+    ProfileDialog *testProfileDialog;
     InitializationThread *initThread;
+    VideoPlayer *videoPlayer;
+    curlTool    *curlTestThread;
     FileScanner *scanner;
     curlTool    *curlThread;
     SQL         *sqlThread;
@@ -124,9 +122,11 @@ private:
     Display currentDisplay;
     int threadedProgressCounter;
     QMutex mx;
+
 signals:
     void closing();
     void stopThreads();
+    void startInitialization();
 
     void scanFolder         (QString);
     void scanActors         (SceneList, ActorList);

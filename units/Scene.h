@@ -90,6 +90,8 @@ public:
     QDate       getReleased     (void) const {   return released;    }
     FilePath    getFile         (void) const {   return file;        }
     QString     getFilepath     (void) const {   return file.absolutePath(); }
+    QString     getFilename     (void) const {   return file.getName(); }
+    QString     getFolder       (void) const {   return file.getPath(); }
     QString     getActor     (int i=0) const {   return actors.at(i);}
     int         getAge       (int i=0) const {   return ages.at(i);  }
     QByteArray  getMd5sum       (void) const {   return md5sum;      }

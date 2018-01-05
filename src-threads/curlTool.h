@@ -68,6 +68,7 @@ public slots:
     void            updateBios          (ActorList a);
     void            makeNewActors       (QStringList nameList);
     void            stopThread          (void);
+    void            db_to_ct_buildActors(QStringList);
 private slots:
     void            receiveActor        (ActorPtr);
     void            downloadThreadComplete();
@@ -89,6 +90,8 @@ private:
     DownloadThread  *downloadThread;
 
 signals:
+    void            ct_to_db_storeActors(ActorList);
+
     void            finishedProcessing(bool);
     void            startProgress(QString, int);
     void            updateProgress(int);

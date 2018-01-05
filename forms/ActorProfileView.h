@@ -1,8 +1,10 @@
 #ifndef ACTORPROFILEVIEW_H
 #define ACTORPROFILEVIEW_H
+#include "ui_actorprofileview.h"
 #include "definitions.h"
 #include "imageeditor.h"
 #include <QWidget>
+#include <QShortcut>
 
 namespace Ui {
 class ActorProfileView;
@@ -47,6 +49,7 @@ private slots:
     void on_tattoosTextEdit_textChanged();
     void onTimeout(void);
     void editorClosed();
+
 private:
     void clearFields();
     void setResetAndSaveButtons(bool enabled=true);
@@ -54,6 +57,11 @@ private:
     ActorPtr current;
     QTimer *timer;
     ImageEditor *editor;
+    QShortcut *sc_downloadCurrentProfile;
+    QShortcut *sc_saveChangesToActor;
+    QShortcut *sc_hideProfile;
+    QShortcut *sc_chooseNewPhoto;
+
 signals:
     void requestSceneCount();
     void updateFromWeb  (ActorPtr a);

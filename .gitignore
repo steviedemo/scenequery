@@ -8,3 +8,4 @@ bin
 Makefile
 .qmake.stash
 SceneQuery.app
+*.ai

@@ -1,6 +1,7 @@
 #include "sql.h"
 #include "Actor.h"
 #include "Scene.h"
+#include "filenames.h"
 #include "sceneParser.h"
 #include "sqlconnection.h"
 #include <QFutureSynchronizer>
@@ -58,6 +59,94 @@ bool SQL::dropTable(Database::Table){
     qDebug("Placeholder for drop table function");
     return false;
 }
+
+
+/** Called:  FileScanner ---> SQL
+ *      Add Scanned Scenes to Database, and then gets the ID of each entry and store it back into the Scene Object
+ *  Calls:  SQL ---> MainWindow
+ *      Returns the Scene Objects to the Main Window.
+ */
+void SQL::db_to_mw_sendScenes(SceneList list){
+    sqlConnection *sql = new sqlConnection();
+    foreach(ScenePtr s, list){
+        Query q = s->toQuery();
+        if (sql->execute(q, SQL_INSERT)){
+            QString statement = QString("SELECT id FROM scenes WHERE filename=%1 AND filepath=%2").arg(Query::sqlSafe(s->getFilename())).arg(Query::sqlSafe(s->getFolder()));
+            const std::string statement_str = statement.toStdString();
+            if (sql->execute(statement_str)){
+                pqxx::result R = sql->getResult();
+                if (R.size() > 0){
+                    try{
+                        pqxx::result::const_iterator i = R.begin();
+                        s->setID(i["id"].as<int>());
+                    } catch (std::exception &e){
+                        qWarning("Error Setting ID for Scene %s", qPrintable(s->getFilepath()));
+                    }
+                } else {
+                    qWarning("Error Retrieving ID for Scene %s", qPrintable(s->getFilepath()));
+                }
+            } else {
+                qWarning("Error Retrieving %s from database", qPrintable(s->getFilepath()));
+            }
+        } else {
+            qWarning("Error Storing %s to the database", qPrintable(s->getFilepath()));
+        }
+    }
+    qDebug("Scenes stored to database");
+    emit db_to_mw_sendScenes(list);
+}
+
+/** Called:  curlTool ---> SQL
+ *       Add built Actors to Database, and then gets the ID of each entry and store it back into the Actor Object
+ *  Calls:  SQL ---> MainWindow
+ *      Returns the Actor Objects to the Main Window.
+ */
+void SQL::ct_to_db_storeActors(ActorList list){
+    sqlConnection *sql = new sqlConnection();
+    foreach(ActorList a, list){
+        Query q = a->toQuery();
+        if (sql->execute(q, SQL_INSERT)){
+            QString statement = QString("SELECT id FROM actors WHERE name=%1").arg(Query::sqlSafe(a->getName()));
+            const std::string statement_str = statement.toStdString();
+            if (sql->execute(statement_str)){
+                pqxx::result R = sql->getResult();
+                if (R.size() > 0){
+                    try{
+                        pqxx::result::const_iterator i = R.begin();
+                        a->setID(i["id"].as<int>());
+                    } catch (std::exception &e){
+                        qWarning("Error Setting ID for Actor %s", qPrintable(a->getName()));
+                    }
+                } else {
+                    qWarning("Error Retrieving ID for Actor %s", qPrintable(a->getName()));
+                }
+            } else {
+                qWarning("Error Retrieving %s from database", qPrintable(a->getName()));
+            }
+        } else {
+            qWarning("Error Storing %s to the database", qPrintable(a->getName()));
+        }
+    }
+    qDebug("Actors stored to database");
+    db_to_mw_sendActors(list);
+}
+
+/** Called:  FileScanner ---> SQL.
+ *      Receive list of names picked from scanned scenes, and assemble a list
+ *      of names that aren't already in the database.
+ *  Calls:  SQL ----> curlTool
+ *      Build Actor object for each new name.
+ */
+void SQL::fs_to_db_checkNames(QStringList nameList){
+    QStringList newNames;
+    foreach(QString name, nameList){
+        if (!hasActor(name)){
+            newNames << name;
+        }
+    }
+    emit db_to_ct_buildActors(newNames);
+}
+
 
 void SQL::drop(ActorPtr a){
     qDebug("Deleting '%s' from the actors table", qPrintable(a->getName()));
@@ -136,6 +225,61 @@ void SQL::saveChanges(ScenePtr s){
     }
 }
 
+void SQL::threaded_profile_photo_scaler(ActorPtr a){
+    qDebug("Setting profile photo for %s", qPrintable(a->getName()));
+    QString path_to_photo = getProfilePhoto(a->getName());
+    mx.lock();
+    QPixmap photo = QPixmap(path_to_photo);
+    mx.unlock();
+    a->setScaledProfilePhoto(QVariant(photo.scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)));
+    mx.lock();
+    emit updateProgress(++initIndex);
+    mx.unlock();
+}
+
+
+void SQL::initialize(){
+    int index = 0;
+    this->actors = {};
+    this->scenes = {};
+    qDebug("Initiliazing Item Lists");
+    sqlConnection *sceneSql = new sqlConnection(QString("SELECT * FROM scenes"));
+    sqlConnection *actorSql = new sqlConnection(QString("SELECT * FROM actors"));
+    if (!sceneSql->execute()){
+        qWarning("Error Loading Scenes");
+    }
+    if (!actorSql->execute()){
+        qWarning("Error Loading Actors");
+    }
+    pqxx::result actorResult = actorSql->getResult();
+    pqxx::result sceneResult = sceneSql->getResult();
+    int totalItems = actorResult.size() + sceneResult.size();
+    emit startProgress(QString("Reading %1 items in from database").arg(totalItems), (2*actorResult.size() + sceneResult.size()));
+    qDebug("Adding %lu Scenes", sceneResult.size());
+    for (pqxx::result::const_iterator S = sceneResult.begin(); S != sceneResult.end(); ++S){
+        ScenePtr s = ScenePtr(new Scene(S));
+        scenes.push_back(s);
+        emit updateProgress(++index);
+
+    }
+    qDebug("Adding %lu Actors", actorResult.size());
+    for (pqxx::result::const_iterator A = sceneResult.begin(); A != sceneResult.end(); ++A){
+        ActorPtr a = ActorPtr(new Actor(A));
+        actors.push_back(a);
+        emit updateProgress(++index);
+    }
+    qDebug("Building Scaled Actor Profile Photos");
+    QFutureSynchronizer<void>sync;
+    for(int i = 0; i < actors.size(); ++i){
+        ActorPtr a = actors.at(i);
+        sync.addFuture(QtConcurrent::run(this, &SQL::threaded_profile_photo_scaler, a));
+    }
+    sync.waitForFinished();
+    qDebug("Initialization Complete");
+    emit initializationFinished(actors, scenes);
+    emit closeProgress();
+}
+
 /** \brief Load scenes from the database into the list of scenes passed
  *  \param SceneList &scenes:   Scenes already in list.
  */
@@ -203,6 +347,17 @@ bool SQL::hasScene(ScenePtr s, bool &queryRan){
     sql->disconnect();
     delete sql;
     emit sendResult(found);
+    return found;
+}
+
+bool SQL::hasActor(QString name){
+    bool found = false;
+    sqlConnection *sql = new sqlConnection(QString("SELECT FROM actors WHERE (NAME LIKE %1)").arg(Query::sqlSafe(name)));
+    if ((queryRan = sql->execute())){
+        found = sql->foundMatch();
+    }
+    sql->disconnect();
+    delete sql;
     return found;
 }
 

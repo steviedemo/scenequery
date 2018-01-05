@@ -61,27 +61,42 @@ public slots:
     void            store               (ActorList actors);
     void            store               (SceneList scenes);
     bool            hasScene            (ScenePtr s, bool &queryRan);
+
     bool            hasActor            (ActorPtr a, bool &queryRan);
     bool            makeTable           (Database::Table);
     bool            dropTable           (Database::Table);
+    void            initialize          (void);
 
+    void            fs_to_db_storeScenes(SceneList);
+    void            fs_to_db_checkNames (QStringList);
+    void            ct_to_db_storeActors(ActorList);
 protected:
     // Single-Thread helper functions for multi-threaded routines.
     bool            insertOrUpdateActor (ActorPtr);
     bool            insertOrUpdateScene (ScenePtr);
+    bool            hasActor            (QString);
 private:
+    QMutex mx;
     operation_count count;
     QString connectionName;
     sqlConnection connection;
-    QMutex mx;
     SceneList scenes;
     ActorList actors;
     bool keepRunning;
+    int initIndex;
+    void threaded_profile_photo_scaler(ActorPtr a);
 signals:
+    void db_to_mw_sendActors(ActorList);
+    void db_to_mw_sendScenes(SceneList);
+    void db_to_ct_buildActors(QStringList);
+
+    void initializationFinished(ActorList, SceneList);
     void updateStatus(QString status);
     void startProgress(QString, int);
     void updateProgress(int);
     void closeProgress(QString);
+    void closeProgress();
+
     void sendResult(bool);
     void sendResult(ActorList);
     void sendResult(SceneList);
