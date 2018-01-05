@@ -37,10 +37,9 @@ PQXX = /usr/local/Cellar/libpqxx/4.0.1_2
 INCLUDEPATH += \
     /usr/local/include \
     src \
-    units \
-    src-threads \
-    src-views \
     forms \
+    src-objects \
+    src-helpers \
     PSQL/src \
     -I/usr/local/opt/qt/bin \
     $${PQXX}/src \
@@ -63,74 +62,74 @@ LIBS += \
     -lpq
 
 SOURCES += \
-    src/config.cpp \
-    src-threads/curlTool.cpp \
-    src-threads/FileScanner.cpp \
-    src/genericfunctions.cpp \
+    src-helpers/config.cpp \
+    src/curlTool.cpp \
+    src/FileScanner.cpp \
+    src-helpers/genericfunctions.cpp \
     src/main.cpp\
     src/mainwindow.cpp \
     src/sceneParser.cpp \
-    units/Actor.cpp \
-    units/Biography.cpp \
-    units/FilePath.cpp \
-    units/Height.cpp \
-    units/Rating.cpp \
-    units/Scene.cpp \
+    src-objects/Actor.cpp \
+    src-objects/Biography.cpp \
+    src-objects/FilePath.cpp \
+    src-objects/Height.cpp \
+    src-objects/Rating.cpp \
+    src-objects/Scene.cpp \
     qtcurl/QtCUrl.cpp \
     PSQL/src/query.cpp \
     PSQL/src/sqlconnection.cpp \
-    src-threads/sql.cpp \
-    units/Entry.cpp \
-    src/filenames.cpp \
-    units/SceneList.cpp \
-    src-views/profiledialog.cpp \
-    src-threads/InitializationThread.cpp \
-    src-views/RatingDelegate.cpp \
-    src-views/RatingEditor.cpp \
-    src-views/SceneProxyModel.cpp \
-    src-views/SceneView.cpp \
+    src/sql.cpp \
+    src-objects/Entry.cpp \
+    src-helpers/filenames.cpp \
+    src-objects/SceneList.cpp \
+    forms/profiledialog.cpp \
+    src/InitializationThread.cpp \
+    forms/RatingDelegate.cpp \
+    forms/RatingEditor.cpp \
+    forms/SceneProxyModel.cpp \
+    forms/SceneView.cpp \
     forms/ActorProfileView.cpp \
-    src-threads/VideoPlayer.cpp \
+    src/VideoPlayer.cpp \
     forms/imageeditor.cpp \
     ImageCropper/src/imagecropper.cpp
 
 HEADERS  += \
-    src/config.h \
-    src-threads/curlTool.h \
+    src-helpers/config.h \
+    src/curlTool.h \
     src/definitions.h \
-    src-threads/FileScanner.h \
-    src/genericfunctions.h \
+    src/FileScanner.h \
+    src-helpers/genericfunctions.h \
     src/mainwindow.h \
     src/sceneParser.h \
-    units/Actor.h \
-    units/Biography.h \
-    units/FilePath.h \
-    units/Height.h \
-    units/Rating.h \
-    units/Scene.h \
+    src-objects/Actor.h \
+    src-objects/Biography.h \
+    src-objects/FilePath.h \
+    src-objects/Height.h \
+    src-objects/Rating.h \
+    src-objects/Scene.h \
     qtcurl/QtCUrl.h \
     PSQL/src/query.h \
-    src-threads/sql.h \
+    src/sql.h \
     PSQL/src/sqlconnection.h \
     PSQL/src/sql_definitions.h \
     PSQL/src/database.h \
-    units/Entry.h \
-    src/filenames.h \
-    units/SceneList.h \
-    src-views/profiledialog.h \
-    src-threads/InitializationThread.h \
-    src-views/RatingDelegate.h \
-    src-views/RatingEditor.h \
-    src-views/SceneProxyModel.h \
-    src-views/SceneView.h \
+    src-objects/Entry.h \
+    src-helpers/filenames.h \
+    src-objects/SceneList.h \
+    forms/profiledialog.h \
+    src/InitializationThread.h \
+    forms/RatingDelegate.h \
+    forms/RatingEditor.h \
+    forms/SceneProxyModel.h \
+    forms/SceneView.h \
     forms/ActorProfileView.h \
-    src-threads/VideoPlayer.h \
+    src/VideoPlayer.h \
     forms/imageeditor.h \
     ImageCropper/src/imagecropper.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
-    forms/actorprofileview.ui
+    forms/ActorProfileView.ui
 
 QMAKE_CLEAN += \
     build/* \
