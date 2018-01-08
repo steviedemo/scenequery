@@ -17,11 +17,12 @@ SceneView::SceneView(QWidget *parent):
     this->mainLayout = new QVBoxLayout;
     mainLayout->addWidget(proxyView);
     setLayout(mainLayout);
-    proxyView->setMinimumWidth(800);
+    //proxyView->setMinimumWidth(800);
     proxyView->resizeColumnsToContents();
     proxyView->setSelectionBehavior(QAbstractItemView::SelectRows);
     proxyView->setSelectionMode(QAbstractItemView::SingleSelection);
     proxyView->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    proxyView->
     connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
 }
 
@@ -41,6 +42,11 @@ void SceneView::setSourceModel(QAbstractItemModel *model){
     proxyModel->setSourceModel(model);
 }
 
+void SceneView::resizeSceneView(){
+    this->proxyView->resizeColumnsToContents();
+    this->proxyView->resizeRowsToContents();
+}
+
 void SceneView::clearFilter(){
     actorFilterChanged("");
 }
@@ -48,8 +54,21 @@ void SceneView::actorFilterChanged(ActorPtr a){
     actorFilterChanged(a->getName());
 }
 
+void SceneView::companyFilterChanged(QString company){
+    proxyModel->setFilterRegExp(company);
+    proxyModel->setFilterCompany(company);
+}
+void SceneView::tagFilterChanged(QString tag){
+    proxyModel->setFilterRegExp(tag);
+    proxyModel->setFilterTag(tag);
+}
+void SceneView::qualityFilterChanged(int resolution){
+    proxyModel->setFilterRegExp(QString::number(resolution));
+    proxyModel->setFilterQuality(resolution);
+}
+
 void SceneView::actorFilterChanged(QString name){
-    proxyModel->setFilterFixedString(name);
+    proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
     proxyView->resizeColumnsToContents();
 }

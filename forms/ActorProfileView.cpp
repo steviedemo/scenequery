@@ -10,6 +10,7 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ActorProfileView){
     ui->setupUi(this);
+    this->setupFields();
     this->sc_downloadCurrentProfile = new QShortcut(QKeySequence("Ctrl+d"), this);
     this->sc_saveChangesToActor = new QShortcut(QKeySequence("Ctrl+s"), this);
     this->sc_chooseNewPhoto = new QShortcut(QKeySequence("Ctrl+n"), this);
@@ -27,6 +28,7 @@ ActorProfileView::~ActorProfileView(){
     delete sc_hideProfile;
     delete ui;
 }
+
 void ActorProfileView::setupFields(){
     lineEdits.push_back(ui->scenesLineEdit);
     lineEdits.push_back(ui->ethnicityLineEdit);
@@ -80,34 +82,28 @@ void ActorProfileView::on_clearFields_clicked(){
 }
 
 void ActorProfileView::on_selectNewPhoto_clicked(){
-    QString sourceFile("");
     QString saveFile = getHeadshotName(this->current->getName());
-    QString temp = QFileDialog::getOpenFileName(this, tr("Select Image"), QString(), "*.jpg;*.jpeg;*.png");
-    if (!temp.isEmpty()){
-        if (QFileInfo(temp).exists()){
-            sourceFile = temp;
-        } else {
-            QMessageBox::warning(this, tr("Error"), QString("Unable to open %1").arg(temp), QMessageBox::Ok);
-        }
-    }
+    QString sourceFile("");
+    sourceFile = QFileDialog::getOpenFileName(this, tr("Select Image"), QString(), "*.jpg;*.jpeg;*.png");
+    qDebug("Verifying existence of selected Photo (%s)...", qPrintable(sourceFile));
     if (!sourceFile.isEmpty()){
-        this->editor = new ImageEditor(sourceFile, saveFile, this);
-        connect(editor, SIGNAL(saved()), this, SLOT(reloadProfilePhoto()));
-        connect(editor, SIGNAL(finished()), this, SLOT(editorClosed()));
-        editor->show();
-    }
-}
-
-void ActorProfileView::editorClosed(){
-    if (editor){
-        delete editor;
+        if (QFileInfo(sourceFile).exists()){
+            qDebug("Opening Editor with %s", qPrintable(sourceFile));
+            if (!sourceFile.isEmpty()){
+                this->editor = QSharedPointer<ImageEditor>(new ImageEditor(sourceFile, saveFile));
+                connect(editor.data(), SIGNAL(saved()), this, SLOT(reloadProfilePhoto()));
+                editor->show();
+            }
+        } else {
+            QMessageBox::warning(this, tr("Error"), QString("Unable to open %1").arg(sourceFile), QMessageBox::Ok);
+        }
     }
 }
 
 void ActorProfileView::reloadProfilePhoto(){
     if (!this->isHidden() && !this->current.isNull()){
         current->updateQStandardItem();
-        ui->profilePhoto->setPixmap(QPixmap(current->getHeadshotPath()).scaledToHeight(IMAGE_HEIGHT));
+        ui->profilePhoto->setPixmap(QPixmap(current->getHeadshot()).scaledToHeight(IMAGE_HEIGHT));
     }
 }
 
@@ -162,7 +158,7 @@ void ActorProfileView::loadActorProfile(ActorPtr a){
     ui->aliasesTextEdit->setText(bio.getAliases());
     ui->piercingsTextEdit->setText(bio.getPiercings());
     ui->tattoosTextEdit->setText(bio.getTattoos());
-    ui->profilePhoto->setPixmap(QPixmap(a->getHeadshotPath()).scaledToHeight(IMAGE_HEIGHT));
+    ui->profilePhoto->setPixmap(QPixmap(a->getHeadshot()).scaledToHeight(IMAGE_HEIGHT));
     /// Request The scene count in a few seconds, once the scene filtering has been performed.
     QTimer::singleShot(3, this, SLOT(onTimeout()));
 }

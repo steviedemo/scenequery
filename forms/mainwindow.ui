@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1394</width>
-    <height>1062</height>
+    <width>1361</width>
+    <height>875</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -22,6 +22,11 @@
     <height>4000</height>
    </size>
   </property>
+  <property name="font">
+   <font>
+    <family>Futura</family>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
@@ -33,11 +38,13 @@
 QTableView::Header{
 	background-color: rgb(90,90,90);
 }
-QMainWindow, QWidget{
+QWidget{
 	background-color: rgb(52,52,52);
 	color: rgb(192,192,192);
 }
-
+QComboBox{
+	color: rgb(192,192,192);
+}
 QLabel{
 	background-color: rgba(0,0,0,0);
 }
@@ -48,9 +55,11 @@ QTableView, QListView, QTextView, QWidget#profileView{
 	border-color: rgb(120,120,120);
 	border-radius: 5px;
 }
-
-QTableView, QListView, QTextView, QWidget#profileView{
-	background-color: rgb(64,64,64);
+QTableView{
+	background-color: qlineargradient(spread:reflect, x1:0.482, y1:0.523, x2:0, y2:0, stop:0 rgba(91, 91, 91, 255), stop:1 rgba(49, 49, 49, 255));
+}
+QListView, QTextView, QWidget#profileView{
+	background-color: rgb(64,64,64); 
 }
 QDateEdit, QLineEdit, QTextEdit{
 	background-color: rgb(33,33,33);
@@ -70,15 +79,16 @@ QMenuBar::item:pressed{
 	background: rgb(52,52,52);
 }
 QMenuBar{
-	background: rgb(100,100,100);
+	background: rgb(80,80,80);
 	border: none;
 	border-bottom: 1px solid rgb(33,33,33);
 }
 QFrame#controlFrame{
-	background: rgb(66,66,66);
+	border-radius: 8px;
+	background: rgb(66,66,66, 180);
 }
 QToolBar#mainToolBar{
-	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:1 rgba(66,66,66 255), stop:0 rgba(100,100,100, 255));
+	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:1 rgba(45,45,45, 255), stop:0 rgba(85,85,85, 255));
 	color: rgb(220,220,220);
 	border: none;
 	border-top: 1px solid rgb(130,130,130);
@@ -104,17 +114,20 @@ QToolButton, QToolBar::item{
 QToolButton:hover{
 	background: rgba(33,33,33, 255);
 }
+QToolButton:pressed, QToolBar::item:pressed{
+	background: white;
+}
 
 
 QPushButton{
-	background-color: rgb(100,100,100);
-	color: rgb(220,220,220);
-	max-width:  200px;
-	border: 1px solid rgb(160,160,160);
-	border-radius: 10px;
-	padding:3px;
-	padding-left:	12px;
-	padding-right: 12px;
+	background-color: rgba(100,100,100, 200);
+	color: rgb(220,220,220, 220);
+	max-width:  180px;
+	border: 1px solid rgb(30,30,30, 100);
+	border-radius: 7px;
+	padding:1px;
+	padding-left:	6px;
+	padding-right: 6px;
 }
 QPushButton:hover{
 	background-color: rgb(120,120,120);
@@ -123,6 +136,9 @@ QPushButton:disabled{
 	background-color: rgb(60,60,60);
 	border-color: rgb(130,130,130);
 	color: rgb(130,130,130);
+}
+QPushButton:pressed{
+	background-color: yellow;
 }
 
 Line{
@@ -160,150 +176,55 @@ QRadioButton{
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="QSplitter" name="splitter">
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <widget class="QWidget" name="actorListWidget" native="true">
-       <property name="maximumSize">
-        <size>
-         <width>400</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <widget class="QTableView" name="actorView">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>10</y>
-          <width>373</width>
-          <height>462</height>
-         </rect>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>300</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>6000</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <family>Gill Sans</family>
-          <pointsize>14</pointsize>
-         </font>
-        </property>
-        <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Sunken</enum>
-        </property>
-        <property name="editTriggers">
-         <set>QAbstractItemView::NoEditTriggers</set>
-        </property>
-        <property name="alternatingRowColors">
-         <bool>false</bool>
-        </property>
-        <property name="selectionBehavior">
-         <enum>QAbstractItemView::SelectRows</enum>
-        </property>
-        <property name="showGrid">
-         <bool>false</bool>
-        </property>
-        <property name="sortingEnabled">
-         <bool>true</bool>
-        </property>
-        <property name="cornerButtonEnabled">
-         <bool>false</bool>
-        </property>
-        <attribute name="verticalHeaderVisible">
-         <bool>false</bool>
-        </attribute>
-        <attribute name="verticalHeaderHighlightSections">
-         <bool>false</bool>
-        </attribute>
-       </widget>
-      </widget>
-      <widget class="SceneView" name="sceneWidget" native="true">
-       <zorder>actorListWidget</zorder>
-      </widget>
-      <widget class="ActorProfileView" name="profileWidget" native="true"/>
-     </widget>
-    </item>
-    <item row="1" column="0">
+    <item row="2" column="0">
      <widget class="QFrame" name="controlFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>100</height>
+       </size>
+      </property>
       <layout class="QVBoxLayout" name="controLayout">
        <item>
-        <layout class="QHBoxLayout" name="layout_progress">
-         <property name="spacing">
-          <number>6</number>
+        <widget class="QProgressBar" name="progressBar">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
          </property>
-         <property name="sizeConstraint">
-          <enum>QLayout::SetMaximumSize</enum>
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
          </property>
-         <item>
-          <widget class="QLabel" name="progressLabel">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Progress:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QProgressBar" name="progressBar">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>0</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="value">
-            <number>0</number>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-           <property name="invertedAppearance">
-            <bool>false</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
+         <property name="value">
+          <number>0</number>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="invertedAppearance">
+          <bool>false</bool>
+         </property>
+        </widget>
        </item>
        <item>
         <layout class="QGridLayout" name="Buttons">
-         <item row="0" column="1">
-          <widget class="QPushButton" name="refreshScenes">
-           <property name="text">
-            <string>Load Scenes</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="2">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetMaximumSize</enum>
+         </property>
+         <property name="verticalSpacing">
+          <number>1</number>
+         </property>
+         <item row="1" column="4">
           <widget class="QLabel" name="statusLabel">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -342,31 +263,45 @@ QRadioButton{
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QPushButton" name="refreshActors">
+         <item row="0" column="2">
+          <widget class="QLabel" name="label">
            <property name="text">
-            <string>Load Actors</string>
+            <string>Filter By Company:</string>
            </property>
           </widget>
          </item>
          <item row="1" column="0">
-          <widget class="QPushButton" name="saveActors">
+          <widget class="QPushButton" name="pb_saveActors">
            <property name="text">
             <string>Save Actors</string>
            </property>
           </widget>
          </item>
+         <item row="1" column="1">
+          <widget class="QPushButton" name="pb_refreshActors">
+           <property name="text">
+            <string>Load Actors</string>
+           </property>
+          </widget>
+         </item>
          <item row="0" column="0">
-          <widget class="QPushButton" name="saveScenes">
+          <widget class="QPushButton" name="pb_saveScenes">
            <property name="text">
             <string>Save Scenes</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="2">
+         <item row="0" column="1">
+          <widget class="QPushButton" name="pb_refreshScenes">
+           <property name="text">
+            <string>Load Scenes</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
           <layout class="QHBoxLayout" name="SearchBar">
            <item>
-            <widget class="QComboBox" name="searchFieldComboBox">
+            <widget class="QComboBox" name="cb_searchFieldComboBox">
              <property name="minimumSize">
               <size>
                <width>300</width>
@@ -382,7 +317,7 @@ QRadioButton{
             </widget>
            </item>
            <item>
-            <widget class="QLineEdit" name="searchBox">
+            <widget class="QLineEdit" name="le_searchBox">
              <property name="maximumSize">
               <size>
                <width>2000</width>
@@ -392,7 +327,7 @@ QRadioButton{
             </widget>
            </item>
            <item>
-            <widget class="QToolButton" name="searchButton">
+            <widget class="QToolButton" name="tb_searchButton">
              <property name="text">
               <string>...</string>
              </property>
@@ -410,9 +345,101 @@ QRadioButton{
            </item>
           </layout>
          </item>
+         <item row="0" column="3">
+          <widget class="QComboBox" name="cb_companyFilter"/>
+         </item>
         </layout>
        </item>
       </layout>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>1000</height>
+       </size>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QTableView" name="actorTableView">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>250</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Futura</family>
+        </font>
+       </property>
+       <property name="statusTip">
+        <string>Actors</string>
+       </property>
+       <property name="autoFillBackground">
+        <bool>false</bool>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::NoFrame</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+       <property name="showGrid">
+        <bool>false</bool>
+       </property>
+       <property name="gridStyle">
+        <enum>Qt::DotLine</enum>
+       </property>
+       <property name="sortingEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="cornerButtonEnabled">
+        <bool>false</bool>
+       </property>
+       <attribute name="horizontalHeaderDefaultSectionSize">
+        <number>70</number>
+       </attribute>
+       <attribute name="verticalHeaderVisible">
+        <bool>false</bool>
+       </attribute>
+       <attribute name="verticalHeaderDefaultSectionSize">
+        <number>24</number>
+       </attribute>
+      </widget>
+      <widget class="SceneView" name="sceneWidget" native="true">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>1000</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="ActorProfileView" name="profileWidget" native="true"/>
      </widget>
     </item>
    </layout>
@@ -422,8 +449,8 @@ QRadioButton{
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1394</width>
-     <height>23</height>
+     <width>1361</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

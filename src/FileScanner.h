@@ -1,6 +1,5 @@
 #ifndef FILESCANNER_H
 #define FILESCANNER_H
-#include "FilePath.h"
 #include "definitions.h"
 // Qt Stuff
 #include <QObject>
@@ -45,10 +44,9 @@ private:
     ActorList parseActorList(SceneList);
     void getActorsFromScene(ScenePtr s);
     QString scanDir;
-    QVector<FilePath> files;
-    ActorList actors;
-    SceneList scenes;
-    QStringList newNames;
+    ActorList actorList;
+    SceneList sceneList;
+    QStringList nameList;
     int index;
     int added;
     bool keepRunning;

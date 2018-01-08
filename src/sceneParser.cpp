@@ -1,6 +1,6 @@
 #include "sceneParser.h"
 #include "config.h"
-#include "FilePath.h"
+#include "filenames.h"
 #include "genericfunctions.h"
 #include "Rating.h"
 #include "Scene.h"
@@ -15,33 +15,44 @@
 #include <QVideoFrame>
 #include <sys/stat.h>
 sceneParser::sceneParser():
-    parsed(false), currPath(""), currName(""), title(""), company(""), series(""),
-    height(0), width(0), size(0), sceneNumber(0), length(0.0),
+    parsed(false), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(QTime(0, 0, 0)),
     release(QDate()), accessed(QDate()), created(QDate()), md5sum(""){
+    this->file.first="";
+    this->file.second="";
 }
-sceneParser::sceneParser(FilePath f):
-    file(f), parsed(false),
-    currPath(""), currName(""), title(""), company(""), series(""),
-    height(0), width(0), size(0), sceneNumber(0), length(0.0),
+sceneParser::sceneParser(QPair<QString,QString>file):
+    parsed(false), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(QTime(0, 0, 0)),
     release(QDate()), accessed(QDate()), created(QDate()), md5sum("")
-    {
+{
+    this->file.first = file.first;
+    this->file.second = file.second;
 }
+sceneParser::sceneParser(QString path):
+    parsed(false), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(QTime(0, 0, 0)),
+    release(QDate()), accessed(QDate()), created(QDate()), md5sum("")
+{
+    this->file = splitAbsolutePath(path);
+}
+
 sceneParser::sceneParser(ScenePtr s):
-    parsed(false), currPath(""), currName(""), title(""), company(""), series(""),
-    height(0), width(0), size(0), sceneNumber(0), length(0.0),
+    parsed(false), title(""), company(""), series(""),
+    height(0), width(0), size(0), sceneNumber(0), length(QTime(0, 0, 0)),
     release(QDate()), accessed(QDate()), created(QDate()), md5sum(""){
-    this->file.setFile(s->getFile());
-    this->title = s->getTitle();
-    this->company = s->getCompany();
-    this->height = s->getHeight();
-    this->sceneNumber = s->getSceneNumber();
-    this->series = s->getSeries();
-    this->release = s->getReleased();
-    this->tags = s->getTags();
-    this->rating = s->getRating();
-    this->actors = s->getActors();
-    this->md5sum = s->getMd5sum();
-    this->newFilename = "";
+    this->file          = s->getFile();
+    this->title         = s->getTitle();
+    this->company       = s->getCompany();
+    this->height        = s->getHeight();
+    this->length        = s->getLength();
+    this->sceneNumber   = s->getSceneNumber();
+    this->series        = s->getSeries();
+    this->release       = s->getReleased();
+    this->tags          = s->getTags();
+    this->rating        = s->getRating();
+    this->actors        = s->getActors();
+    this->newFilename   = "";
 }
 
 sceneParser::~sceneParser(){
@@ -68,43 +79,63 @@ QByteArray checksum(const QString &absolutePath){
     return md5;
 }
 
-
-
-void sceneParser::parse(void){
-    if (file.isEmpty()){
-        qWarning("Cannot parse empty filepath");
-    } else {
-        parse(this->file);
+void sceneParser::doubleCheckNames(){
+    QRegularExpression rx("\\s[\\&-]\\s.+");
+    for (int i = 0; i < actors.size(); ++i){
+        QString name = actors.at(i);
+        if (name.contains(rx)){
+            name.remove(rx);
+            actors[i] = name;
+        }
     }
 }
 
+void sceneParser::parse(void){
+    if (file.first.isEmpty() || file.second.isEmpty()){
+        qWarning("Cannot parse empty filepath");
+    } else {
+        this->parse(file);
+    }
+}
+void sceneParser::parse(QPair<QString,QString> path){
+    this->file = path;
+    QString absolutePath = QString("%1/%2").arg(file.first).arg(file.second);
+    QFileInfo info(absolutePath);
+    this->created   = info.created().date();
+    this->accessed  = info.lastRead().date();
+    this->size      = info.size();
+    this->title     = this->parseTitle(file.second).trimmed();
+    parseParentheses(file.second);
+    bashScript(absolutePath);
+    doubleCheckNames();
+    this->parsed = true;
+}
+
 /** \brief Extract various pieces of data from a file name, and store them in the appropriate data types. */
-void sceneParser::parse(FilePath f){
-    qDebug("Parsing '%s'", qPrintable(f.absolutePath()));
-    QString fullpath = f.absolutePath();
-    QFileInfo file(fullpath);
+void sceneParser::parse(QString absolutePath){
+    qDebug("Parsing '%s'", qPrintable(absolutePath));
+    this->file = splitAbsolutePath(absolutePath);
     // Add the file info.
-    this->file.setFile(f);
-    this->currName      = f.getName();
-    this->currPath      = f.getPath();
+    QFileInfo info(absolutePath);
     // Use QFileInfo
-    this->created       = file.created().date();
-    this->accessed      = file.lastRead().date();
-    this->size          = file.size()/1000;
+    this->created       = info.created().date();
+    this->accessed      = info.lastRead().date();
+    this->size          = info.size()/1000;
     // Parse out the Name
-    this->title         = parseTitle(currName);
+    this->title         = parseTitle(file.second).trimmed();
     //this->md5sum        = checksum(fullpath);
     // get List of tags, as well as Rating, and try for release date & series name.
-    parseParentheses(f.getName());
+    parseParentheses(file.second);
     // get Height, Width, Length, and try for release date.
-    bashScript(f);
-    readMetadata(f.absolutePath());
+    bashScript(absolutePath);
+    doubleCheckNames();
+    //readMetadata(f.absolutePath());
     parsed = true;
 }
 
 /** \brief Use QMediaObject to retrieve various pieces of data from the file */
 void sceneParser::readMetadata(QString filepath){
-    qDebug("Retriving Metadata");
+    //qDebug("Retriving Metadata");
     this->player = new QMediaPlayer;
     player->setMedia(QUrl::fromLocalFile(filepath));
     availableMetaDataKeys = player->availableMetaData();
@@ -196,14 +227,14 @@ QString sceneParser::parseTitle(QString name){
     }
 
     if (name.contains("]") && name.contains("(")){
-        qDebug("Using Match Method for Title");
+        //qDebug("Using Match Method for Title");
         rx.setPattern(".*\\](.+)\\(.*");
         m = rx.match(name);
         if (m.hasMatch()){
             this->title = m.captured(1);
         }
     } else if (temp.isEmpty()) {
-        qDebug("Using Extraction Method for Title");
+        //qDebug("Using Extraction Method for Title");
         QString str = QString("%1").arg(name);
         if (name.contains("]")){
             int index = name.indexOf(']');
@@ -218,7 +249,7 @@ QString sceneParser::parseTitle(QString name){
         }
         this->title = str;
     } else {
-        qDebug("Using incremental Removal for title");
+        //qDebug("Using incremental Removal for title");
         this->title = temp.trimmed();
     }
 
@@ -226,22 +257,33 @@ QString sceneParser::parseTitle(QString name){
 }
 
 // Get Height, Width, and Length from exif.
-void sceneParser::bashScript(FilePath f){
+void sceneParser::bashScript(QString fileToAnalyze){
     QMap<QString, QString> videoData;
     static const QRegularExpression rx("^([A-Za-z]+):\\s*(.+)$");
-    QString script = QString("%1/scripts/collect_exif.sh \"%2\"").arg(findDataLocation()).arg(f.absolutePath());
-    QString output = system_call(script);
-    QRegularExpressionMatchIterator it = rx.globalMatch(output);
-    while(it.hasNext()){
-        QRegularExpressionMatch m = it.next();
-        videoData.insert(m.captured(1), m.captured(2));
+    QString output("");
+    QString script = QString("%1/scripts/collect_exif.sh").arg(findDataLocation());
+    try{
+        if (system_call_blocking(script, QStringList() << fileToAnalyze, output)){
+            QRegularExpressionMatchIterator it = rx.globalMatch(output);
+            while(it.hasNext()){
+                QRegularExpressionMatch m = it.next();
+                videoData.insert(m.captured(1), m.captured(2));
+            }
+            //qDebug("Bash Script Output:\n%s", qPrintable(output));
+            if (videoData.contains("Width"))    {   this->width = videoData.value("Width").toInt();                 }
+            if (videoData.contains("Height"))   {   this->height = videoData.value("Height").toInt();                }
+            if (videoData.contains("Time")) {
+                QString time = videoData.value("Time");
+                length.fromString(time, "h:mm:ss");
+            }
+
+            //if (videoData.contains("Created"))  {   this->release = QDate::fromString(videoData.value("Created"), "yyyy:MM:dd");    }
+        } else {
+            qWarning("Error Running Bash Script, '%s'", qPrintable(script));
+        }
+    } catch (std::exception &e){
+        qWarning("Caught Exception while running exif_tool script on '%s': %s", qPrintable(fileToAnalyze), e.what());
     }
-    qDebug("Bash Script Output:\n%s", qPrintable(output));
-    if (videoData.contains("Width"))    {   this->width = videoData.value("Width").toInt();                 }
-    if (videoData.contains("Height"))   {   this->height = videoData.value("Height").toInt();                }
-    if (videoData.contains("Minutes"))  {   this->length += videoData.value("Minutes").toDouble();          }
-    if (videoData.contains("Seconds"))  {   this->length += (videoData.value("Seconds").toDouble())/60.0;   }
-    if (videoData.contains("Created"))  {   this->release = QDate::fromString(videoData.value("Created"), "yyyy:MM:dd");    }
 }
 
 /** \brief Parse all the Comma-separated values between the parentheses in the filename.
@@ -269,19 +311,19 @@ void sceneParser::parseParentheses(QString name){
             QRegularExpressionMatch widthMatch = widthRegex.match(item);
             QRegularExpressionMatch ratingMatch = ratingRegex.match(item);
             if (dateMatch.hasMatch()){
-                qDebug("Tag: %s - Date", qPrintable(item));
+                //qDebug("Tag: %s - Date", qPrintable(item));
                 this->release = QDate::fromString(item, "yyyy.MM.dd");
             } else if (widthMatch.hasMatch()){
-                qDebug("Tag: %s - Quality", qPrintable(item));
+                //qDebug("Tag: %s - Quality", qPrintable(item));
                 this->height = item.remove('p').toInt();
             } else if (ratingMatch.hasMatch()){
-                qDebug("Tag: %s - Rating", qPrintable(item));
+                //qDebug("Tag: %s - Rating", qPrintable(item));
                 this->rating.fromString(item.trimmed());
             } else if (index == 0){
-                qDebug("Tag: %s - Series", qPrintable(item));
+                //qDebug("Tag: %s - Series", qPrintable(item));
                 this->series = item.trimmed();
             } else {
-                qDebug("Tag: %s - Tag", qPrintable(item));
+                //qDebug("Tag: %s - Tag", qPrintable(item));
                 tagList << item.trimmed();
             }
             ++index;
@@ -348,8 +390,8 @@ QStringList sceneParser::parseActors(QString name){
 QString sceneParser::displayInfo(){
     QString show("");
     QTextStream out(&show);
-    out << "File:       " << file.absolutePath() << endl;
-    out << "Checksum:   " << QString(md5sum) << endl;
+    QString path = QString("%1/%2").arg(file.first).arg(file.second);
+    out << "File:       " << path << endl;
     out << "Title:      " << title << endl;
     out << "Company:    " << company << endl;
     out << "Quality:    " << height << endl;
@@ -388,7 +430,9 @@ QString sceneParser::displayInfo(){
 }
 /** **********************************************************************
  * \brief Functions for formatting the different sections of a filename. */
-QString sceneParser::formatFilename()   {   return QString("%1%2%3%4.%5").arg(formatActor()).arg(formatCompany()).arg(formatTitle()).arg(formatParentheses()).arg(file.getExtension()); }
+QString sceneParser::formatFilename()   {
+    return QString("%1%2%3%4.%5").arg(formatActor()).arg(formatCompany()).arg(formatTitle()).arg(formatParentheses()).arg(getExtension(file.second));
+}
 QString sceneParser::formatActor()      {   return (actors.isEmpty() ? "Unknown - " : QString("%1 - ").arg(actors.at(0)));  }
 QString sceneParser::formatCompany()    {   return (company.isEmpty() ? "" : QString("[%1] ").arg(company));      }
 QString sceneParser::formatTitle(){

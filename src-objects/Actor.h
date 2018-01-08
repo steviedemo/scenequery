@@ -9,7 +9,6 @@
 #include <QVector>
 // Custom Objects
 #include "Biography.h"
-#include "FilePath.h"
 #include "Entry.h"
 #include "SceneList.h"
 #include <pqxx/result>
@@ -22,7 +21,7 @@ private:
     QString name;
     Biography bio;
     double dataUsage;
-    class FilePath headshot;
+    QString photoPath;
     QSharedPointer<QStandardItem> itemName, itemAge, itemPhoto, itemHair, itemEthnicity, itemSceneCount;
     int sceneCount;
     bool displayItemCreated, photoItemCreated;
@@ -37,7 +36,7 @@ public:
     //Actor(QSqlRecord);
     Actor(pqxx::result::const_iterator &i);
     ~Actor();
-    void fromRecord(pqxx::result::const_iterator &record);
+    void fromRecord(pqxx::result::const_iterator record);
     int  entrySize();
     QList<QStandardItem *> buildQStandardItem();
     void updateQStandardItem();
@@ -58,7 +57,6 @@ public:
     Query   toQuery (void) const;
     bool    inDatabase  (void);
     QString headshotTitle(void);
-    void    setHeadshot (FilePath f);
     void    setHeadshot (QString s);
     void    setDefaultHeadshot();
     void    buildScaledProfilePhoto(void);
@@ -102,8 +100,7 @@ public:
     QString		getEyeColor		(void)  const {   return this->bio.getEyeColor();     }
     QString     getTattoos  	(void)  const {   return this->bio.getTattoos();      }
     QString		getPiercings    (void)  const {   return this->bio.getPiercings();    }
-    FilePath    getHeadshot    	(void)  const {   return this->headshot;              }
-    QString     getHeadshotPath (void)  const {   return this->headshot.absolutePath(); }
+    QString     getHeadshot     (void)  const {   return this->photoPath;             }
 };
 
 #endif // ACTOR_H

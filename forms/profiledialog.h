@@ -17,13 +17,15 @@ class ProfileDialog : public QDialog
 
 public:
     explicit ProfileDialog(ActorPtr a, QWidget *parent = 0);
-    explicit ProfileDialog(QWidget *parent = 0);
+    explicit ProfileDialog(QString, QWidget *parent=0);
     ~ProfileDialog();
 public slots:
     void ct_to_pd_receiveProfile(ActorPtr);
     void db_to_pd_receiveProfileWithID(ActorPtr);
 private slots:
-    void on_tryAgainButton_clicked();
+    void on_pb_retry_clicked();
+
+    void on_pb_saveActor_clicked();
 
 private:
     void setUpFields();

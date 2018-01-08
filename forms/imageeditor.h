@@ -20,8 +20,10 @@ private slots:
     void selectImage();
 
 private:
-    ImageCropper *m_imageCropper;
-    QLabel *m_croppedImage;
+    QSharedPointer<ImageCropper> m_imageCropper;
+    QSharedPointer<QLabel> m_croppedImage;
+    QPixmap pm_croppedImage;
+    QPushButton *pb_save, *pb_crop, *pb_close;
     QString sourceFile, saveFile;
     int maxHeight;
     bool preInitError;

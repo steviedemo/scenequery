@@ -72,7 +72,6 @@ SOURCES += \
     src-objects/Actor.cpp \
     src-objects/Biography.cpp \
     src-objects/Entry.cpp \
-    src-objects/FilePath.cpp \
     src-objects/Height.cpp \
     src-objects/Rating.cpp \
     src-objects/Scene.cpp \
@@ -102,7 +101,6 @@ HEADERS  += \
     src/sceneParser.h \
     src-objects/Actor.h \
     src-objects/Biography.h \
-    src-objects/FilePath.h \
     src-objects/Height.h \
     src-objects/Rating.h \
     src-objects/Scene.h \

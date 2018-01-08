@@ -1,4 +1,5 @@
 #include <QtWidgets>
+#include <QRegExp>
 #include "SceneProxyModel.h"
 
 SceneProxyModel::SceneProxyModel(QObject *parent)
@@ -15,33 +16,30 @@ void SceneProxyModel::setDefaultValues(){
 /// Filter Setting
 void SceneProxyModel::removeFilters(){
     setDefaultValues();
-    setFilter("");
+    setFilter(".*");
 }
 void SceneProxyModel::setFilter(QString text){
     invalidateFilter();
-    this->setFilterFixedString(text);
+    this->setFilterRegExp(text);
+//    this->setFilterFixedString(text);
 }
 
 void SceneProxyModel::setFilterActor(const QString &name){
-    setDefaultValues();
     key = NAME;
     this->nameFilter = name;
     setFilter(name);
 }
 void SceneProxyModel::setFilterCompany(const QString &company){
-    setDefaultValues();
     key = COMPANY;
     this->companyFilter = company;
     setFilter(company);
 }
 void SceneProxyModel::setFilterTag(const QString &tag){
-    setDefaultValues();
     key = TAG;
     this->companyFilter = tag;
     setFilter(tag);
 }
 void SceneProxyModel::setFilterQuality(const int &quality){
-    setDefaultValues();
     key = QUALITY;
     this->qualityFilter = quality;
     invalidateFilter();
@@ -77,27 +75,32 @@ bool SceneProxyModel::getFilterData(FilterKey fk, int &column, QString &filterTe
     return applyFilter;
 }
 
-/// Filtering
-bool SceneProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const{
-    int column;
-    QString filterText("");
-    bool accepted = true;
-    if (key == NAME && !nameFilter.isEmpty()){
-        accepted = nameMatchesFilter(sourceRow, sourceParent);
-    } else if (getFilterData(key, column, filterText)){
-        QString data = sourceModel()->data(sourceModel()->index(sourceRow, column, sourceParent)).toString();
-        if (filterText == "*" || filterText == ".*"){
-            accepted = true;
-        } else if (data.isEmpty()){
-            accepted = false;
-        } else if (filterText.contains(data)){
-            accepted = true;
-        } else {
-            accepted = false;
-        }
-    }
+bool SceneProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const{
+    bool accepted = nameMatchesFilter(source_row, source_parent);
     return accepted;
+
 }
+/// Filtering
+//bool SceneProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const{
+//    int column;
+//    QString filterText("");
+//    bool accepted = true;
+//    if (key == NAME && !nameFilter.isEmpty()){
+//        accepted = nameMatchesFilter(sourceRow, sourceParent);
+//    } else if (getFilterData(key, column, filterText)){
+//        QString data = sourceModel()->data(sourceModel()->index(sourceRow, column, sourceParent)).toString();
+//        if (filterText == "*" || filterText == ".*"){
+//            accepted = true;
+//        } else if (data.isEmpty()){
+//            accepted = false;
+//        } else if (filterText.contains(data)){
+//            accepted = true;
+//        } else {
+//            accepted = false;
+//        }
+//    }
+//    return accepted;
+//}
 
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
     return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();
@@ -105,10 +108,14 @@ QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sou
 
 bool SceneProxyModel::nameMatchesFilter(int row, const QModelIndex &currIndex) const{
     bool match = false;
-    QString mainName = getCellData(row, NAME_COLUMN, currIndex);
-    QString featNames = getCellData(row, FEATURED_COLUMN, currIndex);
-    if(mainName.contains(nameFilter) || featNames.contains(nameFilter)){
+    if (nameFilter == ".*"  || nameFilter.isEmpty()){
         match = true;
+    } else {
+        QString mainName = getCellData(row, NAME_COLUMN, currIndex);
+        QString featNames = getCellData(row, FEATURED_COLUMN, currIndex);
+        if(mainName.contains(nameFilter) || featNames.contains(nameFilter)){
+            match = true;
+        }
     }
     return match;
 }
@@ -121,13 +128,14 @@ bool SceneProxyModel::qualityMatchesFilter(QString quality) const{
     }
     return match;
 }
-bool SceneProxyModel::tagMatchesFilter(QString) const{
-    return true;
+bool SceneProxyModel::tagMatchesFilter(QString tag) const{
+    QRegularExpression rx(tagFilter);
+    QRegularExpressionMatch match = rx.match(tag);
+    return match.hasMatch();
 }
+
 bool SceneProxyModel::companyMatchesFilter(QString company) const{
-    bool match = true;
-    if (!companyFilter.isEmpty()){
-        match = (company == companyFilter);
-    }
-    return match;
+    QRegularExpression rx(companyFilter);
+    QRegularExpressionMatch m = rx.match(company);
+    return m.hasMatch();
 }

@@ -95,7 +95,7 @@ SceneList SceneList::inSeries(QString series) const{
     return list;
 }
 
-SceneList SceneList::longerThan(double length) const{
+SceneList SceneList::longerThan(QTime length) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){
@@ -106,7 +106,8 @@ SceneList SceneList::longerThan(double length) const{
     }
     return list;
 }
-SceneList SceneList::shorterThan(double length) const{
+
+SceneList SceneList::shorterThan(QTime length) const{
     SceneList list;
     QListIterator<ScenePtr> it(*this);
     while(it.hasNext()){

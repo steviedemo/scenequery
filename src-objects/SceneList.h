@@ -12,8 +12,8 @@ public:
     SceneList withActor(ActorPtr) const;
     SceneList withActor(QString name) const;
     SceneList withRating(class Rating r) const;
-    SceneList longerThan(double length) const;
-    SceneList shorterThan(double length) const;
+    SceneList longerThan(QTime length) const;
+    SceneList shorterThan(QTime length) const;
     SceneList minResolution(int h) const;
     SceneList maxResolution(int h) const;
     SceneList inSeries(QString s) const;

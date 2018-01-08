@@ -12,7 +12,8 @@
 
 FileScanner::FileScanner(QString path):
     scanDir(path), index(0){
-    this->actors = QVector<QSharedPointer<Actor>>();
+    this->actorList = {};
+    this->sceneList = {};
     this->setTerminationEnabled(true);
 }
 FileScanner::~FileScanner(){}
@@ -36,17 +37,23 @@ void FileScanner::stopThread(){
 void FileScanner::scanFolder(QString rootPath){
     this->threadMx.lock();
     this->index = 0;
-    SceneList sceneList;
-    QStringList names;
+    this->sceneList = {};
     qDebug("Scanning '%s' for files...", qPrintable(rootPath));
     QFileInfoList fileList;
     if (QDir(rootPath).exists()){
-        emit updateProgress(0);
-        emit updateStatus(QString("Scanning %1...").arg(rootPath));
+        emit updateStatus(QString("Scanning %1 and its subdirectories...").arg(rootPath));
         fileList = recursiveScan(rootPath);
         if (fileList.size() > 0){
+            // Run multiple threads that create scene objects
             sceneList = makeScenes(fileList);
-            names = getNames(sceneList);
+            // Store the scenes to the database
+            emit fs_to_db_storeScenes(sceneList);
+            // Extract a list of unique names from the scenes.
+            nameList = getNames(sceneList);
+            // Send the list to the database which will check which actors are already stored there,
+            // and pass on a list of those that arent to the curl thread to build the actor profiles.
+            qDebug("File Scanner Passing List of Names to SQL Thread to check if they are already in the database");
+            emit fs_to_db_checkNames(nameList);
         } else {
             showError("No files to scan in!");
         }
@@ -54,7 +61,6 @@ void FileScanner::scanFolder(QString rootPath){
         emit showError(QString("%1 doesn't exist!").arg(rootPath));
     }
     this->threadMx.unlock();
-    emit scanComplete(sceneList, names);
 }
 
 /** \brief Scan in all files within a directory, and recursively scan each sub-directory.
@@ -90,27 +96,27 @@ SceneList FileScanner::makeScenes(QFileInfoList fileList){
     }
     sync.waitForFinished();
     emit closeProgress(QString("File Scanning Complete!"));
-    return scenes;
+    return sceneList;
 }
 
-/** \brief Scan a single scene in from a QFileInfo object into a Scene Object, and add it to the vector of scenes.
+/** \brief Scan a single scene in from a QFileInfo object into a Scene Object, and add it to the vector of sceneList.
  *  \param QFileInfo file:  File to parse
  */
 void FileScanner::parseScene(QFileInfo f){
     subMx.lock();
-    FilePath file(f.absolutePath(), f.completeBaseName(), f.suffix());
+    QString file = f.absoluteFilePath();
     subMx.unlock();
     sceneParser parser(file);
     parser.parse();
     ScenePtr scene = QSharedPointer<Scene>(new Scene(parser));
     subMx.lock();
     emit updateProgress(index++);
-    scenes.push_back(scene);
+    sceneList.push_back(scene);
     subMx.unlock();
 }
 
 /** \brief Accept a list of Scenes and make a list of names of the actors in each scene.
- *  \param SceneList scenes scanned in
+ *  \param SceneList sceneList scanned in
  *  \return QStringList actor names.
  */
 QStringList FileScanner::getNames(SceneList list){
@@ -137,9 +143,9 @@ void FileScanner::scanForActors(SceneList list, ActorList actors){
     // Reset values to 0;
     this->index = 0;
     this->added = 0;
-    this->newNames.clear();
+    this->nameList.clear();
     ActorList actorList = {};
-    QStringList oldNames, newNames;
+    QStringList oldNames;
     // Start processing on list
     if (list.size() > 0){
         // Get a list of names already in the actor list.
@@ -153,8 +159,8 @@ void FileScanner::scanForActors(SceneList list, ActorList actors){
         emit startProgress(QString("Scanning %1 Scenes for actors").arg(list.size()), list.size());
         foreach(ScenePtr s, list){
             foreach(QString name, s->getActors()){
-                if (!oldNames.contains(name) && !newNames.contains(name)){
-                    newNames << name;
+                if (!oldNames.contains(name) && !nameList.contains(name)){
+                    nameList << name;
                     ++added;
                 }
             }
@@ -162,8 +168,8 @@ void FileScanner::scanForActors(SceneList list, ActorList actors){
         }
         emit closeProgress(QString("Found %1 new actor names. Updating Actors..."));
         // If there are new names, then create actor members for them.
-        if (newNames.size() > 0){
-            foreach(QString name, newNames){
+        if (nameList.size() > 0){
+            foreach(QString name, nameList){
                 actorList.push_back(QSharedPointer<Actor>(new Actor(name)));
             }
             qDebug("Emitting Request to Curl Thread for Bio Updates");

@@ -4,3 +4,6 @@
 [submodule "ImageCropper"]
 	path = ImageCropper
 	url = https://github.com/dimkanovikov/ImageCropper.git
+[submodule "QtWaitingSpinner"]
+	path = QtWaitingSpinner
+	url = https://github.com/snowwlex/QtWaitingSpinner.git

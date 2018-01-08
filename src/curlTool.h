@@ -16,7 +16,8 @@
 #define THUMBNAIL_PATH  "thumbs"
 enum Website { IAFD, Freeones };
 namespace Curl{
-    enum Task    { MAKE_BIO, UPDATE_BIO};
+    enum Task    { MAKE_BIO, UPDATE_BIO, SCANNING_BIOS };
+
 }
 
 //enum CurlRequest { IAFD, Freeones, Photo, Filmography };
@@ -84,11 +85,13 @@ private:
     QString         userAppData, dataPath, headshotPath, thumbnailPath;
     bool            keepRunning;
     ActorPtr        currentActor;
-    QMutex          curlMx;
-    QThreadPool     threadPool;
+    QMutex          curlMx, threadMx;
+    QThreadPool     *threadPool;
     QStringList     nameList;
     ActorList       actorList;
     DownloadThread  *downloadThread;
+    Curl::Task            currentTask;
+
 
 signals:
     void            ct_to_db_storeActors(ActorList);

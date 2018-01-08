@@ -2,7 +2,6 @@
 #define SQL_H
 #include "definitions.h"
 #include "sql_definitions.h"
-#include "FilePath.h"
 #include "sqlconnection.h"
 #include "SceneList.h"
 #include <QMutex>
@@ -35,7 +34,6 @@ public:
     SQL(QString connectionName=DEFAULT_NAME);
     ~SQL();
     void            run();
-    static void     purgeScenes(void);
     void            startPostgres();
     static const char *toString         (queryType);
     QueryPtr        queryDatabase       (QString queryText, QStringList args);
@@ -44,8 +42,10 @@ public:
     void            loadActor           (pqxx::result::const_iterator &i);
     bool            sceneSql            (ScenePtr S, queryType type);
     bool            actorSql            (ActorPtr A, queryType type);
-    void            getActorID          (QString name);
-    void            getSceneID          (QString filename);
+    int             getActorID          (QString name);
+    int             getSceneID          (QString filepath, QString filename);
+    QStringList     getCompanyList      (void);
+    QStringList     getDistinctValueList(QString tableName, QString fieldName);
     // Static Functions
     static void     sqlAppend           (QString &fields, QStringList &list, QString name, QString item);
     static void     sqlAppend           (QString &fields, QString &values, QStringList &list, QString name, QString item);
@@ -67,6 +67,7 @@ public slots:
     bool            makeTable           (Database::Table);
     bool            dropTable           (Database::Table);
     void            initialize          (void);
+    void            purgeScenes         (void);
 
     void            fs_to_db_storeScenes(SceneList);
     void            fs_to_db_checkNames (QStringList);

@@ -49,15 +49,15 @@ private slots:
     void on_piercingsTextEdit_textChanged();
     void on_tattoosTextEdit_textChanged();
     void onTimeout(void);
-    void editorClosed();
 
 private:
+    void setupFields();
     void clearFields();
     void setResetAndSaveButtons(bool enabled=true);
     Ui::ActorProfileView *ui;
     ActorPtr current;
     QTimer *timer;
-    ImageEditor *editor;
+    QSharedPointer<ImageEditor> editor;
     QShortcut *sc_downloadCurrentProfile;
     QShortcut *sc_saveChangesToActor;
     QShortcut *sc_hideProfile;

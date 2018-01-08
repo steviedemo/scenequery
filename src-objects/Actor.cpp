@@ -12,8 +12,7 @@
 Actor::Actor(QString name):
     Entry(), name(name), bio(name){
     this->dataUsage = 0.0;
-    this->headshot = FilePath(getProfilePhoto(name));
-
+    this->photoPath = getProfilePhoto(name);
     setup();
 }
 Actor::Actor(const Actor &a):
@@ -21,12 +20,12 @@ Actor::Actor(const Actor &a):
     this->bio = a.bio;
     this->name = a.name;
     this->dataUsage = a.dataUsage;
-    this->headshot = a.headshot;
+    this->photoPath = a.photoPath;
     setup();
 }
 
 Actor::Actor(QString actorName, Biography bio, QString headshot):
-    Entry(), name(actorName), bio(bio), dataUsage(0.0), headshot(headshot){
+    Entry(), name(actorName), bio(bio), dataUsage(0.0), photoPath(headshot){
     setup();
 }
 
@@ -35,7 +34,7 @@ Actor::Actor(pqxx::result::const_iterator &i):Entry(){
     this->fromRecord(i);
 }
 
-void Actor::fromRecord(pqxx::result::const_iterator &i){
+void Actor::fromRecord(pqxx::result::const_iterator i){
     try{
         if (!i["id"].is_null())         {   setID((qint64)i["id"].as<long long unsigned int>());                }
         if (!i["name"].is_null())       {   this->name = QString::fromStdString(i["name"].as<std::string>());   }
@@ -55,7 +54,7 @@ void Actor::fromRecord(pqxx::result::const_iterator &i){
         if (!i["tattoos"].is_null())    {   this->bio.setTattoos(QString::fromStdString(i["tattoos"].as<std::string>()));    }
         if (!i["piercings"].is_null())  {   this->bio.setPiercings(QString::fromStdString(i["piercings"].as<std::string>()));  }
         if (!name.isEmpty()){
-            this->headshot = getProfilePhoto(this->name);
+            this->photoPath = getProfilePhoto(name);
         }
     } catch(std::exception &e){
         qWarning("Error Caught while making Actor from record: %s", e.what());
@@ -70,30 +69,7 @@ Actor::~Actor(){
 void Actor::setup(){
     this->sceneCount = 0;
     this->sceneList = {};
-//    this->itemAge       = ItemPtr(0);
-//    this->itemEthnicity = ItemPtr(0);
-//    this->itemHair      = ItemPtr(0);
-//    this->itemPhoto     = ItemPtr(0);
-//    this->itemSceneCount= ItemPtr(0);
-    /*
-    this->displayItemCreated = false;
-    this->itemName = QSharedPointer<QStandardItem>(new QStandardItem());
-    this->itemAge = QSharedPointer<QStandardItem>(new QStandardItem());
-    this->itemPhoto = QSharedPointer<QStandardItem>(new QStandardItem());
-
-    this->itemName->setText(name);
-    QString photo = headshotDownloaded(this->name);
-    if (!photo.isEmpty()){
-        QFileInfo info(photo);
-        if (info.exists()){
-            this->headshot = FilePath(info.absoluteFilePath(), info.baseName(), info.suffix());
-            this->itemPhoto->setData(QVariant(QPixmap(info.absoluteFilePath()).scaledToHeight(20)));
-        }
-    }
-    */
 }
-
-
 
 void Actor::addScene(ScenePtr s){
     this->sceneList.push_back(s);
@@ -121,7 +97,7 @@ void Actor::setScenes(SceneList list){
 
 int Actor::size(){
     int size = bio.size();
-    if (headshot.absolutePath() != DEFAULT_PROFILE_PHOTO){  size++; }
+    if (photoPath != DEFAULT_PROFILE_PHOTO) {   size++;    }
     if (!name.isEmpty()){   size++; }
     return size;
 }
@@ -130,7 +106,7 @@ Actor Actor::operator =(Actor &obj){
     this->bio = obj.bio;
     this->name = obj.name;
     this->dataUsage = obj.dataUsage;
-    this->headshot = obj.headshot;
+    this->photoPath = obj.photoPath;
     return *this;
 }
 
@@ -143,7 +119,7 @@ bool Actor::hasBio(){
 }
 
 bool Actor::isEmpty()               {   return name.isEmpty();          }
-bool Actor::usingDefaultPhoto()     {   return (this->headshot.absolutePath() == DEFAULT_PROFILE_PHOTO);    }
+bool Actor::usingDefaultPhoto()     {   return (this->photoPath == DEFAULT_PROFILE_PHOTO);    }
 
 
 void Actor::setScaledProfilePhoto(QVariant profile){
@@ -152,24 +128,19 @@ void Actor::setScaledProfilePhoto(QVariant profile){
 
 void Actor::buildScaledProfilePhoto()   {
     qDebug("Building Scaled Profile Photo for %s", qPrintable(name));
-    QString photoPath = this->headshot.absolutePath();
-    if (!headshot.isEmpty()){
+    if (photoPath.isEmpty()){
         photoPath = getProfilePhoto(name);
     }
     this->profilePhoto = QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
 }
 
 void Actor::setDefaultHeadshot(){
-    this->headshot = FilePath(DEFAULT_PROFILE_PHOTO);
+    this->photoPath = DEFAULT_PROFILE_PHOTO;
     this->profilePhoto = QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
     this->itemPhoto->setData(QVariant(profilePhoto), Qt::DecorationRole);
 }
-void Actor::setHeadshot(QString s)  {
-    this->headshot = FilePath(s);
-}
-
-void Actor::setHeadshot(FilePath f) {
-    this->headshot = f;
+void Actor::setHeadshot(QString fileLocation)  {
+    this->photoPath = fileLocation;
 }
 
 QSharedPointer<QStandardItem> Actor::getNameItem(){
@@ -189,11 +160,14 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
 
     this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
     this->itemSceneCount->setTextAlignment(Qt::AlignLeft);
+    QString photo = getProfilePhoto(name);
+    this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    /*
     if (!this->profilePhoto.isNull() && this->profilePhoto.isValid()){
         this->itemPhoto->setData(profilePhoto, Qt::DecorationRole);
     } else {
-        this->itemPhoto->setData(QVariant(QPixmap(DEFAULT_PROFILE_PHOTO)), Qt::DecorationRole);
-    }
+        this->itemPhoto->setData(QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    }*/
     row << itemPhoto.data() << itemName.data() << itemHair.data() << itemEthnicity.data() << itemSceneCount.data();
     this->displayItemCreated = true;
     //qDebug("%s's Display Item Created", qPrintable(name));
@@ -202,10 +176,10 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
 
 void Actor::updateQStandardItem(){
     qDebug("Updating Display Item for %s", qPrintable(name));
-    QString profilePhoto = getProfilePhoto(name);
-    this->headshot.setFile(profilePhoto);
+    this->photoPath = getProfilePhoto(name);
     this->itemSceneCount->setText(QString::number(sceneList.size()));
-    this->itemPhoto->setData(QVariant(QPixmap(profilePhoto).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    QString photo = getProfilePhoto(name);
+    this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     if (itemHair->text().isEmpty()){
         QString hair = bio.getHairColor();
         itemHair->setText(hair);
@@ -261,7 +235,9 @@ Query Actor::toQuery() const{
 int Actor::entrySize(){
     int size = bio.size();
     size += (name.isEmpty() ? 0 : 1);
-    size += (headshot.isEmpty() ? 0 : 1);
+    if (!usingDefaultPhoto()){
+        size++;
+    }
     return size;
 
 }

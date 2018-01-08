@@ -5,22 +5,21 @@
 #include <QInputDialog>
 #include <QFileInfo>
 #include "filenames.h"
-#include "FilePath.h"
+#include <QMessageBox>
 ProfileDialog::ProfileDialog(ActorPtr a, QWidget *parent) :
     QDialog(parent), ui(new Ui::ProfileDialog), actor(a){
     ui->setupUi(this);
     setUpFields();
     printDetails(a);
 }
-ProfileDialog::ProfileDialog(QWidget *parent):
+
+ProfileDialog::ProfileDialog(QString name, QWidget *parent) :
     QDialog(parent), ui(new Ui::ProfileDialog){
     ui->setupUi(this);
     setUpFields();
-    QString name = QInputDialog::getText(this, tr("Enter Name"), tr("Enter name of actor to build profile for"));
-    if (!name.isNull()){
-        emit pd_to_ct_getProfile(name);
-    }
+    emit pd_to_ct_getProfile(name);
 }
+
 
 ProfileDialog::~ProfileDialog(){
     emit closed();
@@ -43,7 +42,6 @@ void ProfileDialog::db_to_pd_receiveProfileWithID(ActorPtr a){
 }
 
 void ProfileDialog::setUpFields(){
-    lineEdits.push_back(ui->labelName);
     lineEdits.push_back(ui->birthCityLineEdit);
     lineEdits.push_back(ui->birthCountryLineEdit);
     lineEdits.push_back(ui->ethnicityLineEdit);
@@ -80,7 +78,7 @@ void ProfileDialog::printDetails(ActorPtr actor){
     ui->ethnicityLineEdit->setText(actor->getEthnicity());
     ui->eyeColorLineEdit->setText(actor->getEyeColor());
     ui->hairColorLineEdit->setText(actor->getHairColor());
-    ui->headshotLocationLineEdit->setText(actor->getHeadshot().absolutePath());
+
     Height h = actor->getHeight();
     QString height = QString("%1'%2''").arg(h.getFeet()).arg(h.getInches());
     ui->heightLineEdit->setText(height);
@@ -88,20 +86,38 @@ void ProfileDialog::printDetails(ActorPtr actor){
     ui->piercingsEdit->setText(actor->getPiercings());
     ui->tattoosEdit->setText(actor->getTattoos());
     ui->weightLineEdit->setText(QString::number(actor->getWeight()));
-    FilePath photo = a->getHeadshot();
+    // Set up the Profile photo.
+    QString photoFilePath = actor->getHeadshot();
+    if (!actor->usingDefaultPhoto()){
+        ui->headshotLocationLineEdit->setText(photoFilePath);
+    } else {
+        ui->headshotLocationLineEdit->clear();
+    }
+    QFileInfo photoFile(photoFilePath);
 
-    if (photo.exists() && photo.size() > 200){
-        QPixmap profilePhoto(photo.absolutePath());
+    if (photoFile.exists() && photoFile.size() > 200){
+        QPixmap profilePhoto(photoFilePath);
         ui->profilePhoto->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
     } else {
         QPixmap profilePhoto(DEFAULT_PROFILE_PHOTO);
         ui->profilePhoto->setPixmap(profilePhoto.scaledToHeight(IMAGE_HEIGHT));
     }
 }
-void ProfileDialog::on_tryAgainButton_clicked(){
+void ProfileDialog::on_pb_retry_clicked(){
     QString filepath = getProfilePhoto(actor->getName());
     QFileInfo info(filepath);
     if (info.exists() && info.size() > 10){
         ui->profilePhoto->setPixmap(QPixmap(filepath).scaledToHeight(IMAGE_HEIGHT));
+    }
+}
+
+void ProfileDialog::on_pb_saveActor_clicked(){
+    if (!actor.isNull()){
+        emit pd_to_db_saveProfile(actor);
+        QMessageBox box(QMessageBox::NoIcon, tr("Actor Saved"), QString("%1 Successfully Saved!").arg(actor->getName()), QMessageBox::Close, this);
+        box.exec();
+    } else {
+        QMessageBox box(QMessageBox::Warning, tr("Nothing to Save"), QString("Can't Save Empty Profile!"), QMessageBox::Ok, this);
+        box.exec();
     }
 }

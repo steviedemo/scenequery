@@ -1,6 +1,7 @@
 #include "imageeditor.h"
 #include "imagecropper.h"
 #include <QPixmap>
+#include <QBuffer>
 #include <QFileInfo>
 #include <QLabel>
 #include <QVBoxLayout>
@@ -8,43 +9,44 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
-
+#include <QSharedPointer>
 ImageEditor::ImageEditor(QString file, QString target, QWidget *parent) :
     QWidget(parent), sourceFile(file), saveFile(target)
 {
     if (QFileInfo(sourceFile).exists()){
         maxHeight = 600;
         // Set up the cropper
-        m_imageCropper = new ImageCropper(this);
+        m_imageCropper = QSharedPointer<ImageCropper>(new ImageCropper());
         m_imageCropper->resize( 600, 600 );
         m_imageCropper->setImage(QPixmap(sourceFile));
         m_imageCropper->setBackgroundColor( Qt::lightGray );
         m_imageCropper->setCroppingRectBorderColor( Qt::magenta);
         // Set up the Cropped Image frame
-        m_croppedImage = new QLabel(this);
-        m_croppedImage->setPixmap(QPixmap(":/img.jpg").scaledToHeight(maxHeight));
+        m_croppedImage = QSharedPointer<QLabel>(new QLabel());
+        m_croppedImage->setPixmap(QPixmap(sourceFile).scaledToHeight(maxHeight));
         m_croppedImage->setMaximumHeight(maxHeight);
         m_croppedImage->setScaledContents(true);
         // Set up the buttons
-        QPushButton* cropBtn = new QPushButton("Crop", this);
+        this->pb_crop = new QPushButton("Crop", this);
+        this->pb_save = new QPushButton("Save", this);
         QPushButton* selectButton = new QPushButton("Select Image", this);
         QPushButton* cancelButton = new QPushButton("Cancel", this);
-        QPushButton* saveButton = new QPushButton("Save", this);
-        connect(cropBtn,        SIGNAL(clicked()), this, SLOT(crop()));
+        connect(pb_crop,        SIGNAL(clicked()), this, SLOT(crop()));
         connect(selectButton,   SIGNAL(pressed()), this, SLOT(selectImage()));
         connect(cancelButton,   SIGNAL(pressed()), this, SLOT(cancel()));
-        connect(saveButton,     SIGNAL(pressed()), this, SLOT(save()));
+        connect(pb_save,     SIGNAL(pressed()), this, SLOT(save()));
         // Set up image Layout
         QHBoxLayout *imageLayout = new QHBoxLayout();
-        imageLayout->addWidget(m_imageCropper);
-        imageLayout->addWidget(m_croppedImage);
+        imageLayout->addWidget(m_imageCropper.data());
+        imageLayout->addWidget(m_croppedImage.data());
         // Set up button layout
         QHBoxLayout *buttonLayout = new QHBoxLayout();
         buttonLayout->addWidget(cancelButton);
         buttonLayout->addWidget(selectButton);
         buttonLayout->insertStretch(2);
-        buttonLayout->addWidget(cropBtn);
-        buttonLayout->addWidget(saveButton);
+        buttonLayout->addWidget(pb_crop);
+        buttonLayout->addWidget(pb_save);
+        pb_save->setDisabled(true);
         // Set up main layout
         QVBoxLayout *mainLayout = new QVBoxLayout(this);
         mainLayout->addLayout(imageLayout);
@@ -56,16 +58,22 @@ ImageEditor::ImageEditor(QString file, QString target, QWidget *parent) :
 }
 
 ImageEditor::~ImageEditor(){
-    delete m_imageCropper;
-    delete m_croppedImage;
+    delete pb_save;
+    delete pb_crop;
 }
+
 void ImageEditor::crop(){
-    m_croppedImage->setPixmap(QPixmap(m_imageCropper->cropImage()).scaledToHeight(maxHeight));
+    this->pm_croppedImage = QPixmap(m_imageCropper->cropImage());
+    m_croppedImage->setPixmap(pm_croppedImage.scaledToHeight(maxHeight));
     m_croppedImage->setScaledContents(true);
+    pb_save->setEnabled(true);
 }
+
 void ImageEditor::save(){
-    QFile photo(sourceFile);
-    if (photo.copy(sourceFile, saveFile)){
+    if (!pm_croppedImage.isNull()){
+        QFile file(saveFile);
+        file.open(QIODevice::WriteOnly);
+        pm_croppedImage.save(&file, "JPG");
         emit saved();
         QMessageBox box(QMessageBox::NoIcon, tr("File Saved"), "Cropped Image successfully saved!", QMessageBox::Close | QMessageBox::Retry, this);
         box.setWindowModality(Qt::WindowModal);
@@ -78,6 +86,7 @@ void ImageEditor::save(){
         QMessageBox::warning(this, tr("Error"), QString("Error Saving File to %1").arg(saveFile), QMessageBox::Close);
     }
 }
+
 void ImageEditor::selectImage(){
     QString temp = QFileDialog::getOpenFileName(this, tr("Select Image"), QString(), "*.jpg;*.jpeg;*.png");
     if (!temp.isEmpty()){

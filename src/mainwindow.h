@@ -39,14 +39,15 @@ private slots:
     void initializationFinished(ActorList, SceneList);
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
-    void receiveScanResult(SceneList, QStringList);
     void receiveSingleActor(ActorPtr);
     void refreshCurrentActor(void);
-    void showAddActorDialog();
     void closeAddActorDialog();
+
+
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
+
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -62,14 +63,16 @@ private slots:
     /// Window Events
     void showEvent(QShowEvent *event);
     void deleteActor(ActorPtr a);
+    void on_actionAdd_Actor_triggered();
+    void actorTableView_clicked(const QModelIndex &index);
 
     /// Buttons
     void on_actionScan_Directory_triggered();
-    void on_refreshScenes_clicked();
-    void on_refreshActors_clicked();
-    void on_actorView_clicked(const QModelIndex &index);
-    void on_saveScenes_clicked();
-    void on_saveActors_clicked();
+    void scan_directory_chosen(QString);
+    void on_pb_refreshScenes_clicked();
+    void on_pb_refreshActors_clicked();
+    void on_pb_saveScenes_clicked();
+    void on_pb_saveActors_clicked();
     void reloadProfile();
 
     void on_actionParse_Scene_triggered();
@@ -84,8 +87,15 @@ private slots:
     void testProfileDialogClosed    (void);
     void playVideo                  (QString);
     void videoFinished              (void);
+
+    void on_actionCleanDatabase_triggered();
+
+    void on_cb_companyFilter_currentIndexChanged(const QString &arg1);
+
 private:
     RunMode runMode;
+    QString newName;
+
     void setupThreads       (void);
     void setupViews         (void);
     void refreshSceneView   (void);
@@ -95,7 +105,6 @@ private:
     void displayAllScenes   (void);
     void addSceneRow        (ItemList);
     void addActorRow        (ItemList);
-    void threaded_profile_photo_scaler(ActorPtr);
 
 
     /// View
@@ -105,6 +114,7 @@ private:
     QMap<QString, ActorPtr> actorMap;
     ActorList actorList, updateList, displayActors;
     ActorPtr currentActor, updatedActor;
+    QFileDialog *fileDialog;
     QProgressDialog *progressDialog;
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
@@ -112,6 +122,7 @@ private:
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
     SceneList sceneList, displayScenes;
+    QSplitter *splitter;
     bool videoOpen;
     /// Threads
     SceneView *sceneView;
@@ -131,14 +142,14 @@ signals:
     void closing();
     void stopThreads();
     void startInitialization();
-
+    void skipInitialization(ActorList, SceneList);
     void scanFolder         (QString);
     void scanActors         (SceneList, ActorList);
 
     void loadScenes         (SceneList);
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
-
+    void purgeScenes        (void);
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
@@ -146,10 +157,11 @@ signals:
     void loadActors         (ActorList);
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
-    void makeNewActors      (QStringList);
     void getHeadshots       (ActorList);
     void actorSelectionChanged(QString);
-
+    void resizeSceneView    (void);
+    /// Filtering
+    void cb_companyFilterChanged(QString);
     /** Progress Bar & Dialog */
     void startProgressBar   (QString, int);
     void updateProgressBar  (int);

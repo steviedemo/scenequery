@@ -283,10 +283,17 @@ void curlTool::receiveActor(ActorPtr a){
         qWarning("Received Null Actor");
     } else {
      //   qDebug("Received Actor '%s'", qPrintable(a->getName()));
+        qDebug("Curl Thread received '%s' from the download thread, with a profile of size %d", qPrintable(a->getName()), a->size());
+        curlMx.lock();
         this->actorList.push_back(a);
         this->additions++;
+        curlMx.unlock();
     }
+    curlMx.lock();
+    emit updateProgress(++index);
+    curlMx.unlock();
 }
+
 void curlTool::downloadThreadComplete(){
     this->threadsFinished++;
     qDebug("%d/%d Threads Finished", this->threadsFinished, this->threadsStarted);
@@ -294,43 +301,84 @@ void curlTool::downloadThreadComplete(){
     if (this->threadsFinished == this->threadsStarted){
      //   qDebug("*****************************\nAll Threads Finished\n*****************************");
         emit closeProgress(QString("Update Complete. %1 Names Searched, %2 Actor Objects Successfully Created (%3 items in list).").arg(nameList.size()).arg(additions).arg(actorList.size()));
-        emit updateFinished(actorList);
+        if (this->currentTask == Curl::SCANNING_BIOS){
+            emit ct_to_db_storeActors(actorList);
+        } else {
+            emit updateFinished(actorList);
+        }
     }
 }
+
 void curlTool::updateBios(ActorList list){
+    this->currentTask = Curl::UPDATE_BIO;
+    QMutexLocker ml(&threadMx);
     resetCounters();
     if (list.size() > 0){
         this->actorList.clear();
         this->nameList.clear();
+        this->threadPool = new QThreadPool(this);
         emit startProgress(QString("Updating the Bios for %1 Actors").arg(list.size()), list.size());
         for (int i = 0; i < list.size(); ++i){
             ActorPtr a = list.at(i);
             DownloadThread *d = new DownloadThread(a);
             connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
             connect(d, SIGNAL(finished()),          this, SLOT(downloadThreadComplete()));
-            this->threadPool.globalInstance()->start(d);
+            this->threadPool->globalInstance()->start(d);
             this->threadsStarted++;
         }
         if (threadsStarted > 0){
         //    qDebug("*****************************\nAll Threads Started\n*****************************");
         }
+        qDebug("Waiting for %d Curl Threads to finish", list.size());
+        threadPool->waitForDone(180000); // 3 Minute Timeout
+        delete threadPool;
     }
 }
 
-void curlTool::makeNewActors(QStringList nameList){
+void curlTool::makeNewActors(QStringList list){
+    this->currentTask = Curl::MAKE_BIO;
+    QMutexLocker ml(&threadMx);
     resetCounters();
     this->actorList.clear();
-    this->nameList = nameList;
-    emit startProgress(QString("Updating the bios for %1 Actors").arg(nameList.size()), nameList.size());
-    for (int i = 0; i < nameList.size(); ++i){
-        QString name = nameList.at(i);
-        DownloadThread *d = new DownloadThread(name);
-        connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
-        connect(d, SIGNAL(finished()),         this, SLOT(downloadThreadComplete()));
-        this->threadPool.globalInstance()->start(d);
-        this->threadsStarted++;
+    this->nameList = list;
+    if (nameList.size() > 0){
+        this->threadPool = new QThreadPool(this);
+        emit startProgress(QString("Updating the bios for %1 Actors").arg(nameList.size()), nameList.size());
+        for (int i = 0; i < nameList.size(); ++i){
+            QString name = nameList.at(i);
+            DownloadThread *d = new DownloadThread(name);
+            connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
+            connect(d, SIGNAL(finished()),         this, SLOT(downloadThreadComplete()));
+            this->threadPool->globalInstance()->start(d);
+            this->threadsStarted++;
+        }
+        qDebug("Waiting for %d Curl threads to finish", nameList.size());
+        this->threadPool->waitForDone();
+        delete threadPool;
     }
-    //qDebug("*****************************\nAll Threads Started\n*****************************");
+}
+
+void curlTool::db_to_ct_buildActors(QStringList names){
+    this->currentTask = Curl::SCANNING_BIOS;
+    QMutexLocker ml (&threadMx);
+    qDebug("Curl Thread Received List of %d names from the File Scanner.", names.size());
+    resetCounters();
+    this->actorList = {};
+    this->nameList = names;
+    if (nameList.size() > 0){
+        this->threadPool = new QThreadPool(this);
+        emit startProgress(QString("Building Profiles for %1 Actors").arg(names.size()), names.size());
+        this->threadsStarted = names.size();
+        foreach(QString name, nameList){
+            DownloadThread *d = new DownloadThread(name);
+            connect(d, SIGNAL(sendActor(ActorPtr)), this, SLOT(receiveActor(ActorPtr)));
+            connect(d, SIGNAL(finished()), this, SLOT(downloadThreadComplete()));
+            this->threadPool->globalInstance()->start(d);
+        }
+        qDebug("Waiting for %d Curl Threads to finish", nameList.size());
+        this->threadPool->waitForDone();
+        delete threadPool;
+    }
 }
 
 void curlTool::pd_to_ct_getActor(QString name){
@@ -391,7 +439,7 @@ void curlTool::downloadPhoto(ActorPtr a){
     QString photo = downloadHeadshot(a->getName());
     if (!photo.isEmpty() && QFileInfo(photo).exists()){
         success = true;
-        a->setHeadshot(FilePath(photo));
+        a->setHeadshot(photo);
     }
     emit updateSingleProfile(a);
 }
@@ -406,7 +454,7 @@ void curlTool::downloadPhoto(ActorPtr a){
 bool curlTool::wget(QString url, QString filePath){
     bool success = false;
     QStringList args;
-    args << url << "-O" << filePath;
+    args << url << "-O" << filePath << ">" << "/dev/null";
     QProcess *process = new QProcess();
     QString command = "/usr/local/bin/wget";
     process->start(command, args);

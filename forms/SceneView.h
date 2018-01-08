@@ -15,7 +15,10 @@ public:
     void addScene(ScenePtr, const QModelIndex &parent = QModelIndex());
 public slots:
     void receiveSceneCountRequest();
-
+    void resizeSceneView();
+    void companyFilterChanged(QString);
+    void tagFilterChanged(QString);
+    void qualityFilterChanged(int);
 private slots:
     void actorFilterChanged(QString name);
     void actorFilterChanged(ActorPtr);
