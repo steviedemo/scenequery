@@ -63,28 +63,43 @@ void Biography::setBirthday(QDate d){
     if (!d.isNull()){ this->birthdate = d; }
 }
 void Biography::setCity(QString c){
-    if (!c.contains(this->illegalChars)){ this->city = c; }
+    if (!c.contains(this->illegalChars) && !c.contains("No data", Qt::CaseInsensitive) && !c.contains("Unknown", Qt::CaseInsensitive)){
+        this->city = c;
+    }
 }
 void Biography::setEthnicity(QString s){
-    if (!s.contains(illegalChars)){ this->ethnicity = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->ethnicity = s;
+    }
 }
 void Biography::setEyeColor(QString s){
-    if (!s.contains(illegalChars)){ this->eyes = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->eyes = s;
+    }
 }
 void Biography::setHairColor(QString s){
-    if (!s.contains(illegalChars)){ this->hair = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->hair = s;
+    }
 }
 void Biography::setMeasurements(QString s){
-    if (!s.contains(illegalChars)){ this->measurements = s; }
+    if (!s.contains(illegalChars) && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->measurements = s; }
 }
 void Biography::setNationality(QString s){
-    if (!s.contains(illegalChars)){ this->nationality = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->nationality = s;
+    }
 }
 void Biography::setPiercings(QString s){
-    if (!s.contains(illegalChars)){ this->piercings = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->piercings = s;
+    }
 }
 void Biography::setTattoos(QString s){
-    if (!s.contains(illegalChars)){ this->tattoos = s; }
+    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+        this->tattoos = s;
+    }
 }
 void Biography::setWeight(int w){
     if (w > 0){
@@ -130,7 +145,7 @@ Biography Biography::operator =(Biography &other){
 }
 */
 void    Biography::setAliases(QString a){
-    if (!a.contains("No known aliases", Qt::CaseInsensitive) && !a.contains("Unknown", Qt::CaseInsensitive)){
+    if (!a.contains("No known aliases", Qt::CaseInsensitive) && !a.contains("Unknown", Qt::CaseInsensitive) && !a.contains("No Data", Qt::CaseInsensitive) && !a.contains(illegalChars)){
         this->aliases = a;
     }
 }

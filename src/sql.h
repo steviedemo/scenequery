@@ -57,8 +57,8 @@ public slots:
     void            updateActor         (ActorPtr);
     void            stopThread          ();
     void            drop                (ActorPtr);
-    void            load                (ActorList);
-    void            load                (SceneList);
+    void            loadActors          ();
+    void            loadScenes          ();
     void            store               (ActorList actors);
     void            store               (SceneList scenes);
     bool            hasScene            (ScenePtr s, bool &queryRan);

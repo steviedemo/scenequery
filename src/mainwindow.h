@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include "sql.h"
 #include "profiledialog.h"
+#include "ActorProxyModel.h"
 #include "InitializationThread.h"
 #include "SceneProxyModel.h"
 #include "SceneView.h"
@@ -63,6 +64,8 @@ private slots:
     /// Window Events
     void showEvent(QShowEvent *event);
     void deleteActor(ActorPtr a);
+    void deleteCurrentActor();
+    void showCurrentActorProfile();
     void on_actionAdd_Actor_triggered();
     void actorTableView_clicked(const QModelIndex &index);
 
@@ -92,10 +95,25 @@ private slots:
 
     void on_cb_companyFilter_currentIndexChanged(const QString &arg1);
 
+    void on_tb_clearActorFilters_clicked();
+
+    void on_cb_hairColor_currentIndexChanged(const QString &arg1);
+
+    void on_cb_ethnicity_currentIndexChanged(const QString &arg1);
+
+    void on_cb_ethnicity_currentIndexChanged(int index);
+
+    void on_cb_hairColor_currentIndexChanged(int index);
+
+    void on_actionWipe_Scenes_Table_triggered();
+
+    void on_actionWipe_Actor_Table_triggered();
+
 private:
     RunMode runMode;
     QString newName;
-
+    void buildQStandardItem(ActorPtr);
+    void resetActorFilterSelectors(void);
     void setupThreads       (void);
     void setupViews         (void);
     void refreshSceneView   (void);
@@ -112,18 +130,18 @@ private:
     Ui::MainWindow *ui;
     QModelIndex currentActorIndex;
     QMap<QString, ActorPtr> actorMap;
-    ActorList actorList, updateList, displayActors;
+    ActorList actorList, updateList;
     ActorPtr currentActor, updatedActor;
     QFileDialog *fileDialog;
     QProgressDialog *progressDialog;
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
-    QSortFilterProxyModel *actorProxyModel;
+    ActorProxyModel *actorProxyModel;
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
-    SceneList sceneList, displayScenes;
-    QSplitter *splitter;
+    SceneList sceneList;
     bool videoOpen;
+    QVector<QList<QStandardItem *>> rows;
     /// Threads
     SceneView *sceneView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
@@ -135,8 +153,9 @@ private:
     SQL         *sqlThread;
     bool itemSelected;
     Display currentDisplay;
-    int threadedProgressCounter;
+    int index;
     QMutex mx;
+    QShortcut *sc_openActor, *sc_deleteActor;
 
 signals:
     void closing();
@@ -146,7 +165,7 @@ signals:
     void scanFolder         (QString);
     void scanActors         (SceneList, ActorList);
 
-    void loadScenes         (SceneList);
+    void loadScenes         ();
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
     void purgeScenes        (void);
@@ -154,7 +173,7 @@ signals:
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
     void updateBios         (ActorList);
-    void loadActors         (ActorList);
+    void loadActors         ();
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
     void getHeadshots       (ActorList);

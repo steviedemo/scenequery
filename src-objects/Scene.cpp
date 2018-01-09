@@ -25,7 +25,7 @@ bool operator==(const Scene &s1, const Scene &s2){
 
 
 Scene::Scene():Entry(),
-    ID(0), length(QTime(0,0,0)), height(0), width(0), size(0), sceneNumber(0),
+    ID(0), length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""), md5sum(""){
     this->ages = {};
@@ -34,7 +34,7 @@ Scene::Scene():Entry(),
     this->file.second = "";
 }
 Scene::Scene(QString absolutePath): Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), size(0), sceneNumber(0),
+    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url("")
 {
@@ -46,7 +46,7 @@ Scene::Scene(QString absolutePath): Entry(), ID(0),
 }
 
 Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), size(0), sceneNumber(0),
+    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""){
     this->ages = {};
@@ -55,7 +55,7 @@ Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
 }
 
 Scene::Scene(sceneParser p):Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), size(0), sceneNumber(0),
+    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""), md5sum(""){
     this->ages = {};
@@ -157,9 +157,9 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
 //        if (!entry["size"].is_null())   {   this->size      = entry["size"].as<int>();      }
 
         if (!entry["length"].is_null()) {
-            double minutes = entry["length"].as<float>();
-            QTime temp = QTime(0,0,0);
-            this->length = temp.addSecs((int)(60*minutes));
+            QString time = QString::fromStdString(entry["length"].as<std::string>());
+            QTime temp = QTime::fromString(time, "h:mm:ss");
+            this->length = temp;
         }
         entry["width"].to(width);
 //        if (!entry["width"].is_null())  {   this->width     = entry["width"].as<int>();     }
@@ -266,15 +266,14 @@ Scene::RowData Scene::getRowData(){
     } else {
         data.quality = "";
     }
-    double megabyte = (1024*1024*1024.0);
-    double gigabyte = (1024*megabyte);
     QString sizeString("");
-    if (this->size > (gigabyte)){
-        double sizeDouble = (double)(size/gigabyte);
-        sizeString = QString::number(sizeDouble, 'f', 2) + " GB";
-    } else {
-        double sizeDouble = (double)(size/megabyte);
-        sizeString = QString::number(sizeDouble, 'f', 2) + " MB";
+    if(size > BYTES_PER_GIGABYTE){
+        double gb = (double)(size/BYTES_PER_GIGABYTE);
+        sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
+    } else if (this->size > BYTES_PER_MEGABYTE){
+        int mb = size/BYTES_PER_MEGABYTE;
+        sizeString = QString::number(mb);
+        sizeString.append(" MB");
     }
     data.size = sizeString;
     data.length = this->length.toString("hh:mm:ss");
@@ -298,21 +297,20 @@ QList<QStandardItem *> Scene::getQStandardItem(){
 }
 
 QList<QStandardItem *> Scene::buildQStandardItem(){
-    double megabyte = (1024*1024*1024.0);
-    double gigabyte = (1024*megabyte);
     QString sizeString("");
-    if (this->size > (gigabyte)){
-        double sizeDouble = (double)(size/gigabyte);
-        sizeString = QString::number(sizeDouble, 'f', 2) + " GB";
-    } else {
-        double sizeDouble = (double)(size/megabyte);
-        sizeString = QString::number(sizeDouble, 'f', 2) + " MB";
+    if(size > BYTES_PER_GIGABYTE){
+        double gb = (double)(size/BYTES_PER_GIGABYTE);
+        sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
+    } else if (this->size > BYTES_PER_MEGABYTE){
+        double mb = (double)(size/BYTES_PER_MEGABYTE);
+        sizeString = QString::number(mb, 'f', 2);
+        sizeString.append(" MB");
     }
+    this->itemSize = ItemPtr(new QStandardItem(sizeString));
     this->itemTitle = ItemPtr(new QStandardItem());
     this->itemTitle->setData(QVariant(title), Qt::DisplayRole);
     this->itemCompany = ItemPtr(new QStandardItem());
     this->itemCompany->setData(QVariant(company), Qt::DisplayRole);
-    this->itemSize = ItemPtr(new QStandardItem(sizeString));
     QString path = QString("%1.%2").arg(file.first).arg(file.second);
     this->itemPath = ItemPtr(new QStandardItem(path));
     QString date("");
@@ -320,10 +318,13 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
         date = released.toString("yyyy/MM/dd");
     }
     this->itemDate = ItemPtr(new QStandardItem(date));
-    QString quality = ((height > 0) ? QString("%1p").arg(height) : "");
-    this->itemQuality = ItemPtr(new QStandardItem(quality));
-    QString lenStr = QString("%1:%2:%3").arg(length.hour()).arg(length.minute()).arg(length.second());
-    this->itemLength = ItemPtr(new QStandardItem(lenStr));
+    this->itemQuality = ItemPtr(new QStandardItem());
+    if (height > 0){
+        this->itemQuality->setData(QVariant(height), Qt::DecorationRole);
+    } else {
+        itemQuality->setText("");
+    }
+    this->itemLength = ItemPtr(new QStandardItem(length.toString("h:mm:ss")));
     this->itemRating = ItemPtr(new QStandardItem(rating.grade()));
     QString mainActor(""), featuredActors("");
     if (actors.size() > 0){
@@ -332,7 +333,13 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
             QStringListIterator it(actors);
             it.next();
             while(it.hasNext()){
-                featuredActors += it.next() + (it.hasNext() ? ", " : "");
+                QString curr = it.next();
+                if (!curr.isEmpty()){
+                    if (!featuredActors.isEmpty()){
+                        featuredActors.append(", ");
+                    }
+                    featuredActors += curr;
+                }
             }
         }
     }
@@ -349,19 +356,35 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
 
 void Scene::updateQStandardItem(){
     if (displayBuilt){
-        QString s("");
-        int index = 0;
-        foreach(QString a, actors){
-            s += a + ((index+1) == actors.size() ? ", " : "");
+        QString mainActor(""), featuredActors("");
+        if (actors.size() > 0){
+            mainActor = actors.at(0).trimmed();
+            if (actors.size() > 1){
+                QStringListIterator it(actors);
+                it.next();
+                while(it.hasNext()){
+                    QString curr = it.next();
+                    if (!curr.isEmpty()){
+                        if (!featuredActors.isEmpty()){
+                            featuredActors.append(", ");
+                        }
+                        featuredActors += curr;
+                    }
+                }
+            }
         }
-        this->itemActors->setText(s);
+        this->itemActors->setData(QVariant(mainActor), Qt::DisplayRole);
+        this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
         QString date("");
         if (released.isValid()){
             date = released.toString("yyyy/MM/dd");
         }
         this->itemDate->setText(date);
-        QString quality = ((height > 0) ? QString("%1p").arg(height) : "");
-        this->itemQuality->setText(quality);
+        if (height > 0){
+            this->itemQuality->setData(QVariant(height), Qt::DecorationRole);
+        } else {
+            itemQuality->setText("");
+        }
         this->itemTitle->setText(title);
         this->itemLength->setText(length.toString("h:mm:ss"));
         this->itemRating->setText(rating.grade());
@@ -406,8 +429,7 @@ Query Scene::toQuery() const{
     q.add("RATING", rating.grade());
     q.add("SCENE_NO", sceneNumber);
     q.add("SIZE",   size);
-    double minutes = ((double)(length.hour()*3600 + length.minute()*60 + length.second())/60.0);
-    q.add("LENGTH", minutes);
+    q.add("LENGTH", length.toString("h:mm:ss"));
     q.add("WIDTH", width);
     q.add("HEIGHT", height);
     q.add("TAGS",  tagString());

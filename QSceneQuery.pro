@@ -89,7 +89,9 @@ SOURCES += \
     forms/ActorProfileView.cpp \
     src/VideoPlayer.cpp \
     forms/imageeditor.cpp \
-    ImageCropper/src/imagecropper.cpp
+    ImageCropper/src/imagecropper.cpp \
+    forms/ActorProxyModel.cpp \
+    forms/ActorTableView.cpp
 
 HEADERS  += \
     src-helpers/config.h \
@@ -121,7 +123,9 @@ HEADERS  += \
     forms/ActorProfileView.h \
     src/VideoPlayer.h \
     forms/imageeditor.h \
-    ImageCropper/src/imagecropper.h
+    ImageCropper/src/imagecropper.h \
+    forms/ActorProxyModel.h \
+    forms/ActorTableView.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

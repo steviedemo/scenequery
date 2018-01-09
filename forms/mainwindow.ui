@@ -176,7 +176,181 @@ QRadioButton{
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="2" column="0">
+    <item row="0" column="0">
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="QWidget" name="verticalLayoutWidget">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QTableView" name="actorTableView">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>250</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Futura</family>
+           </font>
+          </property>
+          <property name="statusTip">
+           <string>Actors</string>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::NoFrame</enum>
+          </property>
+          <property name="frameShadow">
+           <enum>QFrame::Plain</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="iconSize">
+           <size>
+            <width>20</width>
+            <height>20</height>
+           </size>
+          </property>
+          <property name="showGrid">
+           <bool>false</bool>
+          </property>
+          <property name="gridStyle">
+           <enum>Qt::DotLine</enum>
+          </property>
+          <property name="sortingEnabled">
+           <bool>true</bool>
+          </property>
+          <property name="cornerButtonEnabled">
+           <bool>false</bool>
+          </property>
+          <attribute name="horizontalHeaderDefaultSectionSize">
+           <number>70</number>
+          </attribute>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="verticalHeaderDefaultSectionSize">
+           <number>24</number>
+          </attribute>
+         </widget>
+        </item>
+        <item>
+         <layout class="QGridLayout" name="gl_actorFilters">
+          <item row="2" column="3">
+           <widget class="QSpinBox" name="sb_sceneCount"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QComboBox" name="cb_hairColor">
+            <property name="statusTip">
+             <string>Filter Actors by Hair Color</string>
+            </property>
+            <property name="currentText">
+             <string/>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::NoInsert</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLabel" name="label_3">
+            <property name="text">
+             <string>Ethnicity:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_4">
+            <property name="text">
+             <string>Scene Count</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QComboBox" name="cb_ethnicity">
+            <property name="statusTip">
+             <string>Filter Actors by Ethnicity</string>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::NoInsert</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2">
+           <widget class="QComboBox" name="cb_sceneCount">
+            <property name="currentText">
+             <string/>
+            </property>
+            <property name="insertPolicy">
+             <enum>QComboBox::NoInsert</enum>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="0">
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Hair Color:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Filter By:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3" alignment="Qt::AlignRight">
+           <widget class="QToolButton" name="tb_clearActorFilters">
+            <property name="toolTip">
+             <string>Clear Actor filters</string>
+            </property>
+            <property name="statusTip">
+             <string>Clear Actor Filters</string>
+            </property>
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../resources/icons.qrc">
+              <normaloff>:/Icons/red_close_icon.png</normaloff>:/Icons/red_close_icon.png</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </widget>
+      <widget class="SceneView" name="sceneWidget" native="true">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>1000</height>
+        </size>
+       </property>
+      </widget>
+      <widget class="ActorProfileView" name="profileWidget" native="true"/>
+     </widget>
+    </item>
+    <item row="1" column="0">
      <widget class="QFrame" name="controlFrame">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -351,95 +525,6 @@ QRadioButton{
         </layout>
        </item>
       </layout>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QSplitter" name="splitter">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>1000</height>
-       </size>
-      </property>
-      <property name="orientation">
-       <enum>Qt::Horizontal</enum>
-      </property>
-      <widget class="QTableView" name="actorTableView">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>250</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Futura</family>
-        </font>
-       </property>
-       <property name="statusTip">
-        <string>Actors</string>
-       </property>
-       <property name="autoFillBackground">
-        <bool>false</bool>
-       </property>
-       <property name="frameShape">
-        <enum>QFrame::NoFrame</enum>
-       </property>
-       <property name="frameShadow">
-        <enum>QFrame::Plain</enum>
-       </property>
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-       <property name="selectionMode">
-        <enum>QAbstractItemView::SingleSelection</enum>
-       </property>
-       <property name="selectionBehavior">
-        <enum>QAbstractItemView::SelectRows</enum>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-       <property name="showGrid">
-        <bool>false</bool>
-       </property>
-       <property name="gridStyle">
-        <enum>Qt::DotLine</enum>
-       </property>
-       <property name="sortingEnabled">
-        <bool>true</bool>
-       </property>
-       <property name="cornerButtonEnabled">
-        <bool>false</bool>
-       </property>
-       <attribute name="horizontalHeaderDefaultSectionSize">
-        <number>70</number>
-       </attribute>
-       <attribute name="verticalHeaderVisible">
-        <bool>false</bool>
-       </attribute>
-       <attribute name="verticalHeaderDefaultSectionSize">
-        <number>24</number>
-       </attribute>
-      </widget>
-      <widget class="SceneView" name="sceneWidget" native="true">
-       <property name="maximumSize">
-        <size>
-         <width>16777215</width>
-         <height>1000</height>
-        </size>
-       </property>
-      </widget>
-      <widget class="ActorProfileView" name="profileWidget" native="true"/>
      </widget>
     </item>
    </layout>
@@ -631,6 +716,8 @@ QRadioButton{
     </property>
     <addaction name="actionScan_Directory"/>
     <addaction name="actionSave_Scenes"/>
+    <addaction name="actionWipe_Actor_Table"/>
+    <addaction name="actionWipe_Scenes_Table"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -829,6 +916,16 @@ QRadioButton{
    </property>
    <property name="statusTip">
     <string>Add New Actor By Name</string>
+   </property>
+  </action>
+  <action name="actionWipe_Actor_Table">
+   <property name="text">
+    <string>Wipe Actor Table</string>
+   </property>
+  </action>
+  <action name="actionWipe_Scenes_Table">
+   <property name="text">
+    <string>Wipe Scenes Table</string>
    </property>
   </action>
  </widget>

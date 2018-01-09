@@ -61,18 +61,26 @@ const char *SQL::toString(queryType t){
 }
 
 /** Delete and then re-add a table to the database */
-bool SQL::dropTable(Database::Table){
-    qDebug("Placeholder for drop table function");
-    return false;
+bool SQL::dropTable(Database::Table table){
+    sqlConnection sql;
+    if (table == Database::SCENE){
+        qDebug("Dropping Scenes Table");
+        sql.setQuery("DROP TABLE scenes");
+    } else if (table == Database::ACTOR){
+        qDebug("Dropping Actors Table");
+        sql.setQuery("DROP TABLE actors");
+    }
+    return sql.execute();
 }
 
 
 bool SQL::makeTable(Database::Table table){
     QString queryString("");
-    bool success = false;
     if (table == Database::ACTOR){
+        qDebug("Making new Actor Table");
         queryString = ADB_TABLE;
     } else if (table == Database::SCENE) {
+        qDebug("Making new Scene Table");
         queryString = SDB_TABLE;
     } else if (table == Database::THUMBNAIL) {
         queryString = THUMBNAIL_DB;
@@ -84,12 +92,8 @@ bool SQL::makeTable(Database::Table table){
         qCritical("Error: Undefined enum value of 'Table'");
         return false;
     }
-    sqlConnection *sql = new sqlConnection(queryString);
-    if (sql->execute()){
-        success = true;
-    }
-    emit sendResult(success);
-    return success;
+    sqlConnection sql(queryString);
+    return sql.execute();
 }
 
 /** \brief Get a list of unique Companies from the scene table */
@@ -260,8 +264,8 @@ void SQL::pd_to_db_saveActor(ActorPtr a){
     bool inDatabase = false;
     if (!hasActor(a->getName())){
         std::string statement = a->toQuery().toPqxxInsert("actors");
-        sqlConnection *sql = new sqlConnection(statement);
-        if (sql->execute()){
+        sqlConnection sql(statement);
+        if (sql.execute()){
             qDebug("Successfully added %s to the database", qPrintable(a->getName()));
             inDatabase = true;
         } else {
@@ -413,8 +417,8 @@ void SQL::loadActor(pqxx::result::const_iterator &i){
 }
 
 void SQL::saveChanges(ScenePtr s){
-    sqlConnection *sql = new sqlConnection(s->toQuery(), SQL_UPDATE);
-    if (!sql->execute()){
+    sqlConnection sql(s->toQuery(), SQL_UPDATE);
+    if (!sql.execute()){
         emit showError("Error Saving changes to database");
     } else {
         emit showSuccess("Changes saved to Database");
@@ -439,16 +443,16 @@ void SQL::initialize(){
     this->actors = {};
     this->scenes = {};
     qDebug("Initiliazing Item Lists");
-    sqlConnection *sceneSql = new sqlConnection(QString("SELECT * FROM scenes"));
-    sqlConnection *actorSql = new sqlConnection(QString("SELECT * FROM actors"));
-    if (!sceneSql->execute()){
+    sqlConnection sceneSql(QString("SELECT * FROM scenes"));
+    sqlConnection actorSql(QString("SELECT * FROM actors"));
+    if (!sceneSql.execute()){
         qWarning("Error Loading Scenes");
     }
-    if (!actorSql->execute()){
+    if (!actorSql.execute()){
         qWarning("Error Loading Actors");
     }
-    pqxx::result actorResult = actorSql->getResult();
-    pqxx::result sceneResult = sceneSql->getResult();
+    pqxx::result actorResult = actorSql.getResult();
+    pqxx::result sceneResult = sceneSql.getResult();
     int totalItems = actorResult.size() + sceneResult.size();
     emit startProgress(QString("Reading %1 items in from database").arg(totalItems), (2*actorResult.size() + sceneResult.size()));
     qDebug("Adding %lu Scenes", sceneResult.size());
@@ -472,18 +476,15 @@ void SQL::initialize(){
     }
     sync.waitForFinished();
     qDebug("Initialization Complete");
-    emit initializationFinished(actors, scenes);
     emit closeProgress();
+    emit initializationFinished(actors, scenes);
 }
 
 /** \brief Load scenes from the database into the list of scenes passed
  *  \param SceneList &scenes:   Scenes already in list.
  */
-void SQL::load(SceneList sceneList){
+void SQL::loadScenes(){
     this->scenes = {};
-    if (!sceneList.isEmpty()){
-        this->scenes = sceneList;
-    }
     count.reset();
     qDebug("Loading Scenes From Database...");
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM scenes"));
@@ -506,11 +507,8 @@ void SQL::load(SceneList sceneList){
     emit sendResult(scenes);
 }
 
-void SQL::load(QVector<QSharedPointer<Actor>> actors){
+void SQL::loadActors(){
     this->actors = {};
-    if (!actors.isEmpty()){
-        this->actors = actors;
-    }
     count.reset();
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM actors"));
     qDebug("Loading Actors");
@@ -628,18 +626,18 @@ void SQL::store(ActorList actorList){
 
 bool SQL::insertOrUpdateScene(ScenePtr S){
     bool success = false, stored = false;
-    sqlConnection *sql = new sqlConnection(QString("SELECT * FROM scenes WHERE ID = %1").arg(S->getID()));
-    if (!sql->execute()){
-        qWarning("Error Running Query: %s", qPrintable(sql->getQuery()));
+    sqlConnection sql(QString("SELECT * FROM scenes WHERE ID = %1").arg(S->getID()));
+    if (!sql.execute()){
+        qWarning("Error Running Query: %s", qPrintable(sql.getQuery()));
         return false;
     } else {
-        stored = sql->foundMatch();
+        stored = sql.foundMatch();
     }
 
-    sql->clear();
+    sql.clear();
     queryType operation = (stored ? SQL_UPDATE : SQL_INSERT);
-    sql->setQuery(S->toQuery(), operation);
-    success = sql->execute();
+    sql.setQuery(S->toQuery(), operation);
+    success = sql.execute();
     mx.lock();
     if (success && (operation == SQL_INSERT)){
         count.addInsert();
@@ -650,7 +648,6 @@ bool SQL::insertOrUpdateScene(ScenePtr S){
     }
     emit updateProgress(count.idx);
     mx.unlock();
-    delete sql;
     return success;
 }
 

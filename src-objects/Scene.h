@@ -23,7 +23,8 @@ private:
     long long int ID;
     QPair<QString,QString> file;
     QTime length;
-    int height, width, size, sceneNumber;
+    int height, width, sceneNumber;
+    qint64 size;
     QDate added, released, opened;
     QString title, company, series, url;
     QStringList actors, tags;
@@ -72,7 +73,7 @@ public:
     bool    equals      (const ScenePtr &other) const;
     // Getters
     int         getID           (void) const {   return ID;             }
-    int         getSize         (void) const {   return size;           }
+    qint64      getSize         (void) const {   return size;           }
     int         getWidth        (void) const {   return width;          }
     int         getHeight       (void) const {   return height;         }
     int         getSceneNumber  (void) const {   return sceneNumber;    }
@@ -107,7 +108,7 @@ public:
     bool        hasActor(QString a) const {   return actors.contains(a);  }
     bool        hasTag  (QString t) const {   return tags.contains(t);    }
     // Setters
-    void    setSize     (int s)         {   this->size = s;         }
+    void    setSize     (qint64 s)      {   this->size = s;         }
     void    setWidth    (int w)         {   this->width = w;        }
     void    setHeight   (int h)         {   this->height = h;       }
     void    setLength   (double minutes);

@@ -272,8 +272,8 @@ void sceneParser::bashScript(QString fileToAnalyze){
             //qDebug("Bash Script Output:\n%s", qPrintable(output));
             if (videoData.contains("Width"))    {   this->width = videoData.value("Width").toInt();                 }
             if (videoData.contains("Height"))   {   this->height = videoData.value("Height").toInt();                }
-            if (videoData.contains("Time")) {
-                QString time = videoData.value("Time");
+            if (videoData.contains("Length")) {
+                QString time = videoData.value("Length");
                 length.fromString(time, "h:mm:ss");
             }
 

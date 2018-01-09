@@ -29,7 +29,7 @@ private:
     QWidget *parent;
     QStringList headers;
     SceneProxyModel *proxyModel;
-    QTableView *proxyView;
+    QTableView *table;
     QVBoxLayout *mainLayout;
     int newRow;
 signals:

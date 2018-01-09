@@ -22,8 +22,8 @@ signals:
     void startProgress(QString, int);
     void updateProgress(int);
     void closeProgressDialog();
-    void getActors(ActorList);
-    void getScenes(SceneList);
+    void getActors();
+    void getScenes();
     void stopSqlThread();
     void sendInitialLists(ActorList, SceneList);
 };

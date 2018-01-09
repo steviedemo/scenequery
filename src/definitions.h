@@ -8,6 +8,8 @@
 #define IMAGE_HEIGHT 300
 #define DEFAULT_PROFILE_PHOTO ":/Icons/blank_profile_photo_female.png"
 #define ACTOR_LIST_PHOTO_HEIGHT 40
+#define BYTES_PER_MEGABYTE 1048576
+#define BYTES_PER_GIGABYTE 1073741824.0
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 typedef QSharedPointer<class Scene>         ScenePtr;

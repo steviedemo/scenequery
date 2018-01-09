@@ -22,14 +22,19 @@ private:
     Biography bio;
     double dataUsage;
     QString photoPath;
-    QSharedPointer<QStandardItem> itemName, itemAge, itemPhoto, itemHair, itemEthnicity, itemSceneCount;
+    QStandardItem *itemName, *itemAge, *itemPhoto, *itemHair, *itemEthnicity, *itemSceneCount, *itemBioSize;
     int sceneCount;
     bool displayItemCreated, photoItemCreated;
     SceneList sceneList;
     QVariant profilePhoto;
+    bool favourite;
     void setup();
 
 public:
+    enum Role{
+        SortRole=Qt::UserRole
+    };
+
     Actor(QString name="");
     Actor(const Actor &a);
     Actor(QString name, Biography bio, QString headshot);
@@ -41,7 +46,7 @@ public:
     QList<QStandardItem *> buildQStandardItem();
     void updateQStandardItem();
     QList<QStandardItem *> getQStandardItem();
-    QSharedPointer<QStandardItem> getNameItem();
+    QStandardItem *getNameItem();
     bool updateBio();
     bool hasBio();
     bool isEmpty     (void);

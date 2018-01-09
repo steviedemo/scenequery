@@ -102,8 +102,8 @@ void ActorProfileView::on_selectNewPhoto_clicked(){
 
 void ActorProfileView::reloadProfilePhoto(){
     if (!this->isHidden() && !this->current.isNull()){
-        current->updateQStandardItem();
         ui->profilePhoto->setPixmap(QPixmap(current->getHeadshot()).scaledToHeight(IMAGE_HEIGHT));
+        current->updateQStandardItem();
     }
 }
 

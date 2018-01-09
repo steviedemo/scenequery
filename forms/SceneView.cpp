@@ -7,23 +7,31 @@ SceneView::SceneView(QWidget *parent):
     parent(parent),
     newRow(0){
     this->proxyModel = new SceneProxyModel(this);
-    this->proxyView = new QTableView;
+    this->table = new QTableView;
     proxyModel->setFilterRole(Qt::DisplayRole);
-    proxyView->setModel(proxyModel);
-    proxyView->setSortingEnabled(true);
-    proxyView->sortByColumn(0, Qt::AscendingOrder);
-    proxyView->verticalHeader()->hide();
-    proxyView->horizontalHeader()->show();
+    table->setModel(proxyModel);
+    table->verticalHeader()->hide();
+    table->horizontalHeader()->show();
+    table->setShowGrid(false);
+    table->setSortingEnabled(true);
+    table->sortByColumn(0, Qt::AscendingOrder);
+    table->setCornerButtonEnabled(false);
+    table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
+    table->setFont(QFont("Futura", 13));
+    table->setStatusTip("Scenes");
+
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setHorizontalScrollMode(QAbstractItemView::ScrollPerItem);
+    table->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
+    table->setDragDropMode(QAbstractItemView::NoDragDrop);
     this->mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(proxyView);
+    mainLayout->addWidget(table);
     setLayout(mainLayout);
-    //proxyView->setMinimumWidth(800);
-    proxyView->resizeColumnsToContents();
-    proxyView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    proxyView->setSelectionMode(QAbstractItemView::SingleSelection);
-    proxyView->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
-    proxyView->
-    connect(proxyView, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
+    //table->setMinimumWidth(800);
+    table->resizeColumnsToContents();
+    connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
 }
 
 void SceneView::rowDoubleClicked(const QModelIndex &sourceParent){
@@ -43,8 +51,8 @@ void SceneView::setSourceModel(QAbstractItemModel *model){
 }
 
 void SceneView::resizeSceneView(){
-    this->proxyView->resizeColumnsToContents();
-    this->proxyView->resizeRowsToContents();
+    this->table->resizeColumnsToContents();
+    this->table->resizeRowsToContents();
 }
 
 void SceneView::clearFilter(){
@@ -70,7 +78,7 @@ void SceneView::qualityFilterChanged(int resolution){
 void SceneView::actorFilterChanged(QString name){
     proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
-    proxyView->resizeColumnsToContents();
+    table->resizeColumnsToContents();
 }
 void SceneView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);

@@ -74,23 +74,23 @@ void Actor::setup(){
 void Actor::addScene(ScenePtr s){
     this->sceneList.push_back(s);
     this->sceneCount++;
-    if (this->itemSceneCount.isNull()){
-        this->itemSceneCount = ItemPtr(new QStandardItem());
+    if (!itemSceneCount){
+        this->itemSceneCount = new QStandardItem();
     }
     this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
 }
 void Actor::addScene(void){
     this->sceneCount++;
-    if (this->itemSceneCount.isNull()){
-        this->itemSceneCount = ItemPtr(new QStandardItem());
+    if (!itemSceneCount){
+        this->itemSceneCount = new QStandardItem();
     }
     this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
 }
 
 void Actor::setScenes(SceneList list){
     this->sceneList = list;
-    if (this->itemSceneCount.isNull()){
-        this->itemSceneCount = ItemPtr(new QStandardItem());
+    if (!itemSceneCount){
+        this->itemSceneCount = new QStandardItem();
     }
     this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
 }
@@ -143,7 +143,7 @@ void Actor::setHeadshot(QString fileLocation)  {
     this->photoPath = fileLocation;
 }
 
-QSharedPointer<QStandardItem> Actor::getNameItem(){
+QStandardItem *Actor::getNameItem(){
     return this->itemName;
 }
 QList<QStandardItem *> Actor::getQStandardItem(){
@@ -152,25 +152,22 @@ QList<QStandardItem *> Actor::getQStandardItem(){
 
 QList<QStandardItem *> Actor::buildQStandardItem(){
     //qDebug("Creating Display item for %s", qPrintable(name));
-    this->itemName      = ItemPtr(new QStandardItem(name));
-    this->itemHair      = ItemPtr(new QStandardItem(bio.getHairColor()));
-    this->itemEthnicity = ItemPtr(new QStandardItem(bio.getEthnicity()));
-    this->itemSceneCount= ItemPtr(new QStandardItem(QString::number(sceneCount)));
-    this->itemPhoto     = ItemPtr(new QStandardItem());
-
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+    this->itemName      = new QStandardItem(name);
+    this->itemHair      = new QStandardItem(bio.getHairColor());
+    this->itemEthnicity = new QStandardItem(bio.getEthnicity());
+    this->itemSceneCount= new QStandardItem(QString::number(sceneCount));
+    this->itemPhoto     = new QStandardItem();
+    this->itemBioSize   = new QStandardItem();
+    QString bioSize = QString("%1").arg(size(), 2, 10, QChar('0'));
+    QString scenes = QString("%1").arg(sceneCount, 2, 10, QChar('0'));
+    this->itemBioSize->setText(bioSize);
+    this->itemSceneCount->setText(scenes);
     this->itemSceneCount->setTextAlignment(Qt::AlignLeft);
+    this->itemSceneCount->setTextAlignment(Qt::AlignCenter);
     QString photo = getProfilePhoto(name);
     this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-    /*
-    if (!this->profilePhoto.isNull() && this->profilePhoto.isValid()){
-        this->itemPhoto->setData(profilePhoto, Qt::DecorationRole);
-    } else {
-        this->itemPhoto->setData(QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-    }*/
-    row << itemPhoto.data() << itemName.data() << itemHair.data() << itemEthnicity.data() << itemSceneCount.data();
+    row << itemPhoto << itemName << itemHair << itemEthnicity << itemSceneCount << itemBioSize;
     this->displayItemCreated = true;
-    //qDebug("%s's Display Item Created", qPrintable(name));
     return row;
 }
 
@@ -188,9 +185,11 @@ void Actor::updateQStandardItem(){
         QString ethnicity = bio.getEthnicity();
         itemEthnicity->setText(ethnicity);
     }
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
+    this->itemBioSize->setText(QString("%1").arg(size(), 2, 10, QChar('0')));
+    this->itemSceneCount->setText(QString("%1").arg(sceneCount, 2, 10, QChar('0')));
     qDebug("%s's Display Item Updated", qPrintable(name));
 }
+
 void Actor::setBio(const Biography &other){
     qDebug("Copying new Biography into %s's profile", qPrintable(name));
     this->bio.copy(other);
@@ -199,11 +198,10 @@ void Actor::setBio(const Biography &other){
 
 bool Actor::inDatabase(){
     bool found = false;
-    sqlConnection *sql = new sqlConnection(QString("SELECT FROM actors WHERE name = %1").arg(name));
-    if (sql->execute()){
-        found = sql->foundMatch();
+    sqlConnection sql(QString("SELECT FROM actors WHERE name = %1").arg(name));
+    if (sql.execute()){
+        found = sql.foundMatch();
     }
-    delete sql;
     return found;
 }
 

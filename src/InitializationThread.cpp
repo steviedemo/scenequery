@@ -10,8 +10,8 @@ InitializationThread::InitializationThread(){
     connect(sqlThread, SIGNAL(closeProgress(QString)),      this, SIGNAL(closeProgressDialog()));
     connect(sqlThread, SIGNAL(sendResult(ActorList)),       this, SLOT(receiveActors(ActorList)));
     connect(sqlThread, SIGNAL(sendResult(SceneList)),       this, SLOT(receiveScenes(SceneList)));
-    connect(this,      SIGNAL(getActors(ActorList)),   sqlThread, SLOT(load(ActorList)));
-    connect(this,      SIGNAL(getScenes(SceneList)),   sqlThread, SLOT(load(SceneList)));
+    connect(this,      SIGNAL(getActors()),            sqlThread, SLOT(loadActors()));
+    connect(this,      SIGNAL(getScenes()),            sqlThread, SLOT(loadScenes()));
     connect(this,      SIGNAL(stopSqlThread()),        sqlThread, SLOT(stopThread()));
 }
 InitializationThread::~InitializationThread(){
@@ -22,11 +22,11 @@ void InitializationThread::run(){
     this->waitingForActors = true;
     this->waitingForScenes = true;
 
-    emit getActors(actors);
+    emit getActors();
     while(waitingForActors){ sleep(1);  }
 
     qDebug("Got Initial Actors, Requesting Scenes");
-    emit getScenes(scenes);
+    emit getScenes();
     while(waitingForScenes){ sleep(1);  }
     emit stopSqlThread();
     qDebug("Got Initial Scenes. Initialization Complete");

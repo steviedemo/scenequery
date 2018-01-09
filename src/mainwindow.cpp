@@ -17,16 +17,14 @@
 #include <QRegExp>
 #include <QSplitter>
 #define MINIMUM_BIO_SIZE 11
-
+#define COMBO_BOX_DEFAULT "No Selection"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
-    this->runMode = Debug;
+    this->runMode = Release;//Debug;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
     ui->setupUi(this);
     actorList = {};
     sceneList = {};
     updateList = {};
-    displayActors = {};
-    displayScenes = {};
     this->currentDisplay = DISPLAY_ACTORS;
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
@@ -49,17 +47,21 @@ MainWindow::~MainWindow(){
     actorMap.clear();
     actorList.clear();
     sceneList.clear();
+    delete sc_deleteActor;
+    delete sc_openActor;
 }
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
 
     /// Set up Actor Table View
-    this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes";
+    this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
     actorModel->setHorizontalHeaderLabels(actorHeaders);
+
     this->actorParent = actorModel->invisibleRootItem();
-    this->actorProxyModel = new QSortFilterProxyModel(this);
+    this->actorProxyModel = new ActorProxyModel(this);
+//    this->actorProxyModel = new QSortFilterProxyModel(this);
     this->actorProxyModel->setSourceModel(actorModel);
     ui->actorTableView->setModel(actorProxyModel);
     ui->actorTableView->setSortingEnabled(true);
@@ -80,6 +82,8 @@ void MainWindow::setupViews(){
     this->actorModel->setSortRole(Qt::DecorationRole);
     ui->profileWidget->hide();
     ui->progressBar->setValue(0);
+    QStringList numFilters;
+    numFilters << "More Than" << "Less Than" << "Exactly";
 
     /// Create Thread Objects
     this->sqlThread  = new SQL();
@@ -100,43 +104,105 @@ void MainWindow::setupViews(){
     connect(ui->sceneWidget,    SIGNAL(playFile(QString)),              this,               SLOT(playVideo(QString)));
     connect(ui->actorTableView, SIGNAL(clicked(QModelIndex)),           this,               SLOT(actorTableView_clicked(QModelIndex)));
     connect(this,               SIGNAL(resizeSceneView()),              ui->sceneWidget,    SLOT(resizeSceneView()));
-    connect(this,               SIGNAL(skipInitialization(ActorList,SceneList)), this,      SLOT(initializationFinished(ActorList,SceneList)));
     connect(this,               SIGNAL(startInitialization()),          sqlThread,          SLOT(initialize()));
+    connect(this,               SIGNAL(skipInitialization(ActorList,SceneList)), this,      SLOT(initializationFinished(ActorList,SceneList)));
     connect(sqlThread,          SIGNAL(initializationFinished(ActorList,SceneList)), this,  SLOT(initializationFinished(ActorList,SceneList)));
     connect(sqlThread,          SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sqlThread,          SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sqlThread,          SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
-
+    this->sc_openActor = new QShortcut(QKeySequence("Enter"), this);
+    this->sc_deleteActor = new QShortcut(QKeySequence("Backspace"), this);
+    connect(sc_openActor, SIGNAL(activated()), this, SLOT(deleteCurrentActor()));
+    connect(sc_openActor, SIGNAL(activated()), this, SLOT(showCurrentActorProfile()));
     sqlThread->start();
+}
+
+void MainWindow::deleteCurrentActor(){
+    if (!currentActor.isNull()){
+        ui->profileWidget->hide();
+        emit deleteActor(currentActor);
+    }
+}
+void MainWindow::showCurrentActorProfile(){
+    if (!currentActor.isNull()){
+        loadActorProfile(currentActor);
+    }
 }
 
 void MainWindow::showEvent(QShowEvent */*event*/){
     if (this->runMode == Release){
-        qDebug("Loading Actors");
-        emit loadActors(actorList);
+        this->initThread = new InitializationThread();
+        connect(initThread, SIGNAL(startProgress(QString,int)), this, SLOT(newProgressDialog(QString,int)));
+        connect(initThread, SIGNAL(updateProgress(int)), this, SLOT(updateProgressDialog(int)));
+        connect(initThread, SIGNAL(closeProgressDialog()), this, SLOT(closeProgressDialog()));
+        connect(initThread, SIGNAL(sendInitialLists(ActorList,SceneList)), this, SLOT(initializationFinished(ActorList,SceneList)));
+        connect(this,       SIGNAL(newProgressDialogBox(QString,int)),  this, SLOT(newProgressDialog(QString,int)));
+        connect(this,       SIGNAL(updateProgressDialogBox(int)),       this, SLOT(updateProgressDialog(int)));
+        connect(this,       SIGNAL(closeProgressDialogBox()),           this, SLOT(closeProgressDialog()));
+        qDebug("Starting Initialization Thread");
+        this->initThread->start();
     } else {
         qDebug("Skipping initial load from Database");
         emit skipInitialization(actorList, sceneList);
     }
 }
 
+void MainWindow::buildQStandardItem(ActorPtr a){
+    mx.lock();
+    a->setSceneCount(sceneList.countScenesWithActor(a->getName()));
+    mx.unlock();
+    QList<QStandardItem *> row = a->buildQStandardItem();
+    mx.lock();
+    rows.push_back(row);
+    actorMap.insert(a->getName(), a);
+    if (index % 100 == 0){
+        emit updateProgressDialog(++index);
+    }
+    mx.unlock();
+}
+
 void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     if (runMode == Release){
+        delete initThread;
         qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
+        int idx = 0;
+        emit newProgressDialogBox(QString("Adding %1 Scenes...").arg(scenes.size()), scenes.size());
         foreach(ScenePtr s, scenes){
             sceneModel->appendRow(s->buildQStandardItem());
             sceneList.push_back(s);
+            idx++;
+            if (idx % 100 == 0){
+                emit updateProgressDialogBox(idx);
+            }
         }
+        index = 0;
+        emit closeProgressDialogBox();
+        emit newProgressDialogBox(QString("Building %1 Actor Display Items...").arg(actors.size()), actors.size());
+        QFutureSynchronizer<void> sync;
         foreach(ActorPtr a, actors){
-            actorModel->appendRow(a->buildQStandardItem());
-            actorMap.insert(a->getName(), a);
+            sync.addFuture(QtConcurrent::run(this, &MainWindow::buildQStandardItem, a));
         }
+        sync.waitForFinished();
+        emit closeProgressDialogBox();
+        emit newProgressDialogBox(QString("Adding %1 Actors to the Display").arg(actors.size()), actors.size());
+        for(int i = 0; i < rows.size(); ++i){
+            actorModel->appendRow(rows.at(i));
+            if (i % 100 == 0){
+                emit updateProgressDialogBox(i);
+            }
+        }
+        emit closeProgressDialogBox();
         qDebug("All items added to GUI");
         /// Set up Filter boxes
         QStringList companies = sqlThread->getCompanyList();
-        foreach(QString company, companies){
-            ui->cb_companyFilter->addItem(company);
-        }
+        companies.prepend(COMBO_BOX_DEFAULT);
+        ui->cb_companyFilter->addItems(companies);
+        QStringList hairColors = sqlThread->getDistinctValueList("actors", "hair");
+        hairColors.prepend(COMBO_BOX_DEFAULT);
+        ui->cb_hairColor->addItems(hairColors);
+        QStringList ethnicities = sqlThread->getDistinctValueList("actors", "ethnicity");
+        ethnicities.prepend(COMBO_BOX_DEFAULT);
+        ui->cb_ethnicity->addItems(ethnicities);
     }
     /*
     int index = 0;
@@ -189,6 +255,7 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
 
     ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
     ui->actorTableView->resizeColumnsToContents();
+
     setupThreads();
 }
 
@@ -235,8 +302,8 @@ void MainWindow::setupThreads(){
     connect(this,       SIGNAL(saveActorChanges(ActorPtr)), sqlThread,  SLOT(updateActor(ActorPtr)));
     connect(this,       SIGNAL(saveActors(ActorList)),      sqlThread,  SLOT(store(ActorList)));
     connect(this,       SIGNAL(saveScenes(SceneList)),      sqlThread,  SLOT(store(SceneList)));
-    connect(this,       SIGNAL(loadActors(ActorList)),      sqlThread,  SLOT(load(ActorList)));
-    connect(this,       SIGNAL(loadScenes(SceneList)),      sqlThread,  SLOT(load(SceneList)));
+    connect(this,       SIGNAL(loadActors()),               sqlThread,  SLOT(loadActors()));
+    connect(this,       SIGNAL(loadScenes()),               sqlThread,  SLOT(loadScenes()));
     connect(sqlThread,  SIGNAL(sendResult(ActorList)),      this,       SLOT(receiveActors(ActorList)));
     connect(sqlThread,  SIGNAL(sendResult(SceneList)),      this,       SLOT(receiveScenes(SceneList)));
     connect(this,       SIGNAL(saveChangesToDB(ScenePtr)),  sqlThread,  SLOT(saveChanges(ScenePtr)));
@@ -324,15 +391,13 @@ void MainWindow::showSuccess(QString message){
 /** \brief Refresh Scenes from Database */
 void MainWindow::on_pb_refreshScenes_clicked(){
     qDebug("Updating Scenes from Database");
-    emit loadScenes(this->sceneList);
+    emit loadScenes();
 }
 /** \brief Refresh Actors from Database */
 void MainWindow::on_pb_refreshActors_clicked(){
     qDebug("Updating Scenes from Database");
-    emit loadActors(this->actorList);
+    emit loadActors();
 }
-
-
 
 /** \brief Choose a Directory to scan files in from */
 void MainWindow::on_actionScan_Directory_triggered(){
@@ -434,6 +499,16 @@ void MainWindow::receiveScenes(SceneList list){
     emit resizeSceneView();
 }
 
+void MainWindow::resetActorFilterSelectors(){
+    ui->cb_hairColor->clear();
+    ui->cb_ethnicity->clear();
+    QStringList hairColors = sqlThread->getDistinctValueList("actors", "hair");
+    hairColors.prepend(COMBO_BOX_DEFAULT);
+    ui->cb_hairColor->addItems(hairColors);
+    QStringList ethnicities = sqlThread->getDistinctValueList("actors", "ethnicity");
+    ethnicities.prepend(COMBO_BOX_DEFAULT);
+    ui->cb_ethnicity->addItems(ethnicities);
+}
 
 /** \brief Slot to Receive a list of Actors */
 void MainWindow::receiveActors(ActorList list){
@@ -461,6 +536,7 @@ void MainWindow::receiveActors(ActorList list){
                 }
             }
         }
+        resetActorFilterSelectors();
         ui->actorTableView->resizeColumnsToContents();
         ui->actorTableView->resizeRowsToContents();
         this->actorProxyModel->sort(ACTOR_NAME_COLUMN, Qt::AscendingOrder);
@@ -593,7 +669,7 @@ ActorPtr MainWindow::getSelectedActor(){
 
 /** \brief Load all entries from the Actor Table in the Database */
 void MainWindow::on_actionLoad_Actors_triggered(){
-    emit loadActors(actorList);
+    emit loadActors();
 }
 /** \brief Save all Actor Items to the Actor Table of the Database */
 void MainWindow::on_actionSave_Scenes_triggered(){
@@ -702,13 +778,6 @@ void MainWindow::deleteActor(ActorPtr a){
             //actorModel->removeRow(currentActorIndex.row());
             actorProxyModel->removeRow(currentActorIndex.row());
             actorMap.remove(currentActor->getName());
-            // Delete the Photo
-            if (!currentActor->usingDefaultPhoto()){
-                QFile file(currentActor->getHeadshot());
-                if (file.exists()){
-                    file.remove();
-                }
-            }
             ui->profileWidget->hide();
         }
     }
@@ -753,4 +822,50 @@ void MainWindow::on_actionCleanDatabase_triggered(){
 
 void MainWindow::on_cb_companyFilter_currentIndexChanged(const QString &arg1){
     emit cb_companyFilterChanged(arg1);
+}
+
+void MainWindow::on_tb_clearActorFilters_clicked(){
+    ui->cb_ethnicity->setCurrentIndex(-1);
+    ui->cb_hairColor->setCurrentIndex(-1);
+    ui->cb_sceneCount->setCurrentText("More Than");
+    ui->sb_sceneCount->clear();
+    actorProxyModel->clearFilters();
+}
+
+void MainWindow::on_cb_hairColor_currentIndexChanged(const QString &hairColorSelected){
+    if (hairColorSelected != COMBO_BOX_DEFAULT){
+        actorProxyModel->setFilterHairColor(hairColorSelected);
+    } else {
+        actorProxyModel->clearFilterHairColor();
+    }
+}
+void MainWindow::on_cb_ethnicity_currentIndexChanged(const QString &arg1){
+    if (arg1 != COMBO_BOX_DEFAULT){
+        actorProxyModel->setFilterEthnicity(arg1);
+    } else {
+        actorProxyModel->clearFilterEthnicity();
+    }
+}
+
+
+void MainWindow::on_cb_ethnicity_currentIndexChanged(int index){
+    if (index == -1){
+        actorProxyModel->clearFilterEthnicity();
+    }
+}
+
+void MainWindow::on_cb_hairColor_currentIndexChanged(int index){
+    if (index == -1){
+        actorProxyModel->clearFilterHairColor();
+    }
+}
+
+void MainWindow::on_actionWipe_Scenes_Table_triggered(){
+    sqlThread->dropTable(Database::SCENE);
+    sqlThread->makeTable(Database::SCENE);
+}
+
+void MainWindow::on_actionWipe_Actor_Table_triggered(){
+    sqlThread->dropTable(Database::ACTOR);
+    sqlThread->makeTable(Database::ACTOR);
 }

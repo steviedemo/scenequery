@@ -89,6 +89,7 @@ QFileInfoList FileScanner::recursiveScan(QFileInfo rootFolder){
  *  \return SceneList list:         List of Scenes created by parsing the passed files.
  */
 SceneList FileScanner::makeScenes(QFileInfoList fileList){
+    index = 0;
     emit startProgress(QString("Scanning in %1 files").arg(fileList.size()), fileList.size());
     QFutureSynchronizer<void> sync;
     foreach(QFileInfo f, fileList){
