@@ -1,11 +1,8 @@
 #ifndef ACTORPROXYMODEL_H
 #define ACTORPROXYMODEL_H
+#include "definitions.h"
 #include <QSortFilterProxyModel>
-#define ACTOR_NAME_COL  2
-#define ACTOR_HAIR_COL  3
-#define ACTOR_ETH_COL   4
-#define ACTOR_SCENE_COL 5
-#define ACTOR_BIO_SIZE_COL 6
+
 #include <QRegularExpression>
 class ActorProxyModel : public QSortFilterProxyModel
 {

@@ -34,7 +34,7 @@ public:
     SQL(QString connectionName=DEFAULT_NAME);
     ~SQL();
     void            run();
-    void            startPostgres();
+    void            startServer();
     static const char *toString         (queryType);
     QueryPtr        queryDatabase       (QString queryText, QStringList args);
     QueryPtr        assembleQuery       (QString queryText, QStringList args, bool &ok);

@@ -24,11 +24,11 @@ using namespace pqxx;
 #define START_PSQL "/usr/local/bin/pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
 SQL::SQL(QString name){
     // Start Postgresql
-    startPostgres();
+    startServer();
     this->connectionName = name;
 }
 
-void SQL::startPostgres(){
+void SQL::startServer(){
     qDebug("Starting Postgresql..");
     QString output = system_call(START_PSQL);
     qDebug("Output: %s", qPrintable(output));

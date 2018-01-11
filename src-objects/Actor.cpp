@@ -139,6 +139,7 @@ void Actor::setDefaultHeadshot(){
     this->profilePhoto = QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
     this->itemPhoto->setData(QVariant(profilePhoto), Qt::DecorationRole);
 }
+
 void Actor::setHeadshot(QString fileLocation)  {
     this->photoPath = fileLocation;
 }
@@ -164,8 +165,13 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
     this->itemSceneCount->setText(scenes);
     this->itemSceneCount->setTextAlignment(Qt::AlignLeft);
     this->itemSceneCount->setTextAlignment(Qt::AlignCenter);
-    QString photo = getProfilePhoto(name);
-    this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    if (this->photoPath.isEmpty()){
+        this->photoPath = getProfilePhoto(name);
+    }
+    //QImage scaledImage = QImage(photoPath).scaled(30,30, Qt::KeepAspectRatio,Qt::FastTransformation);
+    QImage scaledImage = scaleImage(photoPath, 30);
+    this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
+    //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     row << itemPhoto << itemName << itemHair << itemEthnicity << itemSceneCount << itemBioSize;
     this->displayItemCreated = true;
     return row;
@@ -175,8 +181,8 @@ void Actor::updateQStandardItem(){
     qDebug("Updating Display Item for %s", qPrintable(name));
     this->photoPath = getProfilePhoto(name);
     this->itemSceneCount->setText(QString::number(sceneList.size()));
-    QString photo = getProfilePhoto(name);
-    this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
+    //QString photo = getProfilePhoto(name);
+    //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     if (itemHair->text().isEmpty()){
         QString hair = bio.getHairColor();
         itemHair->setText(hair);
@@ -185,6 +191,11 @@ void Actor::updateQStandardItem(){
         QString ethnicity = bio.getEthnicity();
         itemEthnicity->setText(ethnicity);
     }
+    this->photoPath = getProfilePhoto(name);
+    QImage scaledImage = scaleImage(photoPath, 30);
+    //QImage scaledImage = QImage(photoPath).scaled(30,30, Qt::KeepAspectRatio,Qt::FastTransformation);
+    this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
+
     this->itemBioSize->setText(QString("%1").arg(size(), 2, 10, QChar('0')));
     this->itemSceneCount->setText(QString("%1").arg(sceneCount, 2, 10, QChar('0')));
     qDebug("%s's Display Item Updated", qPrintable(name));

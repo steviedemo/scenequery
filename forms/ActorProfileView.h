@@ -68,6 +68,7 @@ signals:
     void requestSceneCount();
     void updateFromWeb  (ActorPtr a);
     void saveToDatabase (ActorPtr a);
+    void deleteCurrent  ();
     void deleteActor    (ActorPtr a);
     void downloadPhoto  (ActorPtr a);
     void clearChanges();

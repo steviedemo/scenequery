@@ -35,7 +35,7 @@ SceneView::SceneView(QWidget *parent):
 }
 
 void SceneView::rowDoubleClicked(const QModelIndex &sourceParent){
-    QString filepath = proxyModel->data(proxyModel->index(sourceParent.row(), PATH_COLUMN, sourceParent)).toString();
+    QString filepath = proxyModel->data(proxyModel->index(sourceParent.row(), SCENE_PATH_COLUMN, sourceParent)).toString();
     emit playFile(filepath);
 }
 
@@ -89,13 +89,13 @@ void SceneView::addScene(ScenePtr s, const QModelIndex &parent){
         Scene::RowData data = s->getRowData();
         newRow = proxyModel->rowCount();
         proxyModel->insertRow(newRow, parent);
-        addData(NAME_COLUMN, data.mainActor);
-        addData(TITLE_COLUMN, data.title);
-        addData(COMPANY_COLUMN, data.company);
-        addData(QUALITY_COLUMN, data.quality);
-        addData(FEATURED_COLUMN, data.featured);
-        addData(DATE_COLUMN, data.date);
-        addData(LENGTH_COLUMN, data.length);
-        addData(RATING_COLUMN, data.rating);
+        addData(SCENE_NAME_COLUMN, data.mainActor);
+        addData(SCENE_TITLE_COLUMN, data.title);
+        addData(SCENE_COMPANY_COLUMN, data.company);
+        addData(SCENE_QUALITY_COLUMN, data.quality);
+        addData(SCENE_FEATURED_COLUMN, data.featured);
+        addData(SCENE_DATE_COLUMN, data.date);
+        addData(SCENE_LENGTH_COLUMN, data.length);
+        addData(SCENE_RATING_COLUMN, data.rating);
     }
 }

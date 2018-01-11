@@ -11,6 +11,8 @@ QString     system_call(QString);
 bool        system_call_blocking(QString command, QStringList args);
 bool        system_call_blocking(QString command, QStringList args, QString &output);
 ActorList   MapToList(ActorMap actors);
+QImage      scaleImage(QString file, int targetHeight, Qt::TransformationMode mode=Qt::FastTransformation);
+QImage      scaleImage(QImage source, int height);
 //std::string qtos    (QString q)     {   return q.toStdString();                 }
 //QString     stoq    (std::string s) {   return QString::fromStdString(s);       }
 bool        empty   (QString s);

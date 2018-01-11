@@ -14,6 +14,7 @@
 #include "SceneView.h"
 #include "VideoPlayer.h"
 #include <QSortFilterProxyModel>
+#include <QItemSelectionModel>
 #include <QMap>
 #include <QMainWindow>
 #include <QListView>
@@ -22,7 +23,7 @@
 #include <QStandardItem>
 #include <QShowEvent>
 #include <QShortcut>
-#define ACTOR_NAME_COLUMN 1
+
 enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
 class MainWindow;
@@ -61,10 +62,11 @@ private slots:
     void updateProgressDialog(QString);
     void closeProgressDialog();
 
+    void actorSelectionChanged(QModelIndex , QModelIndex);
+
     /// Window Events
     void showEvent(QShowEvent *event);
-    void deleteActor(ActorPtr a);
-    void deleteCurrentActor();
+    void removeActorItem();
     void showCurrentActorProfile();
     void on_actionAdd_Actor_triggered();
     void actorTableView_clicked(const QModelIndex &index);
@@ -109,22 +111,18 @@ private slots:
 
     void on_actionWipe_Actor_Table_triggered();
 
+    void on_actionDeleteActor_triggered();
+
+    void on_actionItemDetails_triggered();
+
 private:
     RunMode runMode;
     QString newName;
     void buildQStandardItem(ActorPtr);
     void resetActorFilterSelectors(void);
-    void setupThreads       (void);
     void setupViews         (void);
-    void refreshSceneView   (void);
     ActorPtr getSelectedActor(void);
-    void setResetAndSaveButtons(bool enabled);
-    void displaySceneSubset(SceneList);
-    void displayAllScenes   (void);
-    void addSceneRow        (ItemList);
-    void addActorRow        (ItemList);
-
-
+    QModelIndex findActorIndex(QString name);
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
@@ -142,6 +140,7 @@ private:
     SceneList sceneList;
     bool videoOpen;
     QVector<QList<QStandardItem *>> rows;
+    QItemSelectionModel *actorSelectionModel;
     /// Threads
     SceneView *sceneView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
@@ -181,7 +180,7 @@ signals:
     void resizeSceneView    (void);
     /// Filtering
     void cb_companyFilterChanged(QString);
-    /** Progress Bar & Dialog */
+    /** Progress Bar & Dialog **/
     void startProgressBar   (QString, int);
     void updateProgressBar  (int);
     void closeProgressBar   (QString);

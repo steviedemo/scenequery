@@ -50,18 +50,18 @@ bool ActorProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source
     return accepted;
 }
 bool ActorProxyModel::hairMatchesFilter(int row, const QModelIndex &index) const{
-    QString hair = getCellData(row, ACTOR_HAIR_COL, index);
+    QString hair = getCellData(row, ACTOR_HAIR_COLUMN, index);
     QRegularExpressionMatch m = hairRx.match(hair);
     return m.hasMatch();
 }
 bool ActorProxyModel::ethnicityMatchesFilter(int row, const QModelIndex &index) const{
-    QString skin = getCellData(row, ACTOR_ETH_COL, index);
+    QString skin = getCellData(row, ACTOR_ETH_COLUMN, index);
     QRegularExpressionMatch m = skinRx.match(skin);
     return m.hasMatch();
 }
 bool ActorProxyModel::sceneCountMatchesFilter(int row, const QModelIndex &index) const{
     bool matches = true;
-    int count = sourceModel()->data(sourceModel()->index(row, ACTOR_SCENE_COL, index)).toInt();
+    int count = sourceModel()->data(sourceModel()->index(row, ACTOR_SCENE_COLUMN, index)).toInt();
     if (this->countRelation == ActorProxyModel::greater_than){
         matches = (count > sceneCountFilter);
     } else if (this->countRelation == ActorProxyModel::less_than){

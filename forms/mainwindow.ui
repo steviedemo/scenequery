@@ -758,6 +758,8 @@ QRadioButton{
    <addaction name="actionLoad_Actors"/>
    <addaction name="actionAdd_Actor"/>
    <addaction name="actionUpdate_Bios"/>
+   <addaction name="actionDeleteActor"/>
+   <addaction name="actionItemDetails"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionScan_Directory">
@@ -926,6 +928,44 @@ QRadioButton{
   <action name="actionWipe_Scenes_Table">
    <property name="text">
     <string>Wipe Scenes Table</string>
+   </property>
+  </action>
+  <action name="actionDeleteActor">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/female_silhouette_delete.png</normaloff>:/Icons/female_silhouette_delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>DeleteActor</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete Actor</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete Actor</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>Futura</family>
+    </font>
+   </property>
+   <property name="shortcut">
+    <string>Backspace</string>
+   </property>
+  </action>
+  <action name="actionItemDetails">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/profile_icon.png</normaloff>:/Icons/profile_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>ShowItemDetails</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Details</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
    </property>
   </action>
  </widget>

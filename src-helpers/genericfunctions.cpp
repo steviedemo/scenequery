@@ -2,11 +2,13 @@
 #include <QStringList>
 #include <QDir>
 #include <QDebug>
+#include <QImage>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QDate>
 #include "Actor.h"
 #include "SceneList.h"
+#define AVG(a,b)    ( ((((a)^(b)) & 0xfefefefeUL) >> 1) + ((a)&(b)) )
 
 bool nonzero(double d){
     return d > 0;
@@ -25,6 +27,41 @@ bool valid(QDate d){
 }
 bool valid(QDateTime d){
     return (d.isValid());
+}
+
+QImage scaleImage(QString file, int height, Qt::TransformationMode mode){
+    QImage source(file);
+    int width = ((height*source.width())/source.height());
+    return source.scaled(width, height, Qt::KeepAspectRatio, mode);
+}
+/*
+QImage scaleImage(QString file, int targetHeight){
+    QImage source(file, "ARGB32");
+    return scaleImage(source.convertToFormat(QImage::Format_ARGB32), targetHeight);
+}
+*/
+QImage scaleImage(QImage source, int height){
+    Q_ASSERT(source.format() == QImage::Format_ARGB32);
+    int width = ((height*source.width())/source.height());
+    QImage dest(width, height, QImage::Format_ARGB32);
+
+    int sw = source.width();
+    int sh = source.height();
+    int xs = (sw << 8) / width;
+    int ys = (sh << 8) / height;
+    quint32 *dst = reinterpret_cast<quint32*>(dest.bits());
+    int stride = dest.bytesPerLine() >> 2;
+
+    for (int y = 0, yi = ys >> 2; y < height; ++y, yi += ys, dst += stride) {
+       const quint32 *src1 = reinterpret_cast<const quint32*>(source.scanLine(yi >> 8));
+       const quint32 *src2 = reinterpret_cast<const quint32*>(source.scanLine((yi + ys / 2) >> 8));
+       for (int x = 0, xi1 = xs / 4, xi2 = xs * 3 / 4; x < width; ++x, xi1 += xs, xi2 += xs) {
+           quint32 pixel1 = AVG(src1[xi1 >> 8], src1[xi2 >> 8]);
+           quint32 pixel2 = AVG(src2[xi1 >> 8], src2[xi2 >> 8]);
+           dst[x] = AVG(pixel1, pixel2);
+       }
+    }
+    return dest;
 }
 
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters){

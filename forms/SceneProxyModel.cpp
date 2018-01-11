@@ -62,10 +62,10 @@ const char *SceneProxyModel::enumToString() const{
 bool SceneProxyModel::getFilterData(FilterKey fk, int &column, QString &filterText) const {
     bool applyFilter = true;
     if (fk == COMPANY){
-        column = COMPANY_COLUMN;
+        column = SCENE_COMPANY_COLUMN;
         filterText = companyFilter;
     } else if (fk == QUALITY){
-        column = QUALITY_COLUMN;
+        column = SCENE_QUALITY_COLUMN;
         filterText = qualityFilter;
     } else {
         column = 0;
@@ -111,8 +111,8 @@ bool SceneProxyModel::nameMatchesFilter(int row, const QModelIndex &currIndex) c
     if (nameFilter == ".*"  || nameFilter.isEmpty()){
         match = true;
     } else {
-        QString mainName = getCellData(row, NAME_COLUMN, currIndex);
-        QString featNames = getCellData(row, FEATURED_COLUMN, currIndex);
+        QString mainName = getCellData(row, SCENE_NAME_COLUMN, currIndex);
+        QString featNames = getCellData(row, SCENE_FEATURED_COLUMN, currIndex);
         if(mainName.contains(nameFilter) || featNames.contains(nameFilter)){
             match = true;
         }

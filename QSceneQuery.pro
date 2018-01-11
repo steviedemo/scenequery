@@ -91,7 +91,8 @@ SOURCES += \
     forms/imageeditor.cpp \
     ImageCropper/src/imagecropper.cpp \
     forms/ActorProxyModel.cpp \
-    forms/ActorTableView.cpp
+    forms/ActorTableView.cpp \
+    forms/SceneDetailView.cpp
 
 HEADERS  += \
     src-helpers/config.h \
@@ -125,11 +126,13 @@ HEADERS  += \
     forms/imageeditor.h \
     ImageCropper/src/imagecropper.h \
     forms/ActorProxyModel.h \
-    forms/ActorTableView.h
+    forms/ActorTableView.h \
+    forms/SceneDetailView.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
-    forms/ActorProfileView.ui
+    forms/ActorProfileView.ui \
+    forms/SceneDetailView.ui
 
 QMAKE_CLEAN += \
     build/* \

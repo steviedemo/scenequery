@@ -70,7 +70,7 @@ void MainWindow::setupViews(){
     ui->actorTableView->setSelectionMode(QAbstractItemView::SingleSelection);
 
     /// Set up the Scene Table View
-    this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating";
+    this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location";
     this->sceneModel = new QStandardItemModel();
     this->sceneProxyModel = new SceneProxyModel(this);
     this->sceneParent = sceneModel->invisibleRootItem();
@@ -84,7 +84,7 @@ void MainWindow::setupViews(){
     ui->progressBar->setValue(0);
     QStringList numFilters;
     numFilters << "More Than" << "Less Than" << "Exactly";
-
+    ui->cb_sceneCount->addItems(numFilters);
     /// Create Thread Objects
     this->sqlThread  = new SQL();
     this->curlThread = new curlTool();
@@ -110,23 +110,7 @@ void MainWindow::setupViews(){
     connect(sqlThread,          SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sqlThread,          SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sqlThread,          SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
-    this->sc_openActor = new QShortcut(QKeySequence("Enter"), this);
-    this->sc_deleteActor = new QShortcut(QKeySequence("Backspace"), this);
-    connect(sc_openActor, SIGNAL(activated()), this, SLOT(deleteCurrentActor()));
-    connect(sc_openActor, SIGNAL(activated()), this, SLOT(showCurrentActorProfile()));
     sqlThread->start();
-}
-
-void MainWindow::deleteCurrentActor(){
-    if (!currentActor.isNull()){
-        ui->profileWidget->hide();
-        emit deleteActor(currentActor);
-    }
-}
-void MainWindow::showCurrentActorProfile(){
-    if (!currentActor.isNull()){
-        loadActorProfile(currentActor);
-    }
 }
 
 void MainWindow::showEvent(QShowEvent */*event*/){
@@ -155,14 +139,19 @@ void MainWindow::buildQStandardItem(ActorPtr a){
     mx.lock();
     rows.push_back(row);
     actorMap.insert(a->getName(), a);
+    ++index;
     if (index % 100 == 0){
-        emit updateProgressDialog(++index);
+        emit updateProgressDialog(index);
     }
     mx.unlock();
 }
 
 void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     if (runMode == Release){
+        disconnect(initThread, SIGNAL(sendInitialLists(ActorList,SceneList)),  this,   SLOT(initializationFinished(ActorList,SceneList)));
+        disconnect(initThread, SIGNAL(startProgress(QString,int)),                   this,   SLOT(newProgressDialog(QString,int)));
+        disconnect(initThread, SIGNAL(updateProgress(int)),                          this,   SLOT(updateProgressDialog(int)));
+        disconnect(initThread, SIGNAL(closeProgressDialog()),                              this,   SLOT(closeProgressDialog()));
         delete initThread;
         qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
         int idx = 0;
@@ -175,24 +164,40 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
                 emit updateProgressDialogBox(idx);
             }
         }
-        index = 0;
         emit closeProgressDialogBox();
-        emit newProgressDialogBox(QString("Building %1 Actor Display Items...").arg(actors.size()), actors.size());
+        QTime timer(0,0,0);
+        timer.start();
+        index = 0;
+        emit newProgressDialogBox(QString("Building %1 Actor Items").arg(actors.size()), actors.size());
         QFutureSynchronizer<void> sync;
-        foreach(ActorPtr a, actors){
+        for(int i = 0; i < actors.size(); ++i){
+            ActorPtr a = actors.at(i);
             sync.addFuture(QtConcurrent::run(this, &MainWindow::buildQStandardItem, a));
         }
         sync.waitForFinished();
         emit closeProgressDialogBox();
+        index = 0;
         emit newProgressDialogBox(QString("Adding %1 Actors to the Display").arg(actors.size()), actors.size());
-        for(int i = 0; i < rows.size(); ++i){
-            actorModel->appendRow(rows.at(i));
-            if (i % 100 == 0){
-                emit updateProgressDialogBox(i);
+        foreach(QList<QStandardItem *> row, rows){
+            actorModel->appendRow(row);
+            if (++index %100 == 0){
+                emit updateProgressDialogBox(index);
             }
         }
+        double elapsed = (double)timer.elapsed()/1000.0;
+        qDebug("\n****Time To Build and Add Actors: %s ****\n", qPrintable(QString::number(elapsed, 'f', 2)));
+        /*
+        foreach(ActorPtr a, actors){
+            actorModel->appendRow(a->buildQStandardItem());
+            actorMap.insert(a->getName(), a);
+            if ((++index % 100) == 0){
+                emit updateProgressDialogBox(index);
+            }
+        }
+            */
         emit closeProgressDialogBox();
         qDebug("All items added to GUI");
+
         /// Set up Filter boxes
         QStringList companies = sqlThread->getCompanyList();
         companies.prepend(COMBO_BOX_DEFAULT);
@@ -204,70 +209,16 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
         ethnicities.prepend(COMBO_BOX_DEFAULT);
         ui->cb_ethnicity->addItems(ethnicities);
     }
-    /*
-    int index = 0;
-    connect(this, SIGNAL(newProgressDialogBox(QString,int)),this, SLOT(newProgressDialog(QString,int)));
-    connect(this, SIGNAL(updateProgressDialogBox(int)),     this, SLOT(updateProgressDialog(int)));
-    connect(this, SIGNAL(closeProgressDialogBox()),         this, SLOT(closeProgressDialog()));
+    // Set up selection behaviour
+    qDebug("Setting up Actor Table Selection Model");
+    this->actorSelectionModel = ui->actorTableView->selectionModel();
 
-    connect(this, SIGNAL(startProgressBar(QString,int)),    this, SLOT(startProgress(QString,int)));
-    connect(this, SIGNAL(updateProgressBar(int)),           this, SLOT(updateProgress(int)));
-    connect(this, SIGNAL(closeProgressBar(QString)),        this, SLOT(closeProgress(QString)));
-
-    connect(this, SIGNAL(updateStatusLabel(QString)),       this, SLOT(updateStatus(QString)));
-    // Start the progress bar & set the label
-    emit newProgressDialogBox(QString("Adding %1 Scenes to the model").arg(scenes.size()), scenes.size());
-    this->sceneList = scenes;
-    QStringList cast;
-    foreach(ScenePtr s, scenes){
-        // ui->sceneWidget->addScene(s);
-        sceneModel->appendRow(s->buildQStandardItem());
-        sceneList.push_back(s);
-        ++index;
-        if ((index % 300) == 0){
-            emit updateProgressDialogBox(index);
-        }
-    }
-    emit closeProgressDialogBox();
-    this->threadedProgressCounter = 0;
-    emit newProgressDialogBox(QString("Building Scaled Profile Photos for %1 Actors").arg(actors.size()), actors.size());
-    QFutureSynchronizer<void> sync;
-    for(int i = 0; i < actors.size(); ++i){
-        ActorPtr curr = actors.at(i);
-        sync.addFuture(QtConcurrent::run(this, &MainWindow::threaded_profile_photo_scaler, curr));
-    }
-    sync.waitForFinished();
-    emit closeProgressDialogBox();
-    emit newProgressDialogBox(QString("Adding %1 Actors to Model").arg(actors.size()), actors.size());
-    foreach(ActorPtr a, actors){
-        if (!actorMap.contains(a->getName())){
-            a->setSceneCount(sceneList.countScenesWithActor(a));
-            actorMap.insert(a->getName(), a);
-            actorModel->appendRow(a->buildQStandardItem());
-        }
-        ++index;
-        if ((index % 50) == 0){
-           emit updateProgressDialogBox(index);
-        }
-    }
-    emit closeProgressDialogBox();
-    */
+    connect(actorSelectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(actorSelectionChanged(QModelIndex,QModelIndex)));
 
     ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
     ui->actorTableView->resizeColumnsToContents();
-
-    setupThreads();
-}
-
-
-/** \brief  Set up all persistent background threads, and connect their signals and slots to the main window.
- */
-void MainWindow::setupThreads(){
     qDebug("Initializing Worker Threads");
-    disconnect(sqlThread, SIGNAL(initializationFinished(ActorList,SceneList)),  this,   SLOT(initializationFinished(ActorList,SceneList)));
-    disconnect(sqlThread, SIGNAL(startProgress(QString,int)),                   this,   SLOT(newProgressDialog(QString,int)));
-    disconnect(sqlThread, SIGNAL(updateProgress(int)),                          this,   SLOT(updateProgressDialog(int)));
-    disconnect(sqlThread, SIGNAL(closeProgress()),                              this,   SLOT(closeProgressDialog()));
+
 
     /// PROGRESS & STATUS BAR UPDATING
     connect(scanner,    SIGNAL(startProgress(QString,int)), this,       SLOT(startProgress(QString,int)));
@@ -315,8 +266,9 @@ void MainWindow::setupThreads(){
     connect(ui->profileWidget,  SIGNAL(saveToDatabase(ActorPtr)),   sqlThread,          SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(updateFromWeb(ActorPtr)),    curlThread,         SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(downloadPhoto(ActorPtr)),    curlThread,         SLOT(downloadPhoto(ActorPtr)));
-    connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      this,               SLOT(deleteActor(ActorPtr)));
+    connect(ui->profileWidget,  SIGNAL(deleteCurrent()),            this,               SLOT(removeActorItem()));
     connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      sqlThread,          SLOT(drop(ActorPtr)));
+    connect(this,               SIGNAL(dropActor(ActorPtr)),        sqlThread,          SLOT(drop(ActorPtr)));
 
     /** Scanning Routing Data Passing **/
     connect(scanner,    SIGNAL(fs_to_db_checkNames(QStringList)),   sqlThread, SLOT(fs_to_db_checkNames(QStringList)));
@@ -338,7 +290,7 @@ void MainWindow::db_to_mw_receiveActors(ActorList list){
         //qDebug("Adding %s with ID %llu to actorMap", qPrintable(name), a->getID());
         actorModel->appendRow(a->buildQStandardItem());
         actorMap.insert(name, a);
-        actorModel->sort(NAME_COLUMN, Qt::AscendingOrder);
+        actorModel->sort(SCENE_NAME_COLUMN, Qt::AscendingOrder);
     }
     ui->actorTableView->resizeColumnsToContents();
     ui->actorTableView->resizeRowsToContents();
@@ -356,6 +308,23 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
     qDebug("Added %d Scenes!", list.size());
 }
 
+void MainWindow::actorSelectionChanged(QModelIndex current, QModelIndex /*previous*/){
+    if (current.isValid() && current.row() > -1){
+        QString name = actorProxyModel->data(actorProxyModel->index(current.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
+        if (actorMap.contains(name)){
+            this->currentActorIndex = current;
+            this->currentActor = ActorPtr(0);
+            this->currentActor = actorMap.value(name);
+            qDebug("'%s' Selected", qPrintable(name));
+            if (!ui->profileWidget->isHidden()){
+                emit loadActorProfile(currentActor);
+            }
+        } else {
+            qWarning("Actor Map doesn't Contain '%s'", qPrintable(name));
+        }
+    }
+}
+
 /** \brief Slot called when an item in the actor list is clicked
  *  \param  QModelIndex index: the index of the selected actor.
  */
@@ -368,9 +337,73 @@ void MainWindow::actorTableView_clicked(const QModelIndex &index){
         if (actorMap.contains(name)){
             this->currentActor = actorMap.value(name);
             emit loadActorProfile(currentActor);
-            emit actorSelectionChanged(name);
         } else {
             qCritical("Name not in map: %s", qPrintable(name));
+        }
+    }
+}
+
+/** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
+ActorPtr MainWindow::getSelectedActor(){
+    ActorPtr a = QSharedPointer<Actor>(0);
+    this->currentActorIndex = ui->actorTableView->currentIndex();
+    QString name = actorModel->data(actorModel->index(currentActorIndex.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
+    if (actorMap.contains(name)){
+        a = actorMap.value(name);
+        this->currentActor = a;
+    } else {
+        qWarning("Error Retrieving Selected Actor");
+    }
+    return a;
+}
+
+QModelIndex MainWindow::findActorIndex(QString name){
+    QAbstractItemModel *model = ui->actorTableView->model();
+    QSortFilterProxyModel proxy;
+    proxy.setSourceModel(model);
+    proxy.setFilterKeyColumn(ACTOR_NAME_COLUMN);
+    proxy.setFilterFixedString(name);
+    QModelIndex matchingIndex = proxy.mapToSource(proxy.index(0,0));
+    if (!matchingIndex.isValid()){
+        QMessageBox::critical(this, tr("Error Finding Actor"), QString("Error Locating %1").arg(name), QMessageBox::Abort);
+        matchingIndex = QModelIndex();
+    }
+    return matchingIndex;
+}
+
+void MainWindow::on_actionDeleteActor_triggered(){
+    qDebug("Delete Actor Shortcut Detected");
+    if (!currentActor.isNull()){
+        emit dropActor(currentActor);
+        this->removeActorItem();
+    }
+}
+
+void MainWindow::removeActorItem(){
+    if (!currentActor.isNull()){
+        qDebug("Removing '%s' from main window display & map", qPrintable(currentActor->getName()));
+        actorProxyModel->removeRow(currentActorIndex.row());
+        if (!actorMap.contains(currentActor->getName())){
+            qWarning("Can't remove '%s' from map - not in map!", qPrintable(currentActor->getName()));
+        } else {
+            actorMap.remove(currentActor->getName());
+        }
+    }
+}
+void MainWindow::showCurrentActorProfile(){
+    if (!currentActor.isNull()){
+        loadActorProfile(currentActor);
+    }
+}
+
+void MainWindow::refreshCurrentActor(){
+    if (!this->currentActor.isNull()){
+        QString new_filename = getHeadshotName(this->currentActor->getName());
+        QFileInfo info(new_filename);
+        if (info.exists() && info.size() > 200){
+            this->currentActor->setHeadshot(new_filename);
+            this->currentActor->updateQStandardItem();
+            emit loadActorProfile(currentActor);
         }
     }
 }
@@ -573,7 +606,7 @@ void MainWindow::receiveSingleActor(ActorPtr a){
     }
     ui->actorTableView->resizeColumnsToContents();
     ui->actorTableView->resizeRowsToContents();
-    this->actorModel->sort(NAME_COLUMN);
+    this->actorModel->sort(SCENE_NAME_COLUMN);
 }
 
 /** \brief  Receive a list of scenes that have been created by the file scanner thread, and a list of names
@@ -619,18 +652,6 @@ void MainWindow::on_actionRefresh_Display_triggered(){
     }
 }
 
-void MainWindow::refreshCurrentActor(){
-    if (!this->currentActor.isNull()){
-        QString new_filename = getHeadshotName(this->currentActor->getName());
-        QFileInfo info(new_filename);
-        if (info.exists() && info.size() > 200){
-            this->currentActor->setHeadshot(new_filename);
-            this->currentActor->updateQStandardItem();
-            emit loadActorProfile(currentActor);
-        }
-    }
-}
-
 /** \brief  Assign a new profile picture for the currently selected actor
  */
 void MainWindow::selectNewProfilePhoto(){
@@ -653,19 +674,6 @@ void MainWindow::selectNewProfilePhoto(){
 }
 
 
-/** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
-ActorPtr MainWindow::getSelectedActor(){
-    ActorPtr a = QSharedPointer<Actor>(0);
-    if (currentActorIndex.isValid() && (currentActorIndex.row() > -1)){
-        QString name = actorModel->data(actorModel->index(currentActorIndex.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
-        if (actorMap.contains(name)){
-            a = actorMap.value(name);
-        } else {
-            qWarning("Error Retrieving Selected Actor");
-        }
-    }
-    return a;
-}
 
 /** \brief Load all entries from the Actor Table in the Database */
 void MainWindow::on_actionLoad_Actors_triggered(){
@@ -770,18 +778,6 @@ void MainWindow::testProfileDialogClosed(){
     }
 }
 
-void MainWindow::deleteActor(ActorPtr a){
-    if (!a.isNull()){
-        if (!this->currentActor.isNull() && (a->getName() == currentActor->getName())){
-            qDebug("Deleting Currently Selected Actor, %s", qPrintable(currentActor->getName()));
-            qDebug("Removing '%s' list item", qPrintable(currentActor->getName()));
-            //actorModel->removeRow(currentActorIndex.row());
-            actorProxyModel->removeRow(currentActorIndex.row());
-            actorMap.remove(currentActor->getName());
-            ui->profileWidget->hide();
-        }
-    }
-}
 
 void MainWindow::on_actionUpdate_Bios_triggered(){
     updateList.clear();
@@ -868,4 +864,10 @@ void MainWindow::on_actionWipe_Scenes_Table_triggered(){
 void MainWindow::on_actionWipe_Actor_Table_triggered(){
     sqlThread->dropTable(Database::ACTOR);
     sqlThread->makeTable(Database::ACTOR);
+}
+
+
+void MainWindow::on_actionItemDetails_triggered(){
+   qDebug("Show Profile Shortcut Triggered");
+   emit loadActorProfile(currentActor);
 }

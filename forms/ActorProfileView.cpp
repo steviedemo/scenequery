@@ -158,7 +158,8 @@ void ActorProfileView::loadActorProfile(ActorPtr a){
     ui->aliasesTextEdit->setText(bio.getAliases());
     ui->piercingsTextEdit->setText(bio.getPiercings());
     ui->tattoosTextEdit->setText(bio.getTattoos());
-    ui->profilePhoto->setPixmap(QPixmap(a->getHeadshot()).scaledToHeight(IMAGE_HEIGHT));
+    QImage headshot = scaleImage(a->getHeadshot(), IMAGE_HEIGHT, Qt::SmoothTransformation);
+    ui->profilePhoto->setPixmap(QPixmap::fromImage(headshot));
     /// Request The scene count in a few seconds, once the scene filtering has been performed.
     QTimer::singleShot(3, this, SLOT(onTimeout()));
 }
@@ -168,6 +169,7 @@ void ActorProfileView::onTimeout(){
 }
 
 void ActorProfileView::on_deleteActor_clicked(){
+    emit deleteCurrent();
     emit deleteActor(current);
 }
 void ActorProfileView::on_downloadPhoto_clicked(){

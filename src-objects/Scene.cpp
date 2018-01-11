@@ -272,8 +272,7 @@ Scene::RowData Scene::getRowData(){
         sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
     } else if (this->size > BYTES_PER_MEGABYTE){
         int mb = size/BYTES_PER_MEGABYTE;
-        sizeString = QString::number(mb);
-        sizeString.append(" MB");
+        sizeString = QString("%1 MB").arg((int)(size/BYTES_PER_MEGABYTE));
     }
     data.size = sizeString;
     data.length = this->length.toString("hh:mm:ss");
@@ -302,9 +301,7 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
         double gb = (double)(size/BYTES_PER_GIGABYTE);
         sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
     } else if (this->size > BYTES_PER_MEGABYTE){
-        double mb = (double)(size/BYTES_PER_MEGABYTE);
-        sizeString = QString::number(mb, 'f', 2);
-        sizeString.append(" MB");
+        sizeString = QString("%1 MB").arg(size/BYTES_PER_MEGABYTE);
     }
     this->itemSize = ItemPtr(new QStandardItem(sizeString));
     this->itemTitle = ItemPtr(new QStandardItem());

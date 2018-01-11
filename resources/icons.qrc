@@ -79,5 +79,7 @@
         <file>Icons/profile_icon.png</file>
         <file>Icons/profile_refresh.png</file>
         <file>Icons/profile_save.png</file>
+        <file>Icons/video-thumbnail-default.png</file>
+        <file>Icons/shiny-grey-play-button.png</file>
     </qresource>
 </RCC>
