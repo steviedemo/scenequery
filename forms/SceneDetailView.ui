@@ -10,16 +10,21 @@
     <height>346</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>16</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QLineEdit, QTextBrowser{
+   <string notr="true">QLineEdit, QTextBrowser, QTextEdit{
 	text-align: center;
 	background: rgba(0,0,0,0);
 	border: 0px;
 }
-QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;]{
+QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;], QTextEdit[readOnly=&quot;false&quot;]{
 	background: rgba(255,255,255, 30);
 }</string>
   </property>
@@ -157,7 +162,7 @@ QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;]{
           </widget>
          </item>
          <item row="1" column="3">
-          <widget class="QComboBox" name="comboBox">
+          <widget class="QComboBox" name="ratingComboBox">
            <property name="maximumSize">
             <size>
              <width>80</width>
@@ -230,35 +235,45 @@ QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;]{
        </item>
        <item row="1" column="1">
         <layout class="QFormLayout" name="formLayout_3">
-         <item row="2" column="0">
+         <item row="3" column="0">
           <widget class="QLabel" name="tagsLabel">
            <property name="text">
             <string>Tags</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="2" column="0">
           <widget class="QLabel" name="releasedLabel">
            <property name="text">
             <string>Released</string>
            </property>
           </widget>
          </item>
-         <item row="1" column="1">
+         <item row="2" column="1">
           <widget class="QLineEdit" name="releasedLineEdit"/>
          </item>
-         <item row="0" column="0">
+         <item row="1" column="0">
           <widget class="QLabel" name="seriesLabel">
            <property name="text">
             <string>Series</string>
            </property>
           </widget>
          </item>
-         <item row="0" column="1">
+         <item row="1" column="1">
           <widget class="QLineEdit" name="seriesLineEdit"/>
          </item>
-         <item row="2" column="1">
-          <widget class="QTextBrowser" name="tagsTextBrowser">
+         <item row="0" column="1">
+          <widget class="QLineEdit" name="companyLineEdit"/>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="companyLabel">
+           <property name="text">
+            <string>Company</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QTextEdit" name="tagsTextEdit">
            <property name="readOnly">
             <bool>false</bool>
            </property>
@@ -272,6 +287,23 @@ QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;]{
    </item>
    <item row="0" column="1">
     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QLineEdit" name="titleLineEdit">
+       <property name="font">
+        <font>
+         <pointsize>16</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>Title</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QLabel" name="label">
        <property name="sizePolicy">
@@ -304,36 +336,129 @@ QLineEdit[readOnly=&quot;false&quot;], QTextBrowser[readOnly=&quot;false&quot;]{
       </widget>
      </item>
      <item>
-      <layout class="QFormLayout" name="formLayout_2">
-       <item row="0" column="0">
-        <widget class="QLabel" name="titleLabel">
-         <property name="text">
-          <string>Title</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="titleLineEdit"/>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="companyLabel">
-         <property name="text">
-          <string>Company</string>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="companyLineEdit"/>
-       </item>
-       <item row="3" column="0">
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="1" column="0">
         <widget class="QLabel" name="castLabel">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>40</width>
+           <height>16777215</height>
+          </size>
+         </property>
          <property name="text">
-          <string>Cast</string>
+          <string>Cast:</string>
          </property>
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QTextBrowser" name="castTextBrowser"/>
+        <widget class="QLabel" name="actor3label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLabel" name="actor4label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="actor1label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLabel" name="actor2label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="age1label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="age2label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="age3label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="2">
+        <widget class="QLabel" name="age4label">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

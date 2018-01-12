@@ -29,6 +29,12 @@ bool valid(QDateTime d){
     return (d.isValid());
 }
 
+QStringList getRatingList(){
+    QStringList ratings;
+    ratings << "A+++" << "A++" << "A+" << "A" << "A-" << "B+" << "B" << "B-" << "C" << "R";
+    return ratings;
+}
+
 QImage scaleImage(QString file, int height, Qt::TransformationMode mode){
     QImage source(file);
     int width = ((height*source.width())/source.height());

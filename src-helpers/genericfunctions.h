@@ -8,6 +8,7 @@
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters);
 QString     listToString(QStringList);
 QString     system_call(QString);
+QStringList getRatingList(void);
 bool        system_call_blocking(QString command, QStringList args);
 bool        system_call_blocking(QString command, QStringList args, QString &output);
 ActorList   MapToList(ActorMap actors);

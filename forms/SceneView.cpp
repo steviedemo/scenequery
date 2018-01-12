@@ -31,8 +31,17 @@ SceneView::SceneView(QWidget *parent):
     setLayout(mainLayout);
     //table->setMinimumWidth(800);
     table->resizeColumnsToContents();
+    this->selectionModel = table->selectionModel();
+    connect(selectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(selectionChanged(QModelIndex,QModelIndex)));
+    connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(sceneClicked(QModelIndex)));
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
 }
+
+void SceneView::sceneClicked(QModelIndex modelIndex){
+    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN, modelIndex)).toString();
+    emit sceneItemClicked(filename);
+}
+
 
 void SceneView::rowDoubleClicked(const QModelIndex &sourceParent){
     QString filepath = proxyModel->data(proxyModel->index(sourceParent.row(), SCENE_PATH_COLUMN, sourceParent)).toString();

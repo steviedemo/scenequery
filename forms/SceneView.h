@@ -24,8 +24,11 @@ private slots:
     void actorFilterChanged(ActorPtr);
     void clearFilter(void);
     void rowDoubleClicked(const QModelIndex &index);
+    void selectionChanged(QModelIndex, QModelIndex);
+    void sceneClicked(QModelIndex);
 private:
     void addData(int column, QString data);
+    QItemSelectionModel *selectionModel;
     QWidget *parent;
     QStringList headers;
     SceneProxyModel *proxyModel;
@@ -35,6 +38,8 @@ private:
 signals:
     void sendSceneCount(int);
     void playFile(QString);
+    void sceneSelectionChanged(QString filename);
+    void sceneItemClicked(QString filename);
 };
 
 #endif // SCENEVIEW_H

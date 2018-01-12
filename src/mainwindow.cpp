@@ -58,6 +58,7 @@ void MainWindow::setupViews(){
     this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
     actorModel->setHorizontalHeaderLabels(actorHeaders);
+    this->actorModel->setSortRole(Qt::DecorationRole);
 
     this->actorParent = actorModel->invisibleRootItem();
     this->actorProxyModel = new ActorProxyModel(this);
@@ -78,9 +79,11 @@ void MainWindow::setupViews(){
     sceneProxyModel->setSourceModel(sceneModel);
     ui->sceneWidget->setSourceModel(sceneModel);
 
+    /// Set Up Scene Detail View
+    ui->sceneDetailView->hide();
     /// Set Up Profile Widget
-    this->actorModel->setSortRole(Qt::DecorationRole);
     ui->profileWidget->hide();
+
     ui->progressBar->setValue(0);
     QStringList numFilters;
     numFilters << "More Than" << "Less Than" << "Exactly";
