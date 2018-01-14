@@ -46,7 +46,11 @@ private slots:
     void refreshCurrentActor(void);
     void closeAddActorDialog();
 
-
+    void renameFile(ScenePtr);
+    void apv_to_mw_receiveSceneListRequest(QString actorName);
+    void apv_to_mw_receiveActorRequest(QString name);
+    void apv_to_mw_receiveNewActor(ActorPtr a);
+    void apv_to_mw_deleteActor(QString name);
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
@@ -79,6 +83,7 @@ private slots:
     /// Buttons
     void on_actionScan_Directory_triggered();
     void scan_directory_chosen(QString);
+    void scan_thread_finished();
     void on_pb_refreshScenes_clicked();
     void on_pb_refreshActors_clicked();
     void on_pb_saveScenes_clicked();
@@ -142,26 +147,25 @@ private:
     ActorProxyModel *actorProxyModel;
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
-    SceneList sceneList;
+    SceneList sceneList, sceneUpdateList;
     bool videoOpen;
     QVector<QList<QStandardItem *>> rows;
     QItemSelectionModel *actorSelectionModel;
     /// Threads
-    SceneView *sceneView;
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     InitializationThread *initThread;
     VideoPlayer *videoPlayer;
     QThread     *videoThread;
-    curlTool    *curlTestThread;
+    curlTool    *curlTestObject;
     FileScanner *scanner;
-    curlTool    *curlThread;
-    SQL         *sqlThread;
+    curlTool    *curl;
+    SQL         *sql;
+    QThread     *sqlThread, *curlThread, *curlTestThread;
     bool itemSelected;
     Display currentDisplay;
     int index;
     QMutex mx;
-    QShortcut *sc_openActor, *sc_deleteActor;
 
 signals:
     void closing();
@@ -178,7 +182,8 @@ signals:
     void loadScenes         ();
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
-
+    void mw_to_apv_sendScenes(SceneList);
+    void mw_to_apv_sendActor(ActorPtr);
     void purgeScenes        (void);
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);

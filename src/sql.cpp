@@ -30,26 +30,19 @@ SQL::SQL(QString name){
 
 void SQL::startServer(){
     qDebug("Starting Postgresql..");
-    QString output = system_call(START_PSQL);
-    qDebug("Output: %s", qPrintable(output));
+    QStringList args;
+    args << "-D" << "/usr/local/var/postgres" << "-l" << "/usr/local/var/postgres/server.log" << "start";
+    QString command("/usr/local/bin/pg_ctl");
+    QString output("");
+    if (system_call_blocking(command, args, output)){
+        qDebug("Output: %s", qPrintable(output));
+    } else {
+        qWarning("Error Starting Postgres");
+    }
 }
 /** Destructor */
 SQL::~SQL(){}
 
-/** Main Loop */
-void SQL::run(){
-    this->keepRunning = true;
-    qDebug("SQL Thread Started!");
-    while (keepRunning){
-        sleep(1);
-    }
-    qDebug("SQL Thread Stopped!");
-}
-
-/** Stop the Thread's Main Event Loop */
-void SQL::stopThread(){
-    this->keepRunning = false;
-}
 /** Get a Printable form of the given Query Type enum */
 const char *SQL::toString(queryType t){
     if (t == SQL_UPDATE){
@@ -128,15 +121,10 @@ int SQL::getActorID(QString name){
         sqlConnection sql(sqlStatement.toStdString());
         if (sql.execute()){
             pqxx::result r = sql.getResult();
-            for (size_t rownum=0; rownum < 1 && rownum < r.size(); ++rownum){
-                const pqxx::result::tuple row = r[rownum];
-                for(size_t colnum=0; colnum < 1 && colnum < row.size(); ++colnum){
-                    QString id_string(row.at("id").c_str());
-                    bool converted = false;
-                    int temp = id_string.toInt(&converted);
-                    if (converted && temp > 0){
-                        id = temp;
-                    }
+            if (r.size() > 0){
+                pqxx::result::const_iterator entry = r.begin();
+                if (!entry["id"].is_null()){
+                    id = entry["id"].as<int>();
                 }
             }
             if (id < 0){
@@ -164,7 +152,9 @@ int SQL::getSceneID(QString filepath, QString filename){
                 pqxx::result::const_iterator entry = r.begin();
                 if (!entry["id"].is_null()){
                     id = entry["id"].as<int>();
-                    qDebug("Got ID of %d for Scene %s", id, qPrintable(filename));
+                    if (id < 0){
+                        qDebug("Got ID of %d for Scene %s", id, qPrintable(filename));
+                    }
                 } else {
                     qWarning("ID is null for %s", qPrintable(filename));
                 }
@@ -381,7 +371,7 @@ void SQL::purgeScenes(void){
  * Retrieving a Vector of Items from the records in a table.
  *------------------------------------------------------------------*/
 void SQL::loadScene(pqxx::result::const_iterator &i){
-    if (!i.empty()){
+    if (i.size() > 0){
         ScenePtr scene = QSharedPointer<Scene>(new Scene(i));
         if (!scenes.contains(scene)){
             mx.lock();

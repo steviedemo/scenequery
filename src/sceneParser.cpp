@@ -88,6 +88,12 @@ void sceneParser::doubleCheckNames(){
             actors[i] = name;
         }
     }
+    if (actors.size() < 4){
+        int toAdd = 4 - actors.size();
+        for(int i = 0; i < toAdd; ++i){
+            actors << "";
+        }
+    }
 }
 
 void sceneParser::parse(void){
@@ -104,6 +110,9 @@ void sceneParser::parse(QPair<QString,QString> path){
     this->created   = info.created().date();
     this->accessed  = info.lastRead().date();
     this->size      = info.size();
+    if (size < 0){
+        this->size = (-1)*(this->size);
+    }
     this->title     = this->parseTitle(file.second).trimmed();
     parseParentheses(file.second);
     bashScript(absolutePath);
@@ -121,6 +130,9 @@ void sceneParser::parse(QString absolutePath){
     this->created       = info.created().date();
     this->accessed      = info.lastRead().date();
     this->size          = info.size()/1000;
+    if (size < 0){
+        this->size = (-1)*(this->size);
+    }
     // Parse out the Name
     this->title         = parseTitle(file.second).trimmed();
     //this->md5sum        = checksum(fullpath);
@@ -259,22 +271,30 @@ QString sceneParser::parseTitle(QString name){
 // Get Height, Width, and Length from exif.
 void sceneParser::bashScript(QString fileToAnalyze){
     QMap<QString, QString> videoData;
-    static const QRegularExpression rx("^([A-Za-z]+):\\s*(.+)$");
+    static const QRegularExpression rx("([A-Za-z]+): ([0-9:]+)");
     QString output("");
     QString script = QString("%1/scripts/collect_exif.sh").arg(findDataLocation());
     try{
         if (system_call_blocking(script, QStringList() << fileToAnalyze, output)){
+            qDebug("Bash Script Output:\n%s\n", qPrintable(output));
             QRegularExpressionMatchIterator it = rx.globalMatch(output);
             while(it.hasNext()){
                 QRegularExpressionMatch m = it.next();
+                //qDebug("Bash Script output parameter: key: '%s', value: '%s'", qPrintable(m.captured(1)), qPrintable(m.captured(2)));
                 videoData.insert(m.captured(1), m.captured(2));
             }
             //qDebug("Bash Script Output:\n%s", qPrintable(output));
             if (videoData.contains("Width"))    {   this->width = videoData.value("Width").toInt();                 }
             if (videoData.contains("Height"))   {   this->height = videoData.value("Height").toInt();                }
+            QRegularExpression lengthRx(".*Length:\\s*([0-9]:[0-9]{2}:[0-9]{2}).*");
+
             if (videoData.contains("Length")) {
                 QString time = videoData.value("Length");
-                length.fromString(time, "h:mm:ss");
+                //qDebug("Bash script returned a length of '%s'", qPrintable(time));
+                length = QTime::fromString(time, "h:mm:ss");
+                //qDebug("Time Object contains a value of: %s", qPrintable(length.toString("h:mm:ss")));
+            } else {
+                qWarning("Did Not find 'Length' in the bash script output");
             }
 
             //if (videoData.contains("Created"))  {   this->release = QDate::fromString(videoData.value("Created"), "yyyy:MM:dd");    }
@@ -397,6 +417,7 @@ QString sceneParser::displayInfo(){
     out << "Quality:    " << height << endl;
     out << "Series:     " << series << endl;
     out << "Scene No:   " << sceneNumber << endl;
+    out << "Length:     " << length.toString("h:mm:ss");
     if (release.isValid()){
         out << "Released:   " << release.toString("MMMM d, yyyy") << endl;
     } else {
@@ -419,13 +440,6 @@ QString sceneParser::displayInfo(){
     }
     out << "Tags:       " << tagString << endl;
     out << "New Name:   " << formatFilename() << endl;
-    out << "Available Metadata Tags: " << endl;
-    QString keys("");
-    it = availableMetaDataKeys;
-    while(it.hasNext()){
-        keys += it.next() + (it.hasNext() ? ", " : "");
-    }
-    out << keys;
     return show;
 }
 /** **********************************************************************
@@ -433,13 +447,13 @@ QString sceneParser::displayInfo(){
 QString sceneParser::formatFilename()   {
     return QString("%1%2%3%4.%5").arg(formatActor()).arg(formatCompany()).arg(formatTitle()).arg(formatParentheses()).arg(getExtension(file.second));
 }
-QString sceneParser::formatActor()      {   return (actors.isEmpty() ? "Unknown - " : QString("%1 - ").arg(actors.at(0)));  }
-QString sceneParser::formatCompany()    {   return (company.isEmpty() ? "" : QString("[%1] ").arg(company));      }
+QString sceneParser::formatActor()      {   return (actors.isEmpty() ? "Unknown - " : QString("%1 - ").arg(actors.at(0).trimmed()));  }
+QString sceneParser::formatCompany()    {   return (company.isEmpty() ? "" : QString("[%1] ").arg(company.trimmed()));      }
 QString sceneParser::formatTitle(){
     QString data("");
     int added = 0;
     if (!title.isEmpty()){
-        data.append(title);
+        data.append(title.trimmed());
     }
     if (sceneNumber > 0){
         if (added > 0){
@@ -448,14 +462,15 @@ QString sceneParser::formatTitle(){
         data += " Scene #" + QString::number(sceneNumber);
         added++;
     }
-    if (actors.size() > 1){
+
+    if (!actors.at(1).isEmpty()){
         data += " feat. ";
         QStringListIterator it(actors);
         it.next();  // Skip First actor
         while(it.hasNext()){
             QString actor = it.next();
             if (!actor.isEmpty()){
-                data += actor + (it.hasNext() ? ", " : "");
+                data += actor.trimmed() + (it.hasNext() ? ", " : "");
             }
         }
         added++;
@@ -468,7 +483,7 @@ QString sceneParser::formatParentheses(){
     int added = 0;
     // Add Series
     if (!this->series.isEmpty()){
-        data.append(series);
+        data.append(series.trimmed());
         added++;
     }
     // add Release Date
@@ -494,7 +509,7 @@ QString sceneParser::formatParentheses(){
         while(it.hasNext()){
             QString tag = it.next();
             if (!tag.isEmpty()){
-                tagString += tag + (it.hasNext() ? ", " : "");
+                tagString += tag.trimmed() + (it.hasNext() ? ", " : "");
             }
         }
         if (!tagString.isEmpty()){

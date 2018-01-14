@@ -26,23 +26,23 @@ public slots:
     void clearDisplay(void);
     void loadScene(ScenePtr);
 private slots:
-    void playPreview();
+    void rescanScene();
     void addActor(void);
     void actorLinkClicked(QString);
-    void on_tb_hide_clicked();
-    void on_tb_save_clicked();
-    void on_tb_edit_clicked();
     void playCurrentVideo();
+    void on_pb_save_clicked();
+
+
+    void on_pb_reparse_clicked();
+
 private:
     void enableLineEdits(bool readOnly);
-
+    bool changed;
     ScenePtr current;
     Ui::SceneDetailView *ui;
-    QList<QLabel *> castList, ageList;
+    QList<QLabel *> castList, ageList, ageLabelList;
     QList<QLineEdit *>dataFields;
-    QMediaPlayer *mediaPlayer;
-    QVideoWidget *videoWidget;
-    QOpenGLWidget *openglWidget;
+
 signals:
     void showActor(QString);
     void saveChanges(ScenePtr);

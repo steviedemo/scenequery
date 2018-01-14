@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>977</height>
+    <height>762</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -29,14 +29,24 @@
    <string notr="true">QLabel, QLineEdit, QTextEdit, QDateEdit{
 	font-family: Gill Sans;
 }
-
-QLabel#label_name{
+QLineEdit, QDateEdit, QTextEdit{
+	background: qlineargradient(spread:reflect, x1:0, y1:0, x2:0, y2:0.5, stop:0 rgba(52, 52, 52, 255), stop:1 rgba(66, 66, 66, 255));
+	border: 1px solid rgb(33,33,33);
+}
+QLineEdit, QDateEdit, QTextEdit{
+}
+QLabel#label_name, QLineEdit#nameLineEdit{
 	font-family: Futura;
 	font-size: 24px;
+	
+}
+QLabel{
+	
 }
 
 QToolButton{
 	background-color: rgb(100,100,100);
+	icon-size: 25px 25px;
 }
 QToolButton:hover{
 	background-color: rgb(50,50,50);
@@ -46,26 +56,439 @@ QToolButton:clicked{
 }</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="4" column="0">
-    <layout class="QFormLayout" name="formLayout">
-     <item row="0" column="0">
-      <widget class="QLabel" name="ageLabel">
+   <item row="0" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QToolButton" name="closeProfile">
+       <property name="toolTip">
+        <string>Close Profile View</string>
+       </property>
+       <property name="statusTip">
+        <string>Close Profile View</string>
+       </property>
+       <property name="whatsThis">
+        <string>Close Profile View</string>
+       </property>
        <property name="text">
-        <string>Age</string>
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/Icons/shiny_blue_back_icon.png</normaloff>:/Icons/shiny_blue_back_icon.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>30</width>
+         <height>30</height>
+        </size>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="ageLineEdit">
+     <item>
+      <layout class="QVBoxLayout" name="name_layout">
+       <item>
+        <widget class="QLabel" name="label_name">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="font">
+          <font>
+           <family>Futura</family>
+           <pointsize>-1</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Name</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="nameEditFrame">
+         <layout class="QHBoxLayout" name="nameEditLayout">
+          <item>
+           <widget class="QToolButton" name="tb_cancelNameEdit">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../resources/icons.qrc">
+              <normaloff>:/Icons/red_close_icon.png</normaloff>:/Icons/red_close_icon.png</iconset>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="nameLineEdit">
+            <property name="font">
+             <font>
+              <family>Futura</family>
+              <pointsize>-1</pointsize>
+             </font>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QToolButton" name="tb_saveNameEdit">
+            <property name="text">
+             <string>...</string>
+            </property>
+            <property name="icon">
+             <iconset resource="../resources/icons.qrc">
+              <normaloff>:/Icons/green_checkmark.png</normaloff>:/Icons/green_checkmark.png</iconset>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="QToolButton" name="tb_editName">
+       <property name="text">
+        <string>...</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../resources/icons.qrc">
+         <normaloff>:/Icons/edit_pencil.png</normaloff>:/Icons/edit_pencil.png</iconset>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="3" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <layout class="QGridLayout" name="gridLayout_3">
+       <item row="3" column="0">
+        <widget class="QToolButton" name="selectNewPhoto">
+         <property name="toolTip">
+          <string>Select new Profile Photo</string>
+         </property>
+         <property name="statusTip">
+          <string>Select New Profile Photo</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/image_add.png</normaloff>:/Icons/image_add.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="0">
+        <widget class="QToolButton" name="deletePhoto">
+         <property name="toolTip">
+          <string>Delete Profile Photo</string>
+         </property>
+         <property name="statusTip">
+          <string>Delete Profile Photo</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/image_delete.png</normaloff>:/Icons/image_delete.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QToolButton" name="downloadPhoto">
+         <property name="toolTip">
+          <string>Download Profile Photo</string>
+         </property>
+         <property name="statusTip">
+          <string>Download Profile Photo</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/image_download.png</normaloff>:/Icons/image_download.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QToolButton" name="saveProfile">
+         <property name="toolTip">
+          <string>Save Profile</string>
+         </property>
+         <property name="statusTip">
+          <string>Save Profile</string>
+         </property>
+         <property name="whatsThis">
+          <string>Save Profile</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/flat_save_icon.png</normaloff>:/Icons/flat_save_icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item alignment="Qt::AlignHCenter">
+        <widget class="QLabel" name="profilePhoto">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>200</width>
+           <height>200</height>
+          </size>
+         </property>
+         <property name="contextMenuPolicy">
+          <enum>Qt::CustomContextMenu</enum>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="pixmap">
+          <pixmap resource="../resources/icons.qrc">:/Icons/blank_profile_photo_female.png</pixmap>
+         </property>
+         <property name="scaledContents">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="1" column="0">
+        <widget class="QToolButton" name="editProfile">
+         <property name="toolTip">
+          <string>Revert Changes</string>
+         </property>
+         <property name="statusTip">
+          <string>Revert Changes</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/edit_profile_icon.png</normaloff>:/Icons/edit_profile_icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QToolButton" name="clearFields">
+         <property name="toolTip">
+          <string>Clear All Fields</string>
+         </property>
+         <property name="statusTip">
+          <string>Clear All Fields</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/profile_delete.png</normaloff>:/Icons/profile_delete.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QToolButton" name="updateFromWeb">
+         <property name="toolTip">
+          <string>Update Bio from Web</string>
+         </property>
+         <property name="statusTip">
+          <string>Update Bio From Web</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/female_silhouette_download.png</normaloff>:/Icons/female_silhouette_download.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QToolButton" name="deleteActor">
+         <property name="toolTip">
+          <string>Delete Actor</string>
+         </property>
+         <property name="statusTip">
+          <string>Delete Actor</string>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="../resources/icons.qrc">
+           <normaloff>:/Icons/female_silhouette_delete.png</normaloff>:/Icons/female_silhouette_delete.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </item>
+   <item row="4" column="0">
+    <layout class="QGridLayout" name="gridLayout_4">
+     <item row="2" column="2">
+      <widget class="QLabel" name="weightLabel">
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Weight</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="heightLineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="minimumSize">
         <size>
-         <width>200</width>
+         <width>80</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>120</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>Unknown</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QLineEdit" name="weightLineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>Unknown</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="3">
+      <widget class="QLineEdit" name="measurementsLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
          <height>16777215</height>
         </size>
        </property>
@@ -80,7 +503,173 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="scenesLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhNone</set>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Unknown</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="heightLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Height</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
+      <widget class="QLabel" name="scenesLabel">
+       <property name="text">
+        <string>Scenes</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLabel" name="measurementsLabel">
+       <property name="text">
+        <string>Measurements</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="ageLabel">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Age</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="ageLineEdit">
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
+       <property name="placeholderText">
+        <string>Unknown</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <widget class="QDateEdit" name="birthDateDateEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>80</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>120</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="inputMethodHints">
+        <set>Qt::ImhDate|Qt::ImhPreferNumbers</set>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="currentSection">
+        <enum>QDateTimeEdit::YearSection</enum>
+       </property>
+       <property name="currentSectionIndex">
+        <number>0</number>
+       </property>
+       <property name="date">
+        <date>
+         <year>1988</year>
+         <month>1</month>
+         <day>1</day>
+        </date>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLabel" name="birthDateLabel">
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Birth Date</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="5" column="0">
+    <layout class="QFormLayout" name="detailLayout">
+     <item row="0" column="0">
       <widget class="QLabel" name="hairColorLabel">
        <property name="font">
         <font>
@@ -92,7 +681,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
+     <item row="0" column="1">
       <widget class="QLineEdit" name="hairColorLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -108,7 +697,55 @@ QToolButton:clicked{
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>297</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>Unknown</string>
+       </property>
+       <property name="clearButtonEnabled">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="eyeColorLabel">
+       <property name="font">
+        <font>
+         <family>Gill Sans</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>Eye Color</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="eyeColorLineEdit">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>200</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>297</width>
          <height>16777215</height>
         </size>
        </property>
@@ -145,7 +782,7 @@ QToolButton:clicked{
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>297</width>
          <height>16777215</height>
         </size>
        </property>
@@ -161,102 +798,6 @@ QToolButton:clicked{
       </widget>
      </item>
      <item row="3" column="0">
-      <widget class="QLabel" name="scenesLabel">
-       <property name="text">
-        <string>Scenes</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="scenesLineEdit">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="inputMethodHints">
-        <set>Qt::ImhPreferNumbers</set>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-       <property name="placeholderText">
-        <string>Unknown</string>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="birthDateLabel">
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>Birth Date</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QDateEdit" name="birthDateDateEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="inputMethodHints">
-        <set>Qt::ImhDate|Qt::ImhPreferNumbers</set>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="currentSection">
-        <enum>QDateTimeEdit::YearSection</enum>
-       </property>
-       <property name="currentSectionIndex">
-        <number>0</number>
-       </property>
-       <property name="date">
-        <date>
-         <year>1988</year>
-         <month>1</month>
-         <day>1</day>
-        </date>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
       <widget class="QLabel" name="birthCityLabel">
        <property name="font">
         <font>
@@ -268,7 +809,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="5" column="1">
+     <item row="3" column="1">
       <widget class="QLineEdit" name="birthCityLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -284,7 +825,7 @@ QToolButton:clicked{
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>297</width>
          <height>16777215</height>
         </size>
        </property>
@@ -304,7 +845,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="4" column="0">
       <widget class="QLabel" name="nationalityLabel">
        <property name="font">
         <font>
@@ -316,7 +857,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="4" column="1">
       <widget class="QLineEdit" name="nationalityLineEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -332,7 +873,7 @@ QToolButton:clicked{
        </property>
        <property name="maximumSize">
         <size>
-         <width>300</width>
+         <width>297</width>
          <height>16777215</height>
         </size>
        </property>
@@ -352,183 +893,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="eyeColorLabel">
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>Eye Color</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="QLineEdit" name="eyeColorLineEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="placeholderText">
-        <string>Unknown</string>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="weightLabel">
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>Weight</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1">
-      <widget class="QLineEdit" name="weightLineEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="placeholderText">
-        <string>Unknown</string>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="heightLabel">
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>Height</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="1">
-      <widget class="QLineEdit" name="heightLineEdit">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <family>Gill Sans</family>
-        </font>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="placeholderText">
-        <string>Unknown</string>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="measurementsLabel">
-       <property name="text">
-        <string>Measurements</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="1">
-      <widget class="QLineEdit" name="measurementsLineEdit">
-       <property name="minimumSize">
-        <size>
-         <width>200</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>300</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-       <property name="placeholderText">
-        <string>Unknown</string>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="11" column="0">
+     <item row="5" column="0">
       <widget class="QLabel" name="aliasesLabel">
        <property name="font">
         <font>
@@ -540,7 +905,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="11" column="1">
+     <item row="5" column="1">
       <widget class="QTextEdit" name="aliasesTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -557,7 +922,7 @@ QToolButton:clicked{
        <property name="maximumSize">
         <size>
          <width>300</width>
-         <height>16777215</height>
+         <height>100</height>
         </size>
        </property>
        <property name="font">
@@ -576,7 +941,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="12" column="0">
+     <item row="6" column="0">
       <widget class="QLabel" name="piericingsLabel">
        <property name="font">
         <font>
@@ -588,7 +953,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="12" column="1">
+     <item row="6" column="1">
       <widget class="QTextEdit" name="piercingsTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -605,7 +970,7 @@ QToolButton:clicked{
        <property name="maximumSize">
         <size>
          <width>300</width>
-         <height>16777215</height>
+         <height>100</height>
         </size>
        </property>
        <property name="font">
@@ -624,7 +989,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="13" column="0">
+     <item row="7" column="0">
       <widget class="QLabel" name="tattoosLabel">
        <property name="font">
         <font>
@@ -636,7 +1001,7 @@ QToolButton:clicked{
        </property>
       </widget>
      </item>
-     <item row="13" column="1">
+     <item row="7" column="1">
       <widget class="QTextEdit" name="tattoosTextEdit">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -653,7 +1018,7 @@ QToolButton:clicked{
        <property name="maximumSize">
         <size>
          <width>300</width>
-         <height>16777215</height>
+         <height>100</height>
         </size>
        </property>
        <property name="font">
@@ -669,308 +1034,6 @@ QToolButton:clicked{
        </property>
        <property name="placeholderText">
         <string>Unknown</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item row="2" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <layout class="QGridLayout" name="gridLayout_3">
-       <item row="2" column="0">
-        <widget class="QToolButton" name="downloadPhoto">
-         <property name="toolTip">
-          <string>Download Profile Photo</string>
-         </property>
-         <property name="statusTip">
-          <string>Download Profile Photo</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/image_download.png</normaloff>:/Icons/image_download.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QToolButton" name="selectNewPhoto">
-         <property name="toolTip">
-          <string>Select new Profile Photo</string>
-         </property>
-         <property name="statusTip">
-          <string>Select New Profile Photo</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/image_add.png</normaloff>:/Icons/image_add.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QToolButton" name="deletePhoto">
-         <property name="toolTip">
-          <string>Delete Profile Photo</string>
-         </property>
-         <property name="statusTip">
-          <string>Delete Profile Photo</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/image_delete.png</normaloff>:/Icons/image_delete.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="0">
-        <widget class="QToolButton" name="clearFields">
-         <property name="toolTip">
-          <string>Clear All Fields</string>
-         </property>
-         <property name="statusTip">
-          <string>Clear All Fields</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/red_close_icon.png</normaloff>:/Icons/red_close_icon.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-     <item>
-      <widget class="QLabel" name="profilePhoto">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>200</width>
-         <height>200</height>
-        </size>
-       </property>
-       <property name="contextMenuPolicy">
-        <enum>Qt::CustomContextMenu</enum>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="pixmap">
-        <pixmap resource="../resources/icons.qrc">:/Icons/blank_profile_photo_female.png</pixmap>
-       </property>
-       <property name="scaledContents">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QGridLayout" name="gridLayout_2">
-       <item row="0" column="0">
-        <widget class="QToolButton" name="editProfile">
-         <property name="toolTip">
-          <string>Edit Profile</string>
-         </property>
-         <property name="statusTip">
-          <string>Edit Profile</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/female_silhouette_edit.png</normaloff>:/Icons/female_silhouette_edit.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QToolButton" name="deleteActor">
-         <property name="toolTip">
-          <string>Delete Actor</string>
-         </property>
-         <property name="statusTip">
-          <string>Delete Actor</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/female_silhouette_delete.png</normaloff>:/Icons/female_silhouette_delete.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="3" column="0">
-        <widget class="QToolButton" name="reloadFromDb">
-         <property name="toolTip">
-          <string>Revert Changes</string>
-         </property>
-         <property name="statusTip">
-          <string>Revert Changes</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/female_silhouette_update.png</normaloff>:/Icons/female_silhouette_update.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QToolButton" name="updateFromWeb">
-         <property name="toolTip">
-          <string>Update Bio from Web</string>
-         </property>
-         <property name="statusTip">
-          <string>Update Bio From Web</string>
-         </property>
-         <property name="text">
-          <string>...</string>
-         </property>
-         <property name="icon">
-          <iconset resource="../resources/icons.qrc">
-           <normaloff>:/Icons/female_silhouette_download.png</normaloff>:/Icons/female_silhouette_download.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
-   </item>
-   <item row="0" column="0">
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QToolButton" name="closeProfile">
-       <property name="toolTip">
-        <string>Close Profile View</string>
-       </property>
-       <property name="statusTip">
-        <string>Close Profile View</string>
-       </property>
-       <property name="whatsThis">
-        <string>Close Profile View</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../resources/icons.qrc">
-         <normaloff>:/Icons/shiny_blue_back_icon.png</normaloff>:/Icons/shiny_blue_back_icon.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>30</width>
-         <height>30</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_name">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <family>Futura</family>
-         <pointsize>-1</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Name</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QToolButton" name="saveProfile">
-       <property name="toolTip">
-        <string>Save Profile</string>
-       </property>
-       <property name="statusTip">
-        <string>Save Profile</string>
-       </property>
-       <property name="whatsThis">
-        <string>Save Profile</string>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="../resources/icons.qrc">
-         <normaloff>:/Icons/flat_save_icon.png</normaloff>:/Icons/flat_save_icon.png</iconset>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>30</width>
-         <height>30</height>
-        </size>
        </property>
       </widget>
      </item>

@@ -36,23 +36,24 @@ Actor::Actor(pqxx::result::const_iterator &i):Entry(){
 
 void Actor::fromRecord(pqxx::result::const_iterator i){
     try{
-        if (!i["id"].is_null())         {   setID((qint64)i["id"].as<long long unsigned int>());                }
-        if (!i["name"].is_null())       {   this->name = QString::fromStdString(i["name"].as<std::string>());   }
-        if (!i["aliases"].is_null())    {   this->bio.setAliases(QString::fromStdString(i["aliases"].as<std::string>())); }
-        if (!i["birthday"].is_null()){
+
+        if (!i.at("id").is_null())         {   setID((qint64)i["id"].as<long long unsigned int>());                }
+        if (!i.at("name").is_null())       {   this->name = QString::fromStdString(i["name"].as<std::string>());   }
+        if (!i.at("aliases").is_null())    {   this->bio.setAliases(QString::fromStdString(i["aliases"].as<std::string>())); }
+        if (!i.at("birthday").is_null()){
             QString temp = QString::fromStdString(i["birthday"].as<std::string>());
             this->bio.setBirthday(QDate::fromString(temp, "yyyy-MM-dd"));
         }
-        if (!i["city"].is_null())       {   this->bio.setCity(QString::fromStdString(i["city"].as<std::string>()));      }
-        if (!i["country"].is_null())    {   this->bio.setNationality(QString::fromStdString(i["country"].as<std::string>()));   }
-        if (!i["ethnicity"].is_null())  {   this->bio.setEthnicity(QString::fromStdString(i["ethnicity"].as<std::string>())); }
-        if (!i["height"].is_null())     {   this->bio.setHeight(Height(i["height"].as<int>()));   /* convert from cm */    }
-        if (!i["weight"].is_null())     {   this->bio.setWeight(i["weight"].as<int>());                                    }
-        if (!i["measurements"].is_null()){  this->bio.setMeasurements(QString::fromStdString(i["measurements"].as<std::string>()));  }
-        if (!i["hair"].is_null())       {   this->bio.setHairColor(QString::fromStdString(i["hair"].as<std::string>()));       }
-        if (!i["eyes"].is_null())       {   this->bio.setEyeColor(QString::fromStdString(i["eyes"].as<std::string>()));       }
-        if (!i["tattoos"].is_null())    {   this->bio.setTattoos(QString::fromStdString(i["tattoos"].as<std::string>()));    }
-        if (!i["piercings"].is_null())  {   this->bio.setPiercings(QString::fromStdString(i["piercings"].as<std::string>()));  }
+        if (!i.at("city").is_null())       {   this->bio.setCity(QString::fromStdString(i["city"].as<std::string>()));      }
+        if (!i.at("country").is_null())    {   this->bio.setNationality(QString::fromStdString(i["country"].as<std::string>()));   }
+        if (!i.at("ethnicity").is_null())  {   this->bio.setEthnicity(QString::fromStdString(i["ethnicity"].as<std::string>())); }
+        if (!i.at("height").is_null())     {   this->bio.setHeight(Height(i["height"].as<int>()));   /* convert from cm */    }
+        if (!i.at("weight").is_null())     {   this->bio.setWeight(i["weight"].as<int>());                                    }
+        if (!i.at("measurements").is_null()){  this->bio.setMeasurements(QString::fromStdString(i["measurements"].as<std::string>()));  }
+        if (!i.at("hair").is_null())       {   this->bio.setHairColor(QString::fromStdString(i["hair"].as<std::string>()));       }
+        if (!i.at("eyes").is_null())       {   this->bio.setEyeColor(QString::fromStdString(i["eyes"].as<std::string>()));       }
+        if (!i.at("tattoos").is_null())    {   this->bio.setTattoos(QString::fromStdString(i["tattoos"].as<std::string>()));    }
+        if (!i.at("piercings").is_null())  {   this->bio.setPiercings(QString::fromStdString(i["piercings"].as<std::string>()));  }
         if (!name.isEmpty()){
             this->photoPath = getProfilePhoto(name);
         }

@@ -7,3 +7,6 @@
 [submodule "QtWaitingSpinner"]
 	path = QtWaitingSpinner
 	url = https://github.com/snowwlex/QtWaitingSpinner.git
+[submodule "libpqxx"]
+	path = libpqxx
+	url = https://github.com/jtv/libpqxx.git

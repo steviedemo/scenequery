@@ -120,15 +120,20 @@ bool system_call_blocking(QString command, QStringList args, QString &output){
     if (args.isEmpty()){
         args << "";
     }
-    process->start(command, args);
-    if (!process->waitForStarted()){
-        qWarning("Error Starting QProcess with command '%s'", qPrintable(command));
-    } else if (!process->waitForFinished()){
-        qWarning("QProcess Timed out waiting for %s", qPrintable(command));
-    } else {
-        success = true;
+    try{
+        process->start(command, args);
+        if (!process->waitForStarted()){
+            qWarning("Error Starting QProcess with command '%s'", qPrintable(command));
+        } else if (!process->waitForFinished()){
+            qWarning("QProcess Timed out waiting for %s", qPrintable(command));
+        } else {
+            success = true;
+        }
+        output = process->readAllStandardOutput();
+    } catch (std::exception &e){
+        qWarning("Error Running Command %s: %s", qPrintable(command), e.what());
     }
-    output = process->readAllStandardOutput();
+
     delete process;
     return success;
 }

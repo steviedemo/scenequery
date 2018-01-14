@@ -11,7 +11,6 @@ public:
     ~InitializationThread();
     void run();
 private:
-    SQL *sqlThread;
     bool waitingForScenes, waitingForActors;
     ActorList actors;
     SceneList scenes;

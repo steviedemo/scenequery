@@ -38,6 +38,7 @@ SceneView::SceneView(QWidget *parent):
 }
 
 void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
+    qDebug("Selection Changed");
     QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
     if (!filename.isNull() && !filename.isEmpty()){
         if (currentFileSelection != filename){
@@ -48,6 +49,7 @@ void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*
 }
 
 void SceneView::sceneClicked(QModelIndex modelIndex){
+    qDebug("Clicked");
     QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
     if (!filename.isNull() && !filename.isEmpty()){
         this->currentFileSelection = filename;
@@ -109,18 +111,18 @@ void SceneView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);
 }
 
-void SceneView::addScene(ScenePtr s, const QModelIndex &parent){
+void SceneView::addScene(ScenePtr s, const QModelIndex &/*parent*/){
     if (!s.isNull()){
-        Scene::RowData data = s->getRowData();
-        newRow = proxyModel->rowCount();
-        proxyModel->insertRow(newRow, parent);
-        addData(SCENE_NAME_COLUMN, data.mainActor);
-        addData(SCENE_TITLE_COLUMN, data.title);
-        addData(SCENE_COMPANY_COLUMN, data.company);
-        addData(SCENE_QUALITY_COLUMN, data.quality);
-        addData(SCENE_FEATURED_COLUMN, data.featured);
-        addData(SCENE_DATE_COLUMN, data.date);
-        addData(SCENE_LENGTH_COLUMN, data.length);
-        addData(SCENE_RATING_COLUMN, data.rating);
+//        Scene::RowData data = s->getRowData();
+//        newRow = proxyModel->rowCount();
+//        proxyModel->insertRow(newRow, parent);
+//        addData(SCENE_NAME_COLUMN, data.mainActor);
+//        addData(SCENE_TITLE_COLUMN, data.title);
+//        addData(SCENE_COMPANY_COLUMN, data.company);
+//        addData(SCENE_QUALITY_COLUMN, data.quality);
+//        addData(SCENE_FEATURED_COLUMN, data.featured);
+//        addData(SCENE_DATE_COLUMN, data.date);
+//        addData(SCENE_LENGTH_COLUMN, data.length);
+//        addData(SCENE_RATING_COLUMN, data.rating);
     }
 }

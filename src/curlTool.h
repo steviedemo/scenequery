@@ -1,6 +1,7 @@
 #ifndef CURLTOOL_H
 #define CURLTOOL_H
 #include "definitions.h"
+#include "Biography.h"
 #include "SceneList.h"
 #include <QMutex>
 #include <QRunnable>
@@ -39,13 +40,12 @@ signals:
     void finished();
 };
 
-class curlTool : public QThread
+class curlTool : public QObject
 {
     Q_OBJECT
 public:
     curlTool();
     ~curlTool();
-    void run();
     /** Photos */
     bool                    generateThumbnail   (ScenePtr s);
     bool                    thumbnailExists     (ScenePtr s);
@@ -53,14 +53,13 @@ public:
     static bool             getIAFDData         (QString name, class Biography &bio);
     static bool             getFreeonesData     (QString name, class Biography &bio, QString &html);
     static bool             getIAFDData         (QString name, class Biography &bio, QString &html);
-    //static class Biography  freeones            (QString);
-    //static class Biography  iafd                (QString);
     static QString          getHTML             (Website w, QString name);
     static QString          bioSearchIAFD       (QString html, QString key);
     static QString          bioSearchFO         (QString html, QString key);
     static QMap<QString,QString> parseBioTags   (QString html, Website site);
     static bool             downloadHeadshot    (ActorPtr a, QString html);
     static QString          downloadHeadshot    (QString name);
+    static ActorPtr         downloadActor       (Biography bio);
 
 public slots:
     void            downloadPhoto       (ActorPtr a);
@@ -68,9 +67,9 @@ public slots:
 //  void            downloadPhotos      (ActorList a);
     void            updateBios          (ActorList a);
     void            makeNewActors       (QStringList nameList);
-    void            stopThread          (void);
     void            db_to_ct_buildActors(QStringList);
     void            pd_to_ct_getActor   (QString);
+    void            apv_to_ct_getProfile(QString);
 private slots:
     void            receiveActor        (ActorPtr);
     void            downloadThreadComplete();
@@ -96,6 +95,7 @@ private:
 signals:
     void            ct_to_db_storeActors(ActorList);
     void            ct_to_pd_sendActor(ActorPtr);
+    void            ct_to_apv_sendActor(ActorPtr);
     void            finishedProcessing(bool);
     void            startProgress(QString, int);
     void            updateProgress(int);

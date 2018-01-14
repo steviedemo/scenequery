@@ -5,8 +5,8 @@
 #include <QtGui>
 #include <QLabel>
 #include <QListIterator>
-#include <QMediaPlayer>
-#include <QUrl>
+#include <QMessageBox>
+#include <sceneParser.h>
 #include "Scene.h"
 #include "genericfunctions.h"
 #include "Rating.h"
@@ -15,20 +15,15 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
     ui(new Ui::SceneDetailView)
 {
     ui->setupUi(this);
-    // Set Up the Preview frame.
-    this->mediaPlayer = new QMediaPlayer();
-    this->videoWidget = new QVideoWidget();
-    this->openglWidget = new QOpenGLWidget();
-    ui->preview_layout->addWidget(videoWidget);
-    this->videoWidget->hide();
-
-    this->castList << ui->actor1label << ui->actor2label << ui->actor3label << ui->actor4label;
-    this->ageList << ui->age1label << ui->age2label << ui->age3label << ui->age4label;
-    this->dataFields << ui->titleLineEdit;
-    this->dataFields << ui->companyLineEdit << ui->seriesLineEdit;
-    this->dataFields << ui->durationLineEdit << ui->sizeLineEdit << ui->resolutionLineEdit;
-    this->dataFields << ui->filenameLineEdit << ui->locationLineEdit;
-    this->dataFields << ui->addedLineEdit << ui->openedLineEdit << ui->releasedLineEdit;
+    changed = false;
+    this->castList      << ui->actor1label  << ui->actor2label  << ui->actor3label  << ui->actor4label;
+    this->ageList       << ui->age1label    << ui->age2label    << ui->age3label    << ui->age4label;
+    this->ageLabelList  << ui->labelAge_1   << ui->labelAge_2   << ui->labelAge_3   << ui->labelAge_4;
+    this->dataFields    << ui->titleLineEdit;
+    this->dataFields    << ui->filenameLineEdit;
+    this->dataFields    << ui->companyLineEdit  << ui->seriesLineEdit;
+    this->dataFields    << ui->durationLineEdit << ui->sizeLineEdit     << ui->resolutionLineEdit;
+    this->dataFields    << ui->addedLineEdit    << ui->openedLineEdit   << ui->releasedLineEdit;
     for(int i = 0; i < 4; ++i){
         QLabel *label = castList.at(i);
         label->setMouseTracking(true);
@@ -37,8 +32,8 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
         connect(castList.at(i), SIGNAL(linkActivated(QString)), this, SLOT(actorLinkClicked(QString)));
     }
     connect(ui->tb_add_actor, SIGNAL(pressed()), this, SLOT(addActor()));
-    connect(ui->preview_button, SIGNAL(pressed()), this, SLOT(playPreview()));
     connect(ui->pb_play, SIGNAL(pressed()), this, SLOT(playCurrentVideo()));
+    connect(ui->pb_hide, SIGNAL(pressed()), this, SLOT(hide()));
     QStringList ratingValues = getRatingList();
     foreach(QString rating, ratingValues){
         ui->ratingComboBox->addItem(rating, rating);
@@ -48,17 +43,16 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
 
 SceneDetailView::~SceneDetailView(){
     delete ui;
-    delete mediaPlayer;
-    delete openglWidget;
-    delete videoWidget;
 }
 
 void SceneDetailView::loadScene(ScenePtr s){
+    if (!current.isNull() && changed){
+        QMessageBox b(QMessageBox::Question, tr("Unsaved Changes"), tr("Save changes before leaving this page?"),QMessageBox::Save | QMessageBox::No, this, Qt::WindowStaysOnTopHint);
+        if (b.exec() == QMessageBox::Save){
+            emit saveChanges(current);
+        }
+    }
     this->current = s;
-    this->mediaPlayer->stop();
-    this->videoWidget->hide();
-    ui->preview_button->show();
-
     ui->titleLineEdit->setText(s->getTitle());
     ui->companyLineEdit->setText(s->getCompany());
     ui->seriesLineEdit->setText(s->getSeries());
@@ -70,8 +64,7 @@ void SceneDetailView::loadScene(ScenePtr s){
     ui->releasedLineEdit->setText(released.toString("MMMM d, yyyy"));
     ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
     ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
-    ui->filenameLineEdit->setText(s->getFilename());
-    ui->locationLineEdit->setText(s->getFolder());
+    ui->filenameLineEdit->setText(s->getFullpath());
 
     ui->tagsTextEdit->setPlainText(s->tagString());
     QString rating = s->getRating().grade();
@@ -95,6 +88,7 @@ void SceneDetailView::loadScene(ScenePtr s){
             }
         } else {
             castList.at(i)->clear();
+            ageLabelList.at(i)->clear();
         }
     }
    //enableLineEdits(true);
@@ -103,16 +97,27 @@ void SceneDetailView::loadScene(ScenePtr s){
            line->setReadOnly(false);
        }
    }
-
+   changed = false;
    this->show();
 }
 
-void SceneDetailView::playPreview(){
-    ui->preview_button->hide();
-    mediaPlayer->setMedia(QUrl::fromLocalFile(current->getFullpath()));
-    mediaPlayer->setVideoOutput(this->videoWidget);
-    videoWidget->show();
-    mediaPlayer->play();
+void SceneDetailView::on_pb_reparse_clicked()
+{
+    this->rescanScene();
+}
+
+void SceneDetailView::rescanScene(){
+    if (!current.isNull()){
+        QPair<QString,QString> sceneFile = current->getFile();
+        qDebug("Reparsing Scene...");
+        sceneParser p(sceneFile);
+        p.parse();
+        this->current = ScenePtr(new Scene(p));
+        this->loadScene(current);
+        qDebug("Scene Parsed!");
+    } else {
+        qWarning("Unable to re-parse Null Scene");
+    }
 }
 
 void SceneDetailView::playCurrentVideo(){
@@ -128,7 +133,8 @@ void SceneDetailView::addActor(){
             } else if (nameLabel->text().isEmpty()){
                 current->addActor(text);
                 nameLabel->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(text));
-                ui->tb_save->setEnabled(true);
+                ui->pb_save->setEnabled(true);
+                changed = true;
             }
         }
     }
@@ -157,8 +163,8 @@ void SceneDetailView::clearDisplay(){
     ui->sizeLineEdit->clear();
     ui->tagsTextEdit->clear();
     ui->seriesLineEdit->clear();
-    ui->ratingComboBox->clear();
-
+    ui->ratingComboBox->setCurrentIndex(-1);
+    changed = false;
 }
 
 void SceneDetailView::actorLinkClicked(QString name){
@@ -167,35 +173,26 @@ void SceneDetailView::actorLinkClicked(QString name){
     }
 }
 
-void SceneDetailView::on_tb_hide_clicked(){
-    this->mediaPlayer->stop();
-    this->videoWidget->hide();
-    ui->preview_button->show();
-    this->hide();
-}
-
 void SceneDetailView::enableLineEdits(bool readOnly){
-    bool enabled = (!readOnly);
     foreach(QLineEdit *line, dataFields){
         line->setReadOnly(readOnly);
     }
     ui->tagsTextEdit->setReadOnly(readOnly);
-    ui->tb_save->setEnabled(enabled);
     ui->tb_edit->setEnabled(readOnly);
 }
 
-void SceneDetailView::on_tb_save_clicked(){
+void SceneDetailView::on_pb_save_clicked(){
     current->setTitle(ui->titleLineEdit->text());
     current->setSeries(ui->seriesLineEdit->text());
     current->setLength(QTime::fromString("h:mm:ss"));
     current->setReleased(QDate::fromString("MMMM d, yyyy"));
     current->setHeight(ui->resolutionLineEdit->text().toInt());
     current->setTags(ui->tagsTextEdit->toPlainText().split(",", QString::SkipEmptyParts));
-    current->setRating(ui->ratingComboBox->currentText());
+    if (ui->ratingComboBox->currentIndex() != -1 && !ui->ratingComboBox->currentText().isEmpty()){
+        this->current->setRating(ui->ratingComboBox->currentText());
+    }
     emit saveChanges(current);
+    changed = false;
     //enableLineEdits(true);
 }
 
-void SceneDetailView::on_tb_edit_clicked(){
-    //enableLineEdits(false);
-}

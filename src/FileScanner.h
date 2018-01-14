@@ -22,7 +22,7 @@ class FileScanner : public QThread
 {
     Q_OBJECT
 public:
-    FileScanner(QString path="");
+    FileScanner(QString path);
     ~FileScanner();
     bool setPath(QString);
     void run();
@@ -30,7 +30,6 @@ public:
 
 public slots:
     void scanForActors(SceneList, ActorList);
-    void scanFolder(QString rootPath);
     void stopThread();
 private:
     QString         getThumbnailFormat  (QString sceneFilename);

@@ -28,12 +28,11 @@ struct operation_count {
 };
 
 
-class SQL : public QThread {
+class SQL : public QObject {
     Q_OBJECT
 public:
     SQL(QString connectionName=DEFAULT_NAME);
     ~SQL();
-    void            run();
     void            startServer();
     static const char *toString         (queryType);
     QueryPtr        queryDatabase       (QString queryText, QStringList args);
@@ -55,7 +54,6 @@ public:
 public slots:
     void            saveChanges         (ScenePtr);
     void            updateActor         (ActorPtr);
-    void            stopThread          ();
     void            drop                (ActorPtr);
     void            loadActors          ();
     void            loadScenes          ();
@@ -73,6 +71,7 @@ public slots:
     void            fs_to_db_checkNames (QStringList);
     void            ct_to_db_storeActors(ActorList);
     void            pd_to_db_saveActor  (ActorPtr);
+
 protected:
     // Single-Thread helper functions for multi-threaded routines.
     bool            insertOrUpdateActor (ActorPtr);

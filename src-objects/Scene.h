@@ -36,12 +36,12 @@ private:
     QByteArray md5sum;
     ItemList displayRow;
 public:    
-    struct RowData{
-        QString filename, filepath, title, company, series, quality;
-        QString rating, mainActor, featured, size, date, length;
-        RowData():filename(""), filepath(""),title(""),company(""),series(""), quality(""),
-            rating(""), mainActor(""), featured(""), size(""), date(""), length(""){}
-    };
+//    struct RowData{
+//        QString filename, filepath, title, company, series, quality;
+//        QString rating, mainActor, featured, size, date, length;
+//        RowData():filename(""), filepath(""),title(""),company(""),series(""), quality(""),
+//            rating(""), mainActor(""), featured(""), size(""), date(""), length(""){}
+//    };
     Scene   (void);
     Scene   (QString);
     Scene   (QSqlRecord);
@@ -58,7 +58,6 @@ public:
     void    updateQStandardItem();
     QList<QStandardItem *> getQStandardItem();
     ItemList getItemList();
-    RowData getRowData();
 
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;

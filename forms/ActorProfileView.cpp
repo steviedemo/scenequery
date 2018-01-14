@@ -1,11 +1,15 @@
 #include "ActorProfileView.h"
 #include "filenames.h"
 #include "Actor.h"
+#include <pqxx/pqxx>
 #include <unistd.h>
+#include <sqlconnection.h>
 #include <QTimer>
 #include <QMessageBox>
 #include <QFileDialog>
 #include "imageeditor.h"
+#include "sceneParser.h"
+#include "SceneList.h"
 ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ActorProfileView){
@@ -19,6 +23,8 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     connect(sc_saveChangesToActor,      SIGNAL(activated()), this, SLOT(on_saveProfile_clicked()));
     connect(sc_hideProfile,             SIGNAL(activated()), this, SLOT(on_closeProfile_clicked()));
     connect(sc_chooseNewPhoto,          SIGNAL(activated()), this, SLOT(on_selectNewPhoto_clicked()));
+    ui->nameEditFrame->hide();
+    this->updateList = {};
 }
 
 ActorProfileView::~ActorProfileView(){
@@ -27,6 +33,67 @@ ActorProfileView::~ActorProfileView(){
     delete sc_chooseNewPhoto;
     delete sc_hideProfile;
     delete ui;
+}
+
+void ActorProfileView::on_tb_editName_clicked(){
+    ui->label_name->hide();
+    ui->nameEditFrame->show();
+}
+
+void ActorProfileView::mw_to_apv_receiveScenes(SceneList list){
+    this->updateList = list;
+    qDebug("Actor Profile View Received %d scenes for %s", list.size(), qPrintable(current->getName()));
+}
+
+void ActorProfileView::mw_to_apv_receiveActor(ActorPtr a){
+    loadActorProfile(a);
+}
+
+void ActorProfileView::on_tb_saveNameEdit_clicked(){
+    newName = ui->nameLineEdit->text();
+    oldName = current->getName();
+    emit apv_to_mw_requestScenes(oldName);
+    if (!newName.isEmpty()){
+        qDebug("Changing '%s' to '%s'", qPrintable(oldName), qPrintable(newName));
+        // Check if the new name already exists as a separate entry in the database.
+        QString query = QString("SELECT FROM actors WHERE name=%1").arg(Query::sqlSafe(oldName));
+        sqlConnection sql(query);
+        if (sql.execute()){
+            pqxx::result result = sql.getResult();
+            /// If the Actor's new Name isn't already a separate database item, update the current actor to have that name
+            if (result.size() == 0){
+                current->setName(newName);
+                Query q = current->toQuery();
+                std::string statement = q.toPqxxUpdate("actors");
+                sql.setQuery(statement);
+                if (sql.execute()){
+                    qDebug("Actor '%s's Name Updated to '%s'", qPrintable(oldName), qPrintable(newName));
+                    current->updateQStandardItem();
+                    this->outputDetails(current);
+                }
+            } else {    /// If there is already another entry with the new name, delete the current record.
+                qDebug("'%s' is already in the database. Removing '%s' from the database.", qPrintable(newName),qPrintable(oldName));
+                QString q = QString("DELETE FROM actors WHERE name = %1").arg(Query::sqlSafe(oldName));
+                sql.setQuery(q.toStdString());
+                emit apv_to_mw_requestActor(newName);
+            }
+
+            foreach(ScenePtr s, updateList){
+                s->renameActor(oldName, newName);
+                emit renameFile(s);
+            }
+        } else {
+            qWarning("Error Running Query '%s'", qPrintable(query));
+        }
+    } else {
+        qWarning("Not Renaming '%s' to an empty string", qPrintable(oldName));
+    }
+}
+
+void ActorProfileView::on_tb_cancelNameEdit_clicked(){
+    ui->nameLineEdit->clear();
+    ui->nameEditFrame->hide();
+    ui->label_name->show();
 }
 
 void ActorProfileView::setupFields(){
@@ -102,18 +169,26 @@ void ActorProfileView::on_selectNewPhoto_clicked(){
 
 void ActorProfileView::reloadProfilePhoto(){
     if (!this->isHidden() && !this->current.isNull()){
-        ui->profilePhoto->setPixmap(QPixmap(current->getHeadshot()).scaledToHeight(IMAGE_HEIGHT));
+        QString photo = getProfilePhoto(current->getName());
+        current->setHeadshot(photo);
+        ui->profilePhoto->setPixmap(QPixmap(photo).scaledToHeight(IMAGE_HEIGHT));
         current->updateQStandardItem();
     }
 }
 
 void ActorProfileView::loadActorProfile(ActorPtr a){
-    this->current = a;
-    clearFields();
+//    this->newName.clear();
+//    this->oldName.clear();
+    outputDetails(a);
     this->show();
+}
+
+void ActorProfileView::outputDetails(ActorPtr a){
+    clearFields();
+    this->current = a;
     ui->label_name->setText(a->getName());
     ui->saveProfile->setDisabled(true);
-    ui->reloadFromDb->setDisabled(true);
+    ui->nameEditFrame->hide();
     Biography bio = a->getBio();
     /// Set Basic Fields
     ui->ethnicityLineEdit->setText(bio.getEthnicity());
@@ -228,22 +303,24 @@ void ActorProfileView::on_closeProfile_clicked(){
     this->hide();
 }
 
+/*
 void ActorProfileView::on_reloadFromDb_clicked(){
     emit clearChanges();
 }
-void ActorProfileView::on_birthDateDateEdit_userDateChanged(const QDate &/*date*/){   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_hairColorLineEdit_textChanged(const QString &/*arg1*/)  {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_ethnicityLineEdit_textChanged(const QString &)          {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_nationalityLineEdit_textEdited(const QString &)         {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_heightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_weightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_eyeColorLineEdit_textEdited(const QString &)            {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_measurementsLineEdit_textEdited(const QString &)        {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_aliasesTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_piercingsTextEdit_textChanged()                         {   setResetAndSaveButtons(true);   }
-void ActorProfileView::on_tattoosTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
+*/
+//void ActorProfileView::on_birthDateDateEdit_userDateChanged(const QDate &/*date*/){   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_hairColorLineEdit_textChanged(const QString &/*arg1*/)  {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_ethnicityLineEdit_textChanged(const QString &)          {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_nationalityLineEdit_textEdited(const QString &)         {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_heightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_weightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_eyeColorLineEdit_textEdited(const QString &)            {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_measurementsLineEdit_textEdited(const QString &)        {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_aliasesTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_piercingsTextEdit_textChanged()                         {   setResetAndSaveButtons(true);   }
+//void ActorProfileView::on_tattoosTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
 void ActorProfileView::setResetAndSaveButtons(bool enabled){
-    ui->reloadFromDb->setEnabled(enabled);
+    //ui->reloadFromDb->setEnabled(enabled);
     ui->saveProfile->setEnabled(enabled);
 }
 

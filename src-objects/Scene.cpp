@@ -145,80 +145,68 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
         QRegularExpression dateRegex("[0-9]{4}-[0-9]{2}-[0-9]{2}");
         QRegularExpressionMatch dateMatch;
         trace();
-        if (!entry["id"].is_null())     {
+        if (!entry.at("id").is_null())     {
             this->ID = entry["id"].as<int>();
         }
         trace();
 
-        if (!entry["filepath"].is_null()){
+        if (!entry.at("filepath").is_null()){
             file.first = QString::fromStdString(entry["filepath"].as<string>());
         }
-        if (!entry["filename"].is_null()){
+        if (!entry.at("filename").is_null()){
             file.second = QString::fromStdString(entry["filename"].as<string>());
         }
         if (!file.second.isEmpty() && !file.first.isEmpty()){
             this->setFile(file);
         }
-        trace();
-        if (!entry["title"].is_null())  {   this->title     = QString::fromStdString(entry["title"].as<std::string>());     }
-        trace();
-        if (!entry["company"].is_null()){   this->company   = QString::fromStdString(entry["company"].as<std::string>());   }
-        trace();
-        if (!entry["series"].is_null()) {   this->series    = QString::fromStdString(entry["series"].as<std::string>());    }
-        trace();
-        if (!entry["rating"].is_null()) {   this->rating.fromString(QString::fromStdString(entry["rating"].as<std::string>()));                    }
+        if (!entry.at("title").is_null())  {   this->title     = QString::fromStdString(entry["title"].as<std::string>());     }
+        if (!entry.at("company").is_null()){   this->company   = QString::fromStdString(entry["company"].as<std::string>());   }
+        if (!entry.at("series").is_null()) {   this->series    = QString::fromStdString(entry["series"].as<std::string>());    }
+        if (!entry.at("rating").is_null()) {   this->rating.fromString(QString::fromStdString(entry["rating"].as<std::string>()));                    }
         entry["scene_no"].to(sceneNumber);
-//        if (!entry["scene_no"].is_null()){  this->sceneNumber = (entry["scene_no"].as<int>());                              }
         entry["size"].to(size);
-//        if (!entry["size"].is_null())   {   this->size      = entry["size"].as<int>();      }
-
-        if (!entry["length"].is_null()) {
+        entry["width"].to(width);
+        entry["height"].to(height);
+        if (!entry.at("length").is_null()) {
             QString time = QString::fromStdString(entry["length"].as<std::string>());
             QTime temp = QTime::fromString(time, "h:mm:ss");
             this->length = temp;
         }
-        entry["width"].to(width);
-//        if (!entry["width"].is_null())  {   this->width     = entry["width"].as<int>();     }
-        entry["height"].to(height);
-//        if (!entry["height"].is_null()) {   this->height    = entry["height"].as<int>();    }
-        trace();
-        if (!entry["added"].is_null())  {
-            trace();
+        if (!entry.at("added").is_null())  {
             QString temp = QString::fromStdString(entry["added"].as<std::string>());
-            trace();
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->added = QDate::fromString(temp, "yyyy-MM-dd");
             }
         }
-        trace();
-        if (!entry["created"].is_null()){
-            trace();
+        if (!entry.at("created").is_null()){
             QString temp = QString::fromStdString(entry["created"].as<std::string>());
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->released = QDate::fromString(temp, "yyyy-MM-dd");
             }
         }
-        trace();
-        if (!entry["accessed"].is_null()){
+        if (!entry.at("accessed").is_null()){
             QString temp = QString::fromStdString(entry["accessed"].as<std::string>());
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->opened = QDate::fromString(temp, "yyyy-MM-dd");
             }
         }
+        if (!entry.at("tags").is_null()){
+            this->tags = QString::fromStdString(entry["tags"].as<std::string>()).split(',', QString::SkipEmptyParts);
+        }
         bool error = false;
         for (int idx = 0; idx < 4 && !error; ++idx){
             try{
                 std::string fieldname = qPrintable(QString("actor%1").arg(idx+1));
                 std::string fieldage  = qPrintable(QString("age%1").arg(idx+1));
-                if (!entry[fieldname].is_null()){
+                if (!entry.at(fieldname).is_null()){
                     actors << QString::fromStdString(entry[fieldname].as<std::string>());
                 } else {
                     actors << "";
                 }
-                if (!entry[fieldage].is_null()){
+                if (!entry.at(fieldage).is_null()){
                     ages.push_back(entry[fieldage].as<int>());
                 } else {
                     ages.push_back(0);
@@ -228,11 +216,6 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
                 error = true;
             }
         }
-        trace();
-//        if (!entry["url"].is_null()){
-//            this->url = QString::fromStdString(entry["url"].as<std::string>());
-//        }
-        trace();
     }catch(std::exception &e){
         qWarning("Exception Caught while making Scene: %s", e.what());
     } catch (...){
@@ -254,44 +237,6 @@ bool Scene::exists() const{
 
 bool Scene::hasDisplay(){
     return displayBuilt;
-}
-
-Scene::RowData Scene::getRowData(){
-    Scene::RowData data;
-    data.filename = this->file.second;
-    data.filepath = this->file.first;
-    data.title = this->title;
-    QString main(""), feat("");
-    if (this->actors.size() > 0){
-        main = actors.at(0);
-        if (this->actors.size() > 1){
-            QStringListIterator it(actors);
-            while(it.hasNext()){
-                feat += it.next() + (it.hasNext() ? ", " : "");
-            }
-        }
-    }
-    data.mainActor = main;
-    data.featured = feat;
-    data.date = this->released.toString("MMMM d, yyyy");
-    data.rating = rating.grade();
-    data.company = this->company;
-    data.series = this->series;
-    if (this->height > 0){
-        data.quality = QString("%1p").arg(this->height);
-    } else {
-        data.quality = "";
-    }
-    QString sizeString("");
-    if(size > BYTES_PER_GIGABYTE){
-        double gb = (double)(size/BYTES_PER_GIGABYTE);
-        sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
-    } else if (this->size > BYTES_PER_MEGABYTE){
-        sizeString = QString("%1 MB").arg((int)(size/BYTES_PER_MEGABYTE));
-    }
-    data.size = sizeString;
-    data.length = this->length.toString("hh:mm:ss");
-    return data;
 }
 
 ItemList Scene::getItemList(){
@@ -433,6 +378,7 @@ void Scene::setLength(double minutes){
 Query Scene::toQuery() const{
     Query q;
     q.setTable("scenes");
+    q.addCriteria("ID", QString::number(this->ID));
     q.add("FILEPATH", file.first);
     q.add("FILENAME", file.second);
     q.add("TITLE", title);

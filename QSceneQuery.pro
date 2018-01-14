@@ -32,7 +32,7 @@ QMAKE_LFLAGS += -F/System/Library/Frameworks -L/usr/lib
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-PQXX = /usr/local/Cellar/libpqxx/4.0.1_2
+PQXX = /usr/local/Cellar/libpqxx/6.0.0_1
 
 INCLUDEPATH += \
     /usr/local/include \
@@ -42,8 +42,9 @@ INCLUDEPATH += \
     src-helpers \
     PSQL/src \
     -I/usr/local/opt/qt/bin \
-    $${PQXX}/src \
-    $${PQXX}/include \
+    -I$${PQXX}/include/pqxx \
+#   libpqxx/include \
+ #   libpqxx/src \
     ImageCropper/src
 
 PKGCONFIG  = /usr/local/opt/qt/lib/pkgconfig
@@ -57,7 +58,9 @@ LIBS += \
     -framework AGL  \
     -L/usr/local/opt/qt/lib \
     -L/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources \
+#    -Llibpqxx \
     -L$${PQXX} \
+    -L$${PQXX}/lib \
     -lpqxx \
     -lpq
 
@@ -92,7 +95,8 @@ SOURCES += \
     ImageCropper/src/imagecropper.cpp \
     forms/ActorProxyModel.cpp \
     forms/ActorTableView.cpp \
-    forms/SceneDetailView.cpp
+    forms/SceneDetailView.cpp \
+    src-objects/Filepath.cpp
 
 HEADERS  += \
     src-helpers/config.h \
@@ -127,7 +131,8 @@ HEADERS  += \
     ImageCropper/src/imagecropper.h \
     forms/ActorProxyModel.h \
     forms/ActorTableView.h \
-    forms/SceneDetailView.h
+    forms/SceneDetailView.h \
+    src-objects/Filepath.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
@@ -138,8 +143,6 @@ QMAKE_CLEAN += \
     build/* \
     QSceneQuery.pro.user \
     Makefile
-
-STATECHARTS +=
 
 DISTFILES += \
     scripts/collect_exif.sh \

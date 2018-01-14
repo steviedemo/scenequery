@@ -9,7 +9,7 @@
 #include <QMediaMetaData>
 #include <QVideoFrame>
 #include <QDir>
-
+#include <unistd.h>
 FileScanner::FileScanner(QString path):
     scanDir(path), index(0){
     this->actorList = {};
@@ -18,15 +18,7 @@ FileScanner::FileScanner(QString path):
 }
 FileScanner::~FileScanner(){}
 
-/** \brief Thread's Main Event Loop */
-void FileScanner::run(){
-    this->keepRunning = true;
-    qDebug("Scanner Thread Started.");
-    while (this->keepRunning){
-        sleep(1);
-    }
-    qDebug("Scanner Thread Stopped");
-}
+
 
 /** \brief Slot to break out of the thread's Event Loop */
 void FileScanner::stopThread(){
@@ -34,15 +26,20 @@ void FileScanner::stopThread(){
     this->keepRunning = false;
 }
 
-void FileScanner::scanFolder(QString rootPath){
-    this->threadMx.lock();
+/** \brief Thread's Main Event Loop */
+void FileScanner::run(){
+    if (scanDir.isEmpty()){
+        qWarning("Can't Scan Empty Directory. File Scanner Stopping.");
+        return;
+    }
+    this->keepRunning = true;
     this->index = 0;
     this->sceneList = {};
-    qDebug("Scanning '%s' for files...", qPrintable(rootPath));
+    qDebug("Scanning '%s' for files...", qPrintable(scanDir));
     QFileInfoList fileList;
-    if (QDir(rootPath).exists()){
-        emit updateStatus(QString("Scanning %1 and its subdirectories...").arg(rootPath));
-        fileList = recursiveScan(rootPath);
+    if (QDir(scanDir).exists()){
+        emit updateStatus(QString("Scanning %1 and its subdirectories...").arg(scanDir));
+        fileList = recursiveScan(scanDir);
         if (fileList.size() > 0){
             // Run multiple threads that create scene objects
             sceneList = makeScenes(fileList);
@@ -58,9 +55,9 @@ void FileScanner::scanFolder(QString rootPath){
             showError("No files to scan in!");
         }
     } else {
-        emit showError(QString("%1 doesn't exist!").arg(rootPath));
+        emit showError(QString("%1 doesn't exist!").arg(scanDir));
     }
-    this->threadMx.unlock();
+    qDebug("File Scanner Thread Finished");
 }
 
 /** \brief Scan in all files within a directory, and recursively scan each sub-directory.
@@ -194,7 +191,6 @@ ActorList FileScanner::parseActorList(SceneList sceneList){
     }
     return actorList;
 }
-
 
 //----------------------------------------------------------------
 //		THUMBNAILS
