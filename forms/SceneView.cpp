@@ -37,15 +37,31 @@ SceneView::SceneView(QWidget *parent):
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
 }
 
+void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
+    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
+    if (!filename.isNull() && !filename.isEmpty()){
+        if (currentFileSelection != filename){
+            this->currentFileSelection = filename;
+            emit sceneSelectionChanged(filename);
+        }
+    }
+}
+
 void SceneView::sceneClicked(QModelIndex modelIndex){
-    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN, modelIndex)).toString();
-    emit sceneItemClicked(filename);
+    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
+    if (!filename.isNull() && !filename.isEmpty()){
+        this->currentFileSelection = filename;
+        emit sceneItemClicked(filename);
+    }
 }
 
 
-void SceneView::rowDoubleClicked(const QModelIndex &sourceParent){
-    QString filepath = proxyModel->data(proxyModel->index(sourceParent.row(), SCENE_PATH_COLUMN, sourceParent)).toString();
-    emit playFile(filepath);
+void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
+    QString filepath = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
+    if (!filepath.isNull() && !filepath.isEmpty()){
+        this->currentFileSelection = filepath;
+        emit playFile(filepath);
+    }
 }
 
 QVBoxLayout *SceneView::getLayout(){

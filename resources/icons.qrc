@@ -81,5 +81,6 @@
         <file>Icons/profile_save.png</file>
         <file>Icons/video-thumbnail-default.png</file>
         <file>Icons/shiny-grey-play-button.png</file>
+        <file>Icons/add_icon.png</file>
     </qresource>
 </RCC>

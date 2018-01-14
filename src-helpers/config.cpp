@@ -21,7 +21,6 @@ bool makeDirectories(){
             qDebug("Successfully Created %s", qPrintable(dataPath));
         }
     }
-    QString *i;
     if (!error){
         QDir dataFolder(dataPath);
         if (!QDir(headshotPath).exists()){

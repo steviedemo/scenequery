@@ -122,11 +122,27 @@ Scene::Scene(QSqlRecord r){
     displayBuilt = false;
 }
 
+void Scene::addActor(QString a){
+    if(!a.isEmpty() && !this->actors.contains(a)){
+        this->actors << a;
+    }
+}
+void Scene::removeActor(QString a){
+    if (!a.isEmpty() && a.contains(a)){
+        this->actors.removeOne(a);
+    }
+}
 
+void Scene::renameActor(QString oldName, QString newName){
+    if (!oldName.isEmpty() && !newName.isEmpty() && actors.contains(oldName)){
+        actors.removeOne(oldName);
+        actors << newName;
+    }
+}
 
 void Scene::fromRecord(pqxx::result::const_iterator entry){
     try{
-        QRegularExpression dateRegex("[0-9]{4}\\.[0-9]{2}\\.[0-9]{2}");
+        QRegularExpression dateRegex("[0-9]{4}-[0-9]{2}-[0-9]{2}");
         QRegularExpressionMatch dateMatch;
         trace();
         if (!entry["id"].is_null())     {
@@ -271,7 +287,6 @@ Scene::RowData Scene::getRowData(){
         double gb = (double)(size/BYTES_PER_GIGABYTE);
         sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
     } else if (this->size > BYTES_PER_MEGABYTE){
-        int mb = size/BYTES_PER_MEGABYTE;
         sizeString = QString("%1 MB").arg((int)(size/BYTES_PER_MEGABYTE));
     }
     data.size = sizeString;
@@ -308,7 +323,7 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemTitle->setData(QVariant(title), Qt::DisplayRole);
     this->itemCompany = ItemPtr(new QStandardItem());
     this->itemCompany->setData(QVariant(company), Qt::DisplayRole);
-    QString path = QString("%1.%2").arg(file.first).arg(file.second);
+    QString path = QString("%1/%2").arg(file.first).arg(file.second);
     this->itemPath = ItemPtr(new QStandardItem(path));
     QString date("");
     if (released.isValid()){

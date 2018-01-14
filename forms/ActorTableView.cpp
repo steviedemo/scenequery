@@ -1,6 +1,7 @@
 #include "ActorTableView.h"
 
 ActorTableView::ActorTableView(QWidget *parent):
+    QWidget(parent),
     parent(parent){
     this->proxyModel = new ActorProxyModel(this);
     this->table = new QTableView;

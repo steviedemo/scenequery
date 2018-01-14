@@ -19,9 +19,9 @@
 #define MINIMUM_BIO_SIZE 11
 #define COMBO_BOX_DEFAULT "No Selection"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
+    ui->setupUi(this);
     this->runMode = Release;//Debug;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
-    ui->setupUi(this);
     actorList = {};
     sceneList = {};
     updateList = {};
@@ -54,6 +54,7 @@ MainWindow::~MainWindow(){
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
 
+    ui->tabWidget_filters->hide();
     /// Set up Actor Table View
     this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
@@ -69,7 +70,6 @@ void MainWindow::setupViews(){
     ui->actorTableView->verticalHeader()->hide();
     ui->actorTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->actorTableView->setSelectionMode(QAbstractItemView::SingleSelection);
-
     /// Set up the Scene Table View
     this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location";
     this->sceneModel = new QStandardItemModel();
@@ -80,7 +80,10 @@ void MainWindow::setupViews(){
     ui->sceneWidget->setSourceModel(sceneModel);
 
     /// Set Up Scene Detail View
-    ui->sceneDetailView->hide();
+    this->sceneDetailView = new SceneDetailView(this);
+    ui->vbl_list_layout->addWidget(sceneDetailView);
+    this->sceneDetailView->hide();
+
     /// Set Up Profile Widget
     ui->profileWidget->hide();
 
@@ -109,11 +112,51 @@ void MainWindow::setupViews(){
     connect(this,               SIGNAL(resizeSceneView()),              ui->sceneWidget,    SLOT(resizeSceneView()));
     connect(this,               SIGNAL(startInitialization()),          sqlThread,          SLOT(initialize()));
     connect(this,               SIGNAL(skipInitialization(ActorList,SceneList)), this,      SLOT(initializationFinished(ActorList,SceneList)));
-    connect(sqlThread,          SIGNAL(initializationFinished(ActorList,SceneList)), this,  SLOT(initializationFinished(ActorList,SceneList)));
+    connect(ui->sceneWidget,    SIGNAL(sceneSelectionChanged(QString)), this,               SLOT(sw_to_mw_selectionChanged(QString)));
+    connect(ui->sceneWidget,    SIGNAL(sceneItemClicked(QString)),      this,               SLOT(sw_to_mw_itemClicked(QString)));
+    /// Connect Scene Detail View
+    connect(sceneDetailView,    SIGNAL(showActor(QString)),             this,               SLOT(sdv_to_mw_showActor(QString)));
+    connect(sceneDetailView,    SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
+    connect(this,               SIGNAL(sendActorBirthday(QString,QDate)),sceneDetailView,SLOT(receiveActorBirthday(QString,QDate)));
+    connect(this,               SIGNAL(showSceneDetails(ScenePtr)),     sceneDetailView,SLOT(loadScene(ScenePtr)));
+  //  connect(this,               SIGNAL(hideSceneDetails()),             sceneDetailView,SLOT(hide()));
+    connect(sceneDetailView,    SIGNAL(playVideo(QString)),             this,               SLOT(playVideo(QString)));
+    //connect(sqlThread,          SIGNAL(initializationFinished(ActorList,SceneList)), this,  SLOT(initializationFinished(ActorList,SceneList)));
     connect(sqlThread,          SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sqlThread,          SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sqlThread,          SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
     sqlThread->start();
+}
+
+void MainWindow::sdv_to_mw_showActor(QString name){
+    if (this->actorMap.contains(name)){
+        emit loadActorProfile(actorMap.value(name));
+    }
+}
+void MainWindow::sdv_to_mw_requestBirthday(QString name){
+    if (this->actorMap.contains(name)){
+        QDate birthday = actorMap.value(name)->getBirthday();
+        if (!birthday.isNull() && birthday.isValid()){
+            emit sendActorBirthday(name, birthday);
+        }
+    }
+}
+
+void MainWindow::sw_to_mw_itemClicked(QString filepath){
+    QPair<QString,QString> file = splitAbsolutePath(filepath);
+    ScenePtr s = sceneList.getScene(file);
+    if (!s.isNull()){
+        qDebug("Showing Details of '%s'", qPrintable(filepath));
+        emit showSceneDetails(s);
+    } else {
+        qWarning("Unable to locate '%s' in Scene List", qPrintable(filepath));
+    }
+}
+
+void MainWindow::sw_to_mw_selectionChanged(QString filepath){
+    if (!this->sceneDetailView->isHidden()){
+        sw_to_mw_itemClicked(filepath);
+    }
 }
 
 void MainWindow::showEvent(QShowEvent */*event*/){
@@ -796,12 +839,18 @@ void MainWindow::on_actionUpdate_Bios_triggered(){
 }
 
 void MainWindow::playVideo(QString filepath){
+
     if (!videoOpen){
         if (QFileInfo(filepath).exists()){
-            this->videoPlayer = new VideoPlayer(filepath, this);
-            connect(videoPlayer, SIGNAL(error(QString)), this, SLOT(showError(QString)));
-            connect(videoPlayer, SIGNAL(finished()), this, SLOT(videoFinished()));
+            this->videoPlayer = new VideoPlayer(filepath);
+            this->videoThread = new QThread(this);
+            videoPlayer->moveToThread(videoThread);
+            connect(this,        SIGNAL(startVideoPlayback()),  videoPlayer,    SLOT(play()));
+            connect(videoPlayer, SIGNAL(error(QString)),        this,           SLOT(showError(QString)));
+            connect(videoPlayer, SIGNAL(videoStopped()),        this,           SLOT(videoFinished()));
             this->videoOpen = true;
+            videoThread->start();
+            emit startVideoPlayback();
         }
     } else {
         qWarning("Video Player Already Open!");
@@ -810,7 +859,11 @@ void MainWindow::playVideo(QString filepath){
 
 void MainWindow::videoFinished(){
     if (videoPlayer){
-        delete videoPlayer;
+        videoPlayer->deleteLater();
+    }
+    if (videoThread){
+        videoThread->terminate();
+        videoThread->deleteLater();
     }
     this->videoOpen = false;
 }

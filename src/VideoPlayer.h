@@ -3,12 +3,13 @@
 #include <QThread>
 #include <QProcess>
 
-class VideoPlayer : public QThread
+class VideoPlayer : public QObject
 {
     Q_OBJECT
 public:
     VideoPlayer(QString filename, QObject *parent=0);
-    void run();
+public slots:
+    void play();
 private slots:
     void videoClosed(int);
     void videoStarted();
@@ -18,6 +19,7 @@ private:
     QString filepath, command;
     bool closed;
 signals:
+    void videoStopped();
     void error(QString);
 };
 

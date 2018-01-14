@@ -63,7 +63,9 @@ public:
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;
     bool    inDatabase(void);
-    void    addActor    (QString a, int i=0);
+    void    addActor    (QString a);
+    void    removeActor (QString a);
+    void    renameActor (QString oldName, QString newName);
     void    setAge      (int, int);
     void    setAge      (QString, int);
     int     getAge      (QString name);

@@ -10,6 +10,7 @@
 #include "profiledialog.h"
 #include "ActorProxyModel.h"
 #include "InitializationThread.h"
+#include "SceneDetailView.h"
 #include "SceneProxyModel.h"
 #include "SceneView.h"
 #include "VideoPlayer.h"
@@ -49,6 +50,10 @@ private slots:
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
+    void sdv_to_mw_showActor(QString);
+    void sdv_to_mw_requestBirthday(QString);
+    void sw_to_mw_selectionChanged(QString);
+    void sw_to_mw_itemClicked(QString);
 
     /// Progress & Status Updates
     void startProgress(QString, int);
@@ -143,9 +148,11 @@ private:
     QItemSelectionModel *actorSelectionModel;
     /// Threads
     SceneView *sceneView;
+    SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     InitializationThread *initThread;
     VideoPlayer *videoPlayer;
+    QThread     *videoThread;
     curlTool    *curlTestThread;
     FileScanner *scanner;
     curlTool    *curlThread;
@@ -161,12 +168,17 @@ signals:
     void stopThreads();
     void startInitialization();
     void skipInitialization(ActorList, SceneList);
+
     void scanFolder         (QString);
     void scanActors         (SceneList, ActorList);
 
+    void sendActorBirthday  (QString, QDate);
+    void showSceneDetails   (ScenePtr);
+    void hideSceneDetails   (void);
     void loadScenes         ();
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
+
     void purgeScenes        (void);
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);
@@ -177,6 +189,7 @@ signals:
     void updateSingleBio    (ActorPtr);
     void getHeadshots       (ActorList);
     void actorSelectionChanged(QString);
+    void startVideoPlayback (void);
     void resizeSceneView    (void);
     /// Filtering
     void cb_companyFilterChanged(QString);

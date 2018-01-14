@@ -22,10 +22,11 @@
 #define SCENE_COMPANY_COLUMN    2
 #define SCENE_QUALITY_COLUMN    3
 #define SCENE_FEATURED_COLUMN   4
-#define SCENE_DATE_COLUMN       5
+#define SCENE_SIZE_COLUMN       5
 #define SCENE_LENGTH_COLUMN     6
-#define SCENE_RATING_COLUMN     7
-#define SCENE_PATH_COLUMN       8
+#define SCENE_DATE_COLUMN       7
+#define SCENE_RATING_COLUMN     8
+#define SCENE_PATH_COLUMN       9
 
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);

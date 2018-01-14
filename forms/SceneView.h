@@ -35,6 +35,7 @@ private:
     QTableView *table;
     QVBoxLayout *mainLayout;
     int newRow;
+    QString currentFileSelection;
 signals:
     void sendSceneCount(int);
     void playFile(QString);

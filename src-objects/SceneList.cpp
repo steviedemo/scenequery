@@ -26,6 +26,20 @@ SceneList SceneList::withCompany(QString c) const{
     return newList;
 }
 
+ScenePtr SceneList::getScene(QPair<QString, QString> filepath){
+    ScenePtr requestedScene = ScenePtr(0);
+    QListIterator<ScenePtr> it(*this);
+    bool found = false;
+    while(it.hasNext() && !found){
+        ScenePtr s = it.next();
+        if (s->getFilename() == filepath.second && s->getFolder() == filepath.first){
+            requestedScene = s;
+            found = true;
+        }
+    }
+    return requestedScene;
+}
+
 int SceneList::countScenesWithActor(ActorPtr a) const{
     return countScenesWithActor(a->getName());
 }
