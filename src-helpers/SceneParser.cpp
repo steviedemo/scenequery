@@ -1,4 +1,4 @@
-#include "sceneParser.h"
+#include "SceneParser.h"
 #include "config.h"
 #include "filenames.h"
 #include "genericfunctions.h"
@@ -243,7 +243,9 @@ QString sceneParser::parseTitle(QString name){
         rx.setPattern(".*\\](.+)\\(.*");
         m = rx.match(name);
         if (m.hasMatch()){
-            this->title = m.captured(1);
+            QString str = m.captured(1);
+            str.remove(QRegularExpression("\\s*feat\\..*"));
+            this->title = str.trimmed();
         }
     } else if (temp.isEmpty()) {
         //qDebug("Using Extraction Method for Title");
@@ -256,10 +258,9 @@ QString sceneParser::parseTitle(QString name){
             int index = name.indexOf(" - ");
             str = str.right(name.size() - index);
         }
-        if (name.contains("(")){
-            str.remove(QRegularExpression("\\(.*"));
-        }
-        this->title = str;
+        str.remove(QRegularExpression("\\s*\\(.*"));
+        str.remove(QRegularExpression("\\s*feat\\..*"));
+        this->title = str.trimmed();
     } else {
         //qDebug("Using incremental Removal for title");
         this->title = temp.trimmed();

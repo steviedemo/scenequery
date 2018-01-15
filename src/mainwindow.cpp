@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "filenames.h"
 #include "ui_mainwindow.h"
-#include "sceneParser.h"
+#include "SceneParser.h"
+#include "SceneRenamer.h"
 #include "FileScanner.h"
 #include "Scene.h"
 #include "Actor.h"
@@ -828,11 +829,13 @@ void MainWindow::on_actionParse_Scene_triggered(){
         sceneParser input;
         input.parse(filename);
         ScenePtr temp = ScenePtr(new Scene(input));
-        sceneParser output(temp);
-        output.formatFilename();
+        SceneRenamer output(temp.data());
+        QString newName = output.getNewFilename();
         QString message = output.displayInfo();
+        qDebug("Old Name:   %s", qPrintable(filename));
+        qDebug("New Name:   %s", qPrintable(newName));
         QMessageBox box(QMessageBox::NoIcon, tr("Scene Parser Test"), message, QMessageBox::Close, this, Qt::WindowStaysOnTopHint);
-        box.resize(QSize(600, 400));
+        box.resize(QSize(1000, 400));
         box.exec();
         ui->statusLabel->setText("");
     }
@@ -928,8 +931,8 @@ void MainWindow::on_actionUpdate_Bios_triggered(){
 void MainWindow::renameFile(ScenePtr scene){
     qDebug("In 'renameFile'");
     if (!scene.isNull()){
-        sceneParser sp(scene);
-        QString newName = sp.formatFilename();
+        SceneRenamer renamer(scene.data());
+        QString newName = renamer.getNewFilename();
         QString text = QString("'%1'\n\nwould become:\n\n%2").arg(scene->getFilename()).arg(newName);
         qDebug("'%s'\nwould become:\n'%s'\n", qPrintable(scene->getFilename()), qPrintable(newName));
         QMessageBox box(QMessageBox::Question, tr("File Renamer"), text, QMessageBox::Save | QMessageBox::Cancel, this, Qt::WindowStaysOnTopHint);

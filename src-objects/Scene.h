@@ -25,7 +25,6 @@ private:
     QTime length;
     int height, width, sceneNumber;
     qint64 size;
-    QDate added, released, opened;
     QString title, company, series, url;
     QStringList actors, tags;
     Rating rating;
@@ -36,6 +35,8 @@ private:
     QByteArray md5sum;
     ItemList displayRow;
 public:    
+    QDate added, released, opened;
+    QString dateString;
 //    struct RowData{
 //        QString filename, filepath, title, company, series, quality;
 //        QString rating, mainActor, featured, size, date, length;
@@ -47,6 +48,7 @@ public:
     Scene   (QSqlRecord);
     Scene   (class sceneParser);
     Scene   (pqxx::result::const_iterator record);
+    Scene   (const Scene &s);
     ~Scene  (void);
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
@@ -88,7 +90,8 @@ public:
     QString     tagString       (void) const;
     QDate       getOpened       (void) const {   return opened;         }
     QDate       getAdded        (void) const {   return added;          }
-    QDate       getReleased     (void) const {   return released;       }
+    QDate       getReleased     (void) const;
+    QString     getReleaseString(void) const;
     QPair<QString,QString>  getFile (void) const {   return file;       }
     QString     getFullpath     (void) const {   return QString("%1/%2").arg(file.first).arg(file.second); }
     QString     getFilename     (void) const {   return file.second;    }

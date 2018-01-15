@@ -72,7 +72,7 @@ void DownloadThread::run(){
         if (task == Curl::UPDATE_BIO){
             b.copy(actor->getBio());
         }
-        this->actor = curlTool::downloadActor(b);
+        this->actor = curlTool::downloadActor(name, b);
         emit sendActor(actor);
     }
     emit finished();
@@ -364,9 +364,8 @@ void curlTool::db_to_ct_buildActors(QStringList names){
     }
 }
 
-ActorPtr curlTool::downloadActor(Biography bio) {
+ActorPtr curlTool::downloadActor(QString name, Biography bio) {
     ActorPtr actor = ActorPtr(0);
-    QString name = bio.getName();
     if (!name.isEmpty()){
         QString html("");
         getFreeonesData(name, bio);
@@ -384,23 +383,31 @@ ActorPtr curlTool::downloadActor(Biography bio) {
 
 void curlTool::pd_to_ct_getActor(QString name){
     Biography bio(name);
-    this->currentActor = downloadActor(bio);
+    this->currentActor = downloadActor(name, bio);
     emit ct_to_pd_sendActor(currentActor);
 }
 
 void curlTool::apv_to_ct_getProfile(QString name){
-    Biography bio(name);
-    this->currentActor = downloadActor(bio);
-    emit ct_to_apv_sendActor(currentActor);
+    if (!name.isEmpty()){
+        qDebug("Updating actor '%s'", qPrintable(name));
+        Biography bio(name);
+        this->currentActor = downloadActor(name, bio);
+        if (!currentActor.isNull()){
+            emit ct_to_apv_sendActor(currentActor);
+        } else {
+            qWarning("Got Null Profile.");
+        }
+    } else {
+        qWarning("Can't update actor with empty name");
+    }
 }
 
 void curlTool::updateBio(ActorPtr a){
     this->currentActor = a;
     QString name = currentActor->getName();
     if (!name.isEmpty()){
-        QString iafdHtml("");
         Biography bio(a->getBio());
-        this->currentActor = downloadActor(bio);
+        this->currentActor = downloadActor(name, bio);
     }
     //qDebug("Returning Bio for %s", qPrintable(name));
     emit updateSingleProfile(currentActor);

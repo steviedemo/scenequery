@@ -22,4 +22,5 @@ bool        nonzero (int i);
 bool        nonzero (double d);
 bool        valid   (QDate d);
 bool        valid   (QDateTime d);
+bool        valid   (QString s);
 #endif // GENERICFUNCTIONS_H

@@ -8,7 +8,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include "imageeditor.h"
-#include "sceneParser.h"
+#include "SceneParser.h"
 #include "SceneList.h"
 ActorProfileView::ActorProfileView(QWidget *parent) :
     QWidget(parent),
@@ -51,7 +51,7 @@ void ActorProfileView::mw_to_apv_receiveActor(ActorPtr a){
 
 void ActorProfileView::on_tb_saveNameEdit_clicked(){
     newName = ui->nameLineEdit->text();
-    oldName = current->getName();
+    oldName = ui->label_name->text();
     emit apv_to_mw_requestScenes(oldName);
     if (!newName.isEmpty()){
         qDebug("Changing '%s' to '%s'", qPrintable(oldName), qPrintable(newName));
@@ -186,6 +186,8 @@ void ActorProfileView::loadActorProfile(ActorPtr a){
 void ActorProfileView::outputDetails(ActorPtr a){
     clearFields();
     this->current = a;
+    ui->nameEditFrame->hide();
+    ui->label_name->show();
     ui->label_name->setText(a->getName());
     ui->saveProfile->setDisabled(true);
     ui->nameEditFrame->hide();

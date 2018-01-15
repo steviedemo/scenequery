@@ -2,7 +2,7 @@
 #include "Scene.h"
 #include "SceneList.h"
 #include "Actor.h"
-#include "sceneParser.h"
+#include "SceneParser.h"
 #include <qtconcurrentrun.h>
 #include <QtConcurrent>
 #include <QFutureSynchronizer>

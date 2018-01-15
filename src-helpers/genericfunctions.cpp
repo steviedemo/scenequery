@@ -114,6 +114,10 @@ QString system_call(QString command){
     return output;
 }
 
+bool valid(QString s){
+    return (!s.isNull() && !s.isEmpty());
+}
+
 bool system_call_blocking(QString command, QStringList args, QString &output){
     bool success = false;
     QProcess *process = new QProcess();

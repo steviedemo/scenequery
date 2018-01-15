@@ -2,7 +2,7 @@
 #include "Rating.h"
 #include "filenames.h"
 #include "genericfunctions.h"
-#include "sceneParser.h"
+#include "SceneParser.h"
 #include "sql.h"
 #include "query.h"
 #include <QSqlQuery>
@@ -27,7 +27,7 @@ bool operator==(const Scene &s1, const Scene &s2){
 Scene::Scene():Entry(),
     ID(0), length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), md5sum(""){
+    title(""), company(""), series(""), url(""), dateString(""),md5sum(""){
     this->ages = {};
     displayBuilt = false;
     this->file.first = "";
@@ -36,7 +36,7 @@ Scene::Scene():Entry(),
 Scene::Scene(QString absolutePath): Entry(), ID(0),
     length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url("")
+    title(""), company(""), series(""), url(""), dateString("")
 {
     this->file = splitAbsolutePath(absolutePath);
     sceneParser p;
@@ -48,7 +48,7 @@ Scene::Scene(QString absolutePath): Entry(), ID(0),
 Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
     length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""){
+    title(""), company(""), series(""), url(""), dateString(""){
     this->ages = {};
     this->fromRecord(record);
     displayBuilt = false;
@@ -57,10 +57,25 @@ Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
 Scene::Scene(sceneParser p):Entry(), ID(0),
     length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), md5sum(""){
+    title(""), company(""), series(""), url(""), dateString(""), md5sum(""){
     this->ages = {};
     this->fromParser(p);
     displayBuilt = false;
+}
+Scene::Scene(const Scene &s):Entry(), ID(s.ID),
+    length(s.length), height(s.height), width(s.width), sceneNumber(s.sceneNumber), size(s.size),
+    added(s.added), released(s.released), opened(s.opened),
+    title(s.title), company(s.company), series(s.series), url(s.url), dateString(s.dateString){
+    this->actors = s.actors;
+    this->tags = s.tags;
+    this->ages = s.ages;
+    this->displayBuilt = false;
+//    this->itemActors = s.itemActors;
+//    this->itemCompany = s.itemCompany;
+//    this->itemDate = s.itemDate;
+//    this->itemFeaturedActors = s.itemFeaturedActors;
+//    this->itemLength = s.itemLength;
+//    this->itemP
 }
 
 void Scene::fromParser(sceneParser p){
@@ -107,9 +122,9 @@ Scene::Scene(QSqlRecord r){
     double minutes  = r.value("length").toDouble();
     QTime t(0,0,0);
     this->length    = t.addSecs((int)(minutes*60));
-    this->added     = QDate::fromString(r.value("added").toString(),    "yyyy.MM.dd");
-    this->opened    = QDate::fromString(r.value("accessed").toString(), "yyyy.MM.dd");
-    this->released  = QDate::fromString(r.value("created").toString(),  "yyyy.MM.dd");
+    this->added     = QDate::fromString(r.value("added").toString(),    "yyyy-MM-dd");
+    this->opened    = QDate::fromString(r.value("accessed").toString(), "yyyy-MM-dd");
+    this->released  = QDate::fromString(r.value("created").toString(),  "yyyy-MM-dd");
     this->url       = r.value("url").toString();
     for (int i = 1; i <= 4; ++i){
         QString name = r.value(QString("actor%1").arg(i)).toString();
@@ -136,7 +151,7 @@ void Scene::removeActor(QString a){
 void Scene::renameActor(QString oldName, QString newName){
     if (!oldName.isEmpty() && !newName.isEmpty() && actors.contains(oldName)){
         actors.removeOne(oldName);
-        actors << newName;
+        actors.prepend(newName);
     }
 }
 
@@ -184,6 +199,7 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->released = QDate::fromString(temp, "yyyy-MM-dd");
+                this->dateString = temp.replace('-', '.');
             }
         }
         if (!entry.at("accessed").is_null()){
@@ -489,4 +505,14 @@ bool Scene::equals(const Scene &other) const {
         }
     }
     return same;
+}
+QDate Scene::getReleased() const{
+    return released;
+}
+QString Scene::getReleaseString() const{
+
+    if (this->dateString.isEmpty()){
+        return released.toString("yyyy.MM.dd");
+    }
+    return dateString;
 }

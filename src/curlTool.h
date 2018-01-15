@@ -59,7 +59,7 @@ public:
     static QMap<QString,QString> parseBioTags   (QString html, Website site);
     static bool             downloadHeadshot    (ActorPtr a, QString html);
     static QString          downloadHeadshot    (QString name);
-    static ActorPtr         downloadActor       (Biography bio);
+    static ActorPtr         downloadActor       (QString name, Biography bio);
 
 public slots:
     void            downloadPhoto       (ActorPtr a);

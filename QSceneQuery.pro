@@ -71,7 +71,6 @@ SOURCES += \
     src-helpers/genericfunctions.cpp \
     src/main.cpp\
     src/mainwindow.cpp \
-    src/sceneParser.cpp \
     src-objects/Actor.cpp \
     src-objects/Biography.cpp \
     src-objects/Entry.cpp \
@@ -96,7 +95,9 @@ SOURCES += \
     forms/ActorProxyModel.cpp \
     forms/ActorTableView.cpp \
     forms/SceneDetailView.cpp \
-    src-objects/Filepath.cpp
+    src-objects/Filepath.cpp \
+    src-helpers/SceneRenamer.cpp \
+    src-helpers/SceneParser.cpp
 
 HEADERS  += \
     src-helpers/config.h \
@@ -105,7 +106,6 @@ HEADERS  += \
     src/FileScanner.h \
     src-helpers/genericfunctions.h \
     src/mainwindow.h \
-    src/sceneParser.h \
     src-objects/Actor.h \
     src-objects/Biography.h \
     src-objects/Height.h \
@@ -132,7 +132,9 @@ HEADERS  += \
     forms/ActorProxyModel.h \
     forms/ActorTableView.h \
     forms/SceneDetailView.h \
-    src-objects/Filepath.h
+    src-objects/Filepath.h \
+    src-helpers/SceneRenamer.h \
+    src-helpers/SceneParser.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

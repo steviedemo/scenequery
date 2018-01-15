@@ -2,7 +2,7 @@
 #include "Actor.h"
 #include "Scene.h"
 #include "filenames.h"
-#include "sceneParser.h"
+#include "SceneParser.h"
 #include "sqlconnection.h"
 #include <pqxx/result.hxx>
 #include <pqxx/transaction.hxx>

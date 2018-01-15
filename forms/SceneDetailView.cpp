@@ -6,7 +6,7 @@
 #include <QLabel>
 #include <QListIterator>
 #include <QMessageBox>
-#include <sceneParser.h>
+#include "SceneParser.h"
 #include "Scene.h"
 #include "genericfunctions.h"
 #include "Rating.h"
@@ -52,7 +52,7 @@ void SceneDetailView::loadScene(ScenePtr s){
             emit saveChanges(current);
         }
     }
-    this->current = s;
+    this->current = ScenePtr(s.data());
     ui->titleLineEdit->setText(s->getTitle());
     ui->companyLineEdit->setText(s->getCompany());
     ui->seriesLineEdit->setText(s->getSeries());
@@ -182,17 +182,35 @@ void SceneDetailView::enableLineEdits(bool readOnly){
 }
 
 void SceneDetailView::on_pb_save_clicked(){
-    current->setTitle(ui->titleLineEdit->text());
-    current->setSeries(ui->seriesLineEdit->text());
-    current->setLength(QTime::fromString("h:mm:ss"));
-    current->setReleased(QDate::fromString("MMMM d, yyyy"));
-    current->setHeight(ui->resolutionLineEdit->text().toInt());
-    current->setTags(ui->tagsTextEdit->toPlainText().split(",", QString::SkipEmptyParts));
-    if (ui->ratingComboBox->currentIndex() != -1 && !ui->ratingComboBox->currentText().isEmpty()){
-        this->current->setRating(ui->ratingComboBox->currentText());
+    if (!current.isNull()){
+        QString text = ui->titleLineEdit->text();
+        if (valid(text) && text != current->getTitle()){
+            current->setTitle(text);
+        }
+        text = ui->seriesLineEdit->text();
+        if (valid(text) && text != current->getSeries()){
+            current->setSeries(text);
+        }
+        text = ui->durationLineEdit->text();
+        if (valid(text) && text != current->getLength().toString("h::mm:ss")){
+            current->setLength(QTime::fromString(text, "h:mm:ss"));
+        }
+        text = ui->releasedLineEdit->text();
+        if (valid(text) && text != current->getReleased().toString("MMMM d, yyyy")){
+            current->setReleased(QDate::fromString(text, "MMMM d, yyyy"));
+        }
+        text = ui->tagsTextEdit->toPlainText();
+        if (valid(text) && text != current->tagString()){
+            current->setTags(text.split(',', QString::SkipEmptyParts));
+        }
+        if (ui->ratingComboBox->currentIndex() != -1 && !ui->ratingComboBox->currentText().isEmpty()){
+            this->current->setRating(ui->ratingComboBox->currentText());
+        }
+        emit saveChanges(current);
+        changed = false;
+        //enableLineEdits(true);
+    } else {
+        qWarning("Error Setting current scene details");
     }
-    emit saveChanges(current);
-    changed = false;
-    //enableLineEdits(true);
 }
 
