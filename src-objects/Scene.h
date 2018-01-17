@@ -25,6 +25,7 @@ private:
     QTime length;
     int height, width, sceneNumber;
     qint64 size;
+    QDate added, released, opened;
     QString title, company, series, url;
     QStringList actors, tags;
     Rating rating;
@@ -35,7 +36,6 @@ private:
     QByteArray md5sum;
     ItemList displayRow;
 public:    
-    QDate added, released, opened;
     QString dateString;
 //    struct RowData{
 //        QString filename, filepath, title, company, series, quality;
@@ -112,25 +112,24 @@ public:
     bool        hasActor(QString a) const {   return actors.contains(a);  }
     bool        hasTag  (QString t) const {   return tags.contains(t);    }
     // Setters
-    void    setSize     (qint64 s)      {   this->size = s;         }
-    void    setWidth    (int w)         {   this->width = w;        }
-    void    setHeight   (int h)         {   this->height = h;       }
-    void    setLength   (double minutes);
-    void    setLength   (QTime t)       {   this->length = t;       }
-    void    setTitle    (QString t)     {   this->title = t;        }
-    void    setCompany  (QString c)     {   this->company = c;      }
-    void    setSeries   (QString s)     {   this->series = s;       }
-    void    setRating   (Rating r)      {   this->rating = r;       }
-    void    setRating   (QString r)     {   this->rating = Rating(r);   }
+    void    setSize     (const qint64 &s)      {   this->size = s;         }
+    void    setWidth    (const int &w)         {   this->width = w;        }
+    void    setHeight   (const int &h)         {   this->height = h;       }
+    void    setLength   (const QTime &t);
+    void    setTitle    (const QString &t);
+    void    setCompany  (const QString &c);
+    void    setSeries   (const QString &s);
+    void    setRating   (const Rating &r)      {   this->rating = r;       }
+    void    setRating   (const QString &r)     {   this->rating = Rating(r);   }
 //    void    setRating   (int i)      {   this->rating = Rating(d);   }
-    void    setActors   (QStringList a) {   this->actors = a;       }
-    void    setTags     (QStringList t) {   this->tags = t;         }
-    void    setOpened   (QDate d)       {   this->opened = d;       }
-    void    setAdded    (QDate d)       {   this->added = d;        }
-    void    setReleased (QDate d)       {   this->released = d;     }
-    void    setFile     (QString absolutePath);
-    void    setFile     (QPair<QString,QString> file)   {   this->file = file;  }
-    void    setSceneNumber(int s)       {   this->sceneNumber = s;  }
+    void    setActors   (const QStringList &a) {   this->actors = a;       }
+    void    setTags     (const QStringList &t) {   this->tags = t;         }
+    void    setOpened   (const QDate &d)       {   this->opened = d;       }
+    void    setAdded    (const QDate &d)       {   this->added = d;        }
+    void    setReleased (const QDate &d);
+    void    setFile     (const QString &absolutePath);
+    void    setFile     (const QPair<QString,QString> &file)   {   this->file = file;  }
+    void    setSceneNumber(const int &s)       {   this->sceneNumber = s;  }
 
 };
 

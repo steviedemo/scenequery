@@ -19,7 +19,7 @@ SceneRenamer::SceneRenamer(Scene *scene){
         this->releaseString = scene->dateString;
         qDebug("Renaming '%s'", qPrintable(oldFilename));
         if (releaseString.isEmpty()){
-            QDate released(scene->released);
+            QDate released(scene->getReleased());
             this->releaseString = released.toString("yyyy.MM.dd");
             if (!released.isValid()){
                 qWarning("Error: Release Date is invalid.");

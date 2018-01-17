@@ -137,6 +137,38 @@ Scene::Scene(QSqlRecord r){
     displayBuilt = false;
 }
 
+
+void Scene::setLength(const QTime &t){
+    if (!t.isNull() && t.isValid()){
+        this->length = QTime(t);
+    }
+}
+void Scene::setCompany(const QString &c){
+    if (!c.isNull() && !c.isEmpty() && !c.isDetached()){
+        this->company = QString(c);
+    } else {
+        qWarning("Error: Attempting to set Company to an empty or invalid String");
+    }
+}
+void Scene::setSeries(const QString &s){
+    if (!s.isNull() && !s.isEmpty()){
+        this->series = QString(s);
+    }
+}
+void Scene::setReleased(const QDate &d){
+    if (!d.isNull() && d.isValid()){
+        this->released = QDate(d);
+    } else {
+        qWarning("Error: Attempting to set Release Date to an empty or invalid Date");
+    }
+}
+void Scene::setTitle(const QString &t){
+    if (!t.isNull() && !t.isEmpty() && !t.isDetached()){
+        this->title = QString(t);
+    } else {
+        qWarning("Error: Attempting to set title to empty or invalid string");
+    }
+}
 void Scene::addActor(QString a){
     if(!a.isEmpty() && !this->actors.contains(a)){
         this->actors << a;
@@ -154,6 +186,8 @@ void Scene::renameActor(QString oldName, QString newName){
         actors.prepend(newName);
     }
 }
+
+
 
 void Scene::fromRecord(pqxx::result::const_iterator entry){
     try{
@@ -241,7 +275,7 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
 
 Scene::~Scene(){}
 
-void Scene::setFile(QString absolutePath){
+void Scene::setFile(const QString &absolutePath){
     this->file = splitAbsolutePath(absolutePath);
 }
 
@@ -384,13 +418,13 @@ QString Scene::tagString() const{
     }
     return s;
 }
-
+/*
 void Scene::setLength(double minutes){
     int seconds = (int)(60*minutes);
     QTime temp(0,0,0);
     this->length = temp.addSecs(seconds);
 }
-
+*/
 Query Scene::toQuery() const{
     Query q;
     q.setTable("scenes");
@@ -461,6 +495,7 @@ int Scene::entrySize(){
     }
     return size;
 }
+
 
 
 bool Scene::equals(const ScenePtr &other) const {
