@@ -6,6 +6,10 @@
 #include <QLabel>
 #include <QListIterator>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include <QGridLayout>
 #include "SceneParser.h"
 #include "Scene.h"
 #include "genericfunctions.h"
@@ -43,6 +47,134 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
 
 SceneDetailView::~SceneDetailView(){
     delete ui;
+}
+
+void SceneDetailView::buildUI(){
+    initializeObjects();
+    /// Set up Left-Hand Side of Display Window
+    QGridLayout *altLeft = new QGridLayout();
+    altLeft->addWidget(title, 0, 0, 4, 0);
+
+    altLeft->addWidget(lbCompany, 1, 0);
+    altLeft->addWidget(company, 1, 1);
+    altLeft->addWidget(lbSeries, 1, 2);
+    altLeft->addWidget(series, 1, 3);
+    company->setMinimumWidth(150);
+    company->setMaximumWidth(500);
+    series->setMinimumWidth(150);
+    series->setMaximumWidth(500);
+
+    altLeft->addWidget(lbReleased, 2, 0);
+    altLeft->addWidget(released, 2, 1, 2, 4);
+
+    altLeft->addWidget(lbAdded, 3, 0);
+    altLeft->addWidget(added, 3, 1, 3, 4);
+
+    altLeft->addWidget(lbOpened, 4, 0);
+    altLeft->addWidget(opened, 4, 1, 4, 4);
+
+    altLeft->addWidget(lbTags, 5, 0);
+    altLeft->addWidget(tags, 5, 1, -1, -1);
+
+    /// Set up Filename line
+    QHBoxLayout *filenameLayout = new QHBoxLayout();
+    filenameLayout->addWidget(lbFilename);
+    filenameLayout->addWidget(filepath);
+    /// Set up RHS of Window
+    QGridLayout *rhs = new QGridLayout();
+    /// Add Buttons
+    rhs->addWidget(play, 0, 1);
+    rhs->addWidget(save, 0, 2);
+    rhs->addWidget(reparse, 0, 3);
+    rhs->addWidget(hide, 0, 4);
+    rhs->addWidget(edit, 1, 4);
+    rhs->addWidget(addActor, 3, 4);
+    // Add Labels
+    rhs->addWidget(lbDuration, 1, 0);
+    rhs->addWidget(lbRating, 1, 2);
+    rhs->addWidget(lbSize, 2, 0);
+    rhs->addWidget(lbResolution, 2, 2);
+    rhs->addWidget(lbCast, 3, 0);
+    rhs->addWidget(lbAge1, 3, 2);
+    rhs->addWidget(lbAge2, 3, 2);
+    rhs->addWidget(lbAge1, 3, 2);
+    rhs->addWidget(lbAge4, 3, 2);
+    // Add Fields
+    rhs->addWidget(duration, 1, 1);
+    rhs->addWidget(rating, 1, 3);
+    rhs->addWidget(size, 2, 1);
+    rhs->addWidget(resolution, 2, 3);
+    rhs->addWidget(actor1, 3, 1);
+    rhs->addWidget(age1,   3, 3);
+    rhs->addWidget(actor2, 4, 1);
+    rhs->addWidget(age2,   4, 3);
+    rhs->addWidget(actor3, 5, 1);
+    rhs->addWidget(age3,   5, 3);
+    rhs->addWidget(actor4, 6, 1);
+    rhs->addWidget(age4,   6, 3);
+    released->setMinimumWidth(350);
+    released->setMaximumWidth(500);
+    opened->setMinimumWidth(350);
+    opened->setMaximumWidth(500);
+    added->setMinimumWidth(350);
+    added->setMaximumWidth(500);
+    tags->setMaximumHeight(80);
+    duration->setMinimumWidth(150);
+    duration->setMaximumWidth(400);
+    rating->setMinimumWidth(150);
+    rating->setMaximumWidth(400);
+    size->setMinimumWidth(150);
+    size->setMaximumWidth(400);
+    resolution->setMinimumWidth(150);
+    resolution->setMaximumWidth(400);
+
+}
+
+void SceneDetailView::initializeObjects(){
+    title       = new QLineEdit();
+    company     = new QLineEdit();
+    added       = new QLineEdit();
+    released    = new QLineEdit();
+    opened      = new QLineEdit();
+    filepath    = new QLineEdit();
+    duration    = new QLineEdit();
+    size        = new QLineEdit();
+    resolution  = new QLineEdit();
+    series      = new QLineEdit();
+    tags        = new QTextEdit();
+    rating      = new QComboBox();
+    hide        = new QPushButton("Hide");
+    play        = new QPushButton("Play");
+    save        = new QPushButton("Save");
+    reparse     = new QPushButton("Reparse");
+    addActor    = new QToolButton();
+    edit        = new QToolButton();
+    actor1  = new QLabel("");
+    actor2  = new QLabel("");
+    actor3  = new QLabel("");
+    actor4  = new QLabel("");
+    age1    = new QLabel("");
+    age2    = new QLabel("");
+    age3    = new QLabel("");
+    age4    = new QLabel("");
+    /// Static Labels
+    lbCompany   = new QLabel("Company:");
+    lbSeries    = new QLabel("Series: ");
+    lbReleased  = new QLabel("Released:");
+    lbAdded     = new QLabel("Added:");
+    lbOpened    = new QLabel("Opened:");
+    lbTags      = new QLabel("Tags:");
+    lbFilename  = new QLabel("Filename:");
+    lbDuration  = new QLabel("Duration:");
+    lbRating    = new QLabel("Rating:");
+    lbSize      = new QLabel("Size:");
+    lbResolution = new QLabel("Resolution:");
+    lbCast  = new QLabel("Cast:");
+    lbAge1  = new QLabel("Age");
+    lbAge2  = new QLabel("Age");
+    lbAge3  = new QLabel("Age");
+    lbAge4  = new QLabel("Age");
+
 }
 
 void SceneDetailView::loadScene(ScenePtr s){
@@ -110,7 +242,7 @@ void SceneDetailView::rescanScene(){
     if (!current.isNull()){
         QPair<QString,QString> sceneFile = current->getFile();
         qDebug("Reparsing Scene...");
-        sceneParser p(sceneFile);
+        SceneParser p(sceneFile);
         p.parse();
         this->current = ScenePtr(new Scene(p));
         this->loadScene(current);

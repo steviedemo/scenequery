@@ -39,7 +39,7 @@ Scene::Scene(QString absolutePath): Entry(), ID(0),
     title(""), company(""), series(""), url(""), dateString("")
 {
     this->file = splitAbsolutePath(absolutePath);
-    sceneParser p;
+    SceneParser p;
     p.parse(file);
     this->fromParser(p);
     displayBuilt = false;
@@ -54,7 +54,7 @@ Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
     displayBuilt = false;
 }
 
-Scene::Scene(sceneParser p):Entry(), ID(0),
+Scene::Scene(SceneParser p):Entry(), ID(0),
     length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
     added(QDate()), released(QDate()), opened(QDate()),
     title(""), company(""), series(""), url(""), dateString(""), md5sum(""){
@@ -78,7 +78,7 @@ Scene::Scene(const Scene &s):Entry(), ID(s.ID),
 //    this->itemP
 }
 
-void Scene::fromParser(sceneParser p){
+void Scene::fromParser(SceneParser p){
     if (!p.isEmpty()){
         if (!p.isParsed()){
             p.parse();

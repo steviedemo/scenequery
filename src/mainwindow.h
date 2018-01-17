@@ -43,13 +43,10 @@ private slots:
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveSingleActor(ActorPtr);
-    void refreshCurrentActor(void);
-    void closeAddActorDialog();
 
     void renameFile(ScenePtr);
     void apv_to_mw_receiveSceneListRequest(QString actorName);
     void apv_to_mw_receiveActorRequest(QString name);
-    void apv_to_mw_receiveNewActor(ActorPtr a);
     void apv_to_mw_deleteActor(QString name);
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
@@ -83,39 +80,21 @@ private slots:
     /// Buttons
     void on_actionScan_Directory_triggered();
     void scan_directory_chosen(QString);
-    void scan_thread_finished();
-    void on_pb_refreshScenes_clicked();
-    void on_pb_refreshActors_clicked();
     void on_pb_saveScenes_clicked();
     void on_pb_saveActors_clicked();
-    void reloadProfile();
 
     void on_actionParse_Scene_triggered();
 
     void on_actionSave_Scenes_triggered();
-    void on_actionLoad_Actors_triggered();
     void on_actionCreate_Bio_triggered();
     void receiveTestBio             (ActorPtr);
     void on_actionUpdate_Bios_triggered();
     void on_actionRefresh_Display_triggered();
     void selectNewProfilePhoto      (void);
-    void testProfileDialogClosed    (void);
     void playVideo                  (QString);
     void videoFinished              (void);
 
-    void on_actionCleanDatabase_triggered();
-
-    void on_cb_companyFilter_currentIndexChanged(const QString &arg1);
-
     void on_tb_clearActorFilters_clicked();
-
-    void on_cb_hairColor_currentIndexChanged(const QString &arg1);
-
-    void on_cb_ethnicity_currentIndexChanged(const QString &arg1);
-
-    void on_cb_ethnicity_currentIndexChanged(int index);
-
-    void on_cb_hairColor_currentIndexChanged(int index);
 
     void on_actionWipe_Scenes_Table_triggered();
 
@@ -179,17 +158,14 @@ signals:
     void sendActorBirthday  (QString, QDate);
     void showSceneDetails   (ScenePtr);
     void hideSceneDetails   (void);
-    void loadScenes         ();
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
     void mw_to_apv_sendScenes(SceneList);
     void mw_to_apv_sendActor(ActorPtr);
-    void purgeScenes        (void);
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
     void updateBios         (ActorList);
-    void loadActors         ();
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
     void getHeadshots       (ActorList);

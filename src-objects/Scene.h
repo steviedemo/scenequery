@@ -29,7 +29,7 @@ private:
     QStringList actors, tags;
     Rating rating;
     QVector<int> ages;
-    void fromParser(class sceneParser p);
+    void fromParser(class SceneParser p);
     ItemPtr itemTitle, itemActors, itemCompany, itemRating, itemDate, itemQuality, itemLength, itemSize, itemFeaturedActors, itemPath;
     bool displayBuilt;
     QByteArray md5sum;
@@ -37,22 +37,17 @@ private:
 public:    
     QDate added, released, opened;
     QString dateString;
-//    struct RowData{
-//        QString filename, filepath, title, company, series, quality;
-//        QString rating, mainActor, featured, size, date, length;
-//        RowData():filename(""), filepath(""),title(""),company(""),series(""), quality(""),
-//            rating(""), mainActor(""), featured(""), size(""), date(""), length(""){}
-//    };
     Scene   (void);
     Scene   (QString);
     Scene   (QSqlRecord);
-    Scene   (class sceneParser);
+    Scene   (class SceneParser);
     Scene   (pqxx::result::const_iterator record);
     Scene   (const Scene &s);
     ~Scene  (void);
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
     friend bool operator ==(const Scene &s1, const Scene &s2);
+    Scene   operator=(const Scene &s);
     Query   toQuery() const;
     void    fromRecord(pqxx::result::const_iterator record);
     int     entrySize();
@@ -122,7 +117,6 @@ public:
     void    setSeries   (QString s)     {   this->series = s;       }
     void    setRating   (Rating r)      {   this->rating = r;       }
     void    setRating   (QString r)     {   this->rating = Rating(r);   }
-//    void    setRating   (int i)      {   this->rating = Rating(d);   }
     void    setActors   (QStringList a) {   this->actors = a;       }
     void    setTags     (QStringList t) {   this->tags = t;         }
     void    setOpened   (QDate d)       {   this->opened = d;       }

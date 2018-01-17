@@ -14,7 +14,7 @@
 #define NAME_SEPERATOR  " - "
 #define SPACE_REGEX     "[\\s\\t]*"
 QByteArray checksum(const QString &absolutePath);
-class sceneParser
+class SceneParser
 {
 private:
     QPair<QString,QString> file;
@@ -39,20 +39,12 @@ private:
     int         parseSceneNumber  (QString);
     QDate       parseDateReleased (QString);
     QString     parseTitle        (QString);
-    // Reconstructing the filename
-    QString     formatActor();
-    QString     formatCompany();
-    QString     formatTitle();
-    QString     formatParentheses();
-    QString     newFilename;
-    void        doubleCheckNames();
 
 public:
-    sceneParser(void);
-    sceneParser(QPair<QString,QString> file);
-    sceneParser(QString absolutePath);
-    sceneParser(ScenePtr scene);
-    ~sceneParser();
+    SceneParser(void);
+    SceneParser(QPair<QString,QString> file);
+    SceneParser(QString absolutePath);
+    ~SceneParser();
     void        parse       (void);
     void        parse       (QPair<QString,QString>);
     void        parse       (QString absolutePath);
@@ -76,8 +68,6 @@ public:
     QString     getFilename     (void)  const {   return file.second;   }
     QString     getFilepath     (void)  const {   return file.first;    }
     QPair<QString,QString>   getFile()  const {   return file;          }
-    QString     formatFilename();
-    QString     displayInfo();
 
 };
 
