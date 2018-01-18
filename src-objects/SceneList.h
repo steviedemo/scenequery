@@ -4,6 +4,7 @@
 #include <QSharedPointer>
 #include <QPair>
 #include "definitions.h"
+
 class SceneList : public QList<QSharedPointer<Scene>>
 {
 public:
@@ -19,11 +20,13 @@ public:
     SceneList maxResolution(int h) const;
     SceneList inSeries(QString s) const;
     SceneList withTitle(QString s) const;
-    ScenePtr  getScene(QPair<QString,QString>filepath);
-
+    ScenePtr  getScene(const QPair<QString,QString> &filepath);
+    ScenePtr  getScene(const QString &filepath);
     int countScenesWithActor(QString s) const;
     int countScenesWithActor(ActorPtr a) const;
 
 };
-
+int      countWithActor(const QString name, const QHash<int, ScenePtr> &);
+SceneList fromHashMap(const QHash<int, ScenePtr> &);
+SceneList scenesWithActor(const QString name, const QHash<int, ScenePtr> &);
 #endif // SCENELIST_H

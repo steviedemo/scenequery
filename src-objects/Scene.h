@@ -30,26 +30,23 @@ private:
     QStringList actors, tags;
     Rating rating;
     QVector<int> ages;
-    void fromParser(class sceneParser p);
-    ItemPtr itemTitle, itemActors, itemCompany, itemRating, itemDate, itemQuality, itemLength, itemSize, itemFeaturedActors, itemPath;
+    void fromParser(class SceneParser p);
+    QStandardItem *itemTitle, *itemActors, *itemCompany, *itemRating, *itemDate;
+    QStandardItem *itemQuality, *itemLength, *itemSize, *itemFeaturedActors, *itemPath, *itemID;
+    QList<QStandardItem *>displayRow;
     bool displayBuilt;
     QByteArray md5sum;
-    ItemList displayRow;
 public:    
     QString dateString;
-//    struct RowData{
-//        QString filename, filepath, title, company, series, quality;
-//        QString rating, mainActor, featured, size, date, length;
-//        RowData():filename(""), filepath(""),title(""),company(""),series(""), quality(""),
-//            rating(""), mainActor(""), featured(""), size(""), date(""), length(""){}
-//    };
     Scene   (void);
     Scene   (QString);
     Scene   (QSqlRecord);
-    Scene   (class sceneParser);
+    Scene   (class SceneParser);
     Scene   (pqxx::result::const_iterator record);
-    Scene   (const Scene &s);
+    //Scene   (const Scene &s);
     ~Scene  (void);
+    void    clear();
+    void    reparse();
     friend bool     hasScene(const Scene s);
     friend Scene duplicate(const Scene &s);
     friend bool operator ==(const Scene &s1, const Scene &s2);
@@ -74,6 +71,8 @@ public:
     bool    exists      (void) const;
     bool    equals      (const Scene &other) const;
     bool    equals      (const ScenePtr &other) const;
+    bool    equals      (const QPair<QString, QString> &) const;
+    bool    equals      (const QString &) const;
     // Getters
     int         getID           (void) const {   return ID;             }
     qint64      getSize         (void) const {   return size;           }
@@ -96,6 +95,7 @@ public:
     QString     getFullpath     (void) const {   return QString("%1/%2").arg(file.first).arg(file.second); }
     QString     getFilename     (void) const {   return file.second;    }
     QString     getFolder       (void) const {   return file.first;     }
+    bool        hasValidFile    (void) const {  return (!(file.first.isNull() || file.first.isEmpty()) && !(file.second.isNull() || file.second.isEmpty())); }
     QString     getActor     (int i=0) const {
         if (actors.size() > (i))
             return actors.at(i);

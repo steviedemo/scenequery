@@ -35,12 +35,12 @@ private:
     QTableView *table;
     QVBoxLayout *mainLayout;
     int newRow;
-    QString currentFileSelection;
+    int currentFileSelection;
 signals:
     void sendSceneCount(int);
-    void playFile(QString);
-    void sceneSelectionChanged(QString filename);
-    void sceneItemClicked(QString filename);
+    void playFile(int sceneID);
+    void sceneSelectionChanged(int sceneID);
+    void sceneItemClicked(int sceneID);
 };
 
 #endif // SCENEVIEW_H

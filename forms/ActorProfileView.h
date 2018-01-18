@@ -80,7 +80,6 @@ signals:
     void deleteCurrent  ();
     void deleteActor    (ActorPtr a);
     void downloadPhoto  (ActorPtr a);
-    void clearChanges();
     void hidden();
     void chooseNewPhoto();
     void reloadProfile();

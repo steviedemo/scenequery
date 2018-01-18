@@ -1,6 +1,40 @@
 #include "SceneList.h"
 #include "Scene.h"
 #include "Actor.h"
+#include <QHash>
+SceneList scenesWithActor(const QString name, const QHash<int, ScenePtr> &hash){
+    SceneList list = {};
+    QHashIterator<int,ScenePtr> it(hash);
+    while(it.hasNext()){
+        it.next();
+        if (it.value()->hasActor(name)){
+            list.append(it.value());
+        }
+    }
+    return list;
+}
+
+int countWithActor(const QString name, const QHash<int, ScenePtr> &hash){
+    int count = 0;
+    QHashIterator<int,ScenePtr> it(hash);
+    while(it.hasNext()){
+        it.next();
+        if (it.value()->hasActor(name)){
+            ++count;
+        }
+    }
+    return count;
+}
+SceneList fromHashMap(const QHash<int, ScenePtr>&hash){
+    SceneList list = {};
+    QHashIterator<int,ScenePtr> it(hash);
+    while(it.hasNext()){
+        it.next();
+        list.append(it.value());
+    }
+    return list;
+}
+
 /*
 bool SceneList::contains(const QSharedPointer<Scene> &t) const{
     bool found = false;
@@ -26,15 +60,38 @@ SceneList SceneList::withCompany(QString c) const{
     return newList;
 }
 
-ScenePtr SceneList::getScene(QPair<QString, QString> filepath){
-    ScenePtr requestedScene = ScenePtr(0);
-    QListIterator<ScenePtr> it(*this);
+ScenePtr SceneList::getScene(const QString &filepath){
     bool found = false;
-    while(it.hasNext() && !found){
-        ScenePtr s = it.next();
-        if (s->getFilename() == filepath.second && s->getFolder() == filepath.first){
-            requestedScene = s;
-            found = true;
+    ScenePtr scene = ScenePtr(0);
+    if (valid(filepath)){
+        QListIterator<ScenePtr> it(*this);
+        while(it.hasNext() && !found){
+            ScenePtr curr = it.next();
+            if (!curr.isNull()){
+                if (curr->equals(filepath)){
+                    found = true;
+                    scene = curr;
+                    break;
+                }
+            }
+        }
+    }
+    return scene;
+}
+
+ScenePtr SceneList::getScene(const QPair<QString, QString> &filepath){
+    ScenePtr requestedScene = ScenePtr(0);
+    if (valid(filepath.first) && valid(filepath.second)){
+        QListIterator<ScenePtr> it(*this);
+        bool found = false;
+        while(it.hasNext() && !found){
+            ScenePtr s = it.next();
+            if (!s.isNull() && s->hasValidFile()){
+                if (s->getFilename() == filepath.second && s->getFolder() == filepath.first){
+                    requestedScene = s;
+                    found = true;
+                }
+            }
         }
     }
     return requestedScene;

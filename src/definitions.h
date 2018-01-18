@@ -27,6 +27,7 @@
 #define SCENE_DATE_COLUMN       7
 #define SCENE_RATING_COLUMN     8
 #define SCENE_PATH_COLUMN       9
+#define SCENE_ID_COLUMN         10
 
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);

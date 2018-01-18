@@ -104,7 +104,7 @@ void FileScanner::parseScene(QFileInfo f){
     subMx.lock();
     QString file = f.absoluteFilePath();
     subMx.unlock();
-    sceneParser parser(file);
+    SceneParser parser(file);
     parser.parse();
     ScenePtr scene = QSharedPointer<Scene>(new Scene(parser));
     subMx.lock();

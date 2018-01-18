@@ -31,7 +31,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
     qRegisterMetaType<QStringList>("QStringList");
-    qRegisterMetaType<SceneList>("SceneList");
+    qRegisterMetaType<QHash<int, ScenePtr>>("QHash<int, ScenePtr>");
     qRegisterMetaType<QSharedPointer<Scene>>("QSharedPointer<Scene>");
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
     qRegisterMetaType<QVector<QSharedPointer<Scene>>>("QVector<QSharedPointer<Scene>>");
@@ -40,8 +40,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<ActorPtr>("ActorPtr");
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
-    setupViews();
     this->videoOpen = false;
+    this->sceneMap = QHash<int,ScenePtr>();
+    setupViews();
 }
 
 MainWindow::~MainWindow(){
@@ -69,7 +70,6 @@ MainWindow::~MainWindow(){
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
-
     ui->tabWidget_filters->hide();
     /// Set up Actor Table View
     this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
@@ -87,7 +87,7 @@ void MainWindow::setupViews(){
     ui->actorTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->actorTableView->setSelectionMode(QAbstractItemView::SingleSelection);
     /// Set up the Scene Table View
-    this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location";
+    this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
     this->sceneModel = new QStandardItemModel();
     this->sceneProxyModel = new SceneProxyModel(this);
     this->sceneParent = sceneModel->invisibleRootItem();
@@ -113,7 +113,6 @@ void MainWindow::setupViews(){
     sql->moveToThread(sqlThread);
     /// Make Relevant connections between widgets
     connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearFilter()));
-    connect(ui->profileWidget,  SIGNAL(reloadProfile()),                this,               SLOT(refreshCurrentActor()));
     connect(ui->sceneWidget,    SIGNAL(sendSceneCount(int)),            ui->profileWidget,  SLOT(acceptSceneCount(int)));
     connect(ui->profileWidget,  SIGNAL(requestSceneCount()),            ui->sceneWidget,    SLOT(receiveSceneCountRequest()));
     connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
@@ -121,21 +120,20 @@ void MainWindow::setupViews(){
     connect(this,               SIGNAL(loadActorProfile(ActorPtr)),     ui->sceneWidget,    SLOT(actorFilterChanged(ActorPtr)));
     connect(this,               SIGNAL(cb_companyFilterChanged(QString)),ui->sceneWidget,   SLOT(companyFilterChanged(QString)));
 
-    connect(ui->profileWidget,  SIGNAL(clearChanges()),                 this,               SLOT(reloadProfile()));
     connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestScenes(QString)),this,              SLOT(apv_to_mw_receiveSceneListRequest(QString)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestActor(QString)),this,               SLOT(apv_to_mw_receiveActorRequest(QString)));
     connect(this,               SIGNAL(mw_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(mw_to_apv_receiveActor(ActorPtr)));
     connect(this,               SIGNAL(mw_to_apv_sendScenes(SceneList)),ui->profileWidget,  SLOT(mw_to_apv_receiveScenes(SceneList)));
-    connect(ui->profileWidget,  SIGNAL(apv_to_mw_sendNewActor(ActorPtr)),this,              SLOT(apv_to_mw_receiveNewActor(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_deleteActor(QString)), this,               SLOT(apv_to_mw_deleteActor(QString)));
     connect(ui->profileWidget,  SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
-    connect(ui->sceneWidget,    SIGNAL(playFile(QString)),              this,               SLOT(playVideo(QString)));
+    connect(ui->sceneWidget,    SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
+    connect(sceneDetailView,    SIGNAL(playVideo(int)),                 this,               SLOT(playVideo(int)));
     connect(ui->actorTableView, SIGNAL(clicked(QModelIndex)),           this,               SLOT(actorTableView_clicked(QModelIndex)));
     connect(this,               SIGNAL(resizeSceneView()),              ui->sceneWidget,    SLOT(resizeSceneView()));
-    connect(ui->sceneWidget,    SIGNAL(sceneSelectionChanged(QString)), this,               SLOT(sw_to_mw_selectionChanged(QString)));
-    connect(ui->sceneWidget,    SIGNAL(sceneItemClicked(QString)),      this,               SLOT(sw_to_mw_itemClicked(QString)));
+    connect(ui->sceneWidget,    SIGNAL(sceneSelectionChanged(int)),     this,               SLOT(sw_to_mw_selectionChanged(int)));
+    connect(ui->sceneWidget,    SIGNAL(sceneItemClicked(int)),          this,               SLOT(sw_to_mw_itemClicked(int)));
     /// Connect Scene Detail View
     connect(sceneDetailView,    SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
     connect(sceneDetailView,    SIGNAL(showActor(QString)),             this,               SLOT(sdv_to_mw_showActor(QString)));
@@ -143,7 +141,6 @@ void MainWindow::setupViews(){
     connect(this,               SIGNAL(sendActorBirthday(QString,QDate)),sceneDetailView,   SLOT(receiveActorBirthday(QString,QDate)));
     connect(this,               SIGNAL(showSceneDetails(ScenePtr)),      sceneDetailView,   SLOT(loadScene(ScenePtr)));
   //  connect(this,               SIGNAL(hideSceneDetails()),             sceneDetailView,SLOT(hide()));
-    connect(sceneDetailView,    SIGNAL(playVideo(QString)),             this,               SLOT(playVideo(QString)));
     //connect(sql,              SIGNAL(initializationFinished(ActorList,SceneList)), this,  SLOT(initializationFinished(ActorList,SceneList)));
     connect(sql,                SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sql,                SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
@@ -165,11 +162,6 @@ void MainWindow::sdv_to_mw_requestBirthday(QString name){
     }
 }
 
-void MainWindow::apv_to_mw_receiveNewActor(ActorPtr a){
-    this->actorMap.insert(a->getName(), a);
-    this->actorModel->appendRow(a->buildQStandardItem());
-}
-
 void MainWindow::apv_to_mw_deleteActor(QString name){
     qDebug("Main Window Removing Display Item for '%s'", qPrintable(name));
     if (name == currentActor->getName()){
@@ -181,7 +173,7 @@ void MainWindow::apv_to_mw_deleteActor(QString name){
 
 void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
     if(!actorName.isEmpty()){
-        this->sceneUpdateList = sceneList.withActor(actorName);
+        this->sceneUpdateList = scenesWithActor(actorName, sceneMap);
         qDebug("Sending Actor Profile View %d scenes with '%s'", sceneUpdateList.size(), qPrintable(actorName));
         emit mw_to_apv_sendScenes(sceneUpdateList);
     } else {
@@ -195,20 +187,23 @@ void MainWindow::apv_to_mw_receiveActorRequest(QString name){
     }
 }
 
-void MainWindow::sw_to_mw_itemClicked(QString filepath){
-    QPair<QString,QString> file = splitAbsolutePath(filepath);
-    ScenePtr s = sceneList.getScene(file);
-    if (!s.isNull()){
-        qDebug("Showing Details of '%s'", qPrintable(filepath));
-        emit showSceneDetails(s);
+void MainWindow::sw_to_mw_itemClicked(int id){
+    if (sceneMap.contains(id)){
+        ScenePtr s = sceneMap.value(id);
+        if (!s.isNull()){
+            qDebug("Showing Details of scene with id '%d'", id);
+            emit showSceneDetails(s);
+        } else {
+            qWarning("Unable to locate scene with ID '%d' in Scene List", id);
+        }
     } else {
-        qWarning("Unable to locate '%s' in Scene List", qPrintable(filepath));
+        qWarning("Scene with ID %d not in map", id);
     }
 }
 
-void MainWindow::sw_to_mw_selectionChanged(QString filepath){
+void MainWindow::sw_to_mw_selectionChanged(int id){
     if (!this->sceneDetailView->isHidden()){
-        sw_to_mw_itemClicked(filepath);
+        sw_to_mw_itemClicked(id);
     }
 }
 
@@ -227,17 +222,18 @@ void MainWindow::showEvent(QShowEvent */*event*/){
         connect(initThread, SIGNAL(getActors()),                            sql,    SLOT(loadActors()));
         connect(initThread, SIGNAL(getScenes()),                            sql,    SLOT(loadScenes()));
 
+
         qDebug("Starting Initialization Thread");
         this->initThread->start();
     } else {
         qDebug("Skipping initial load from Database");
-        initializationFinished(actorList, sceneList);
+        initializationFinished({}, {});
     }
 }
 
 void MainWindow::buildQStandardItem(ActorPtr a){
     mx.lock();
-    a->setSceneCount(sceneList.countScenesWithActor(a->getName()));
+    a->setSceneCount(countWithActor(a->getName(), sceneMap));
     mx.unlock();
     QList<QStandardItem *> row = a->buildQStandardItem();
     mx.lock();
@@ -271,14 +267,16 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
         int idx = 0;
         emit newProgressDialogBox(QString("Adding %1 Scenes...").arg(scenes.size()), scenes.size());
         foreach(ScenePtr s, scenes){
-            sceneModel->appendRow(s->buildQStandardItem());
-            sceneList.push_back(s);
+            QList<QStandardItem *>row = s->buildQStandardItem();
+            sceneModel->appendRow(row);
+            sceneMap.insert(s->getID(), s);
             idx++;
             if (idx % 100 == 0){
                 emit updateProgressDialogBox(idx);
             }
         }
         emit closeProgressDialogBox();
+        /*
         QTime timer(0,0,0);
         timer.start();
         index = 0;
@@ -300,18 +298,10 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
         }
         double elapsed = (double)timer.elapsed()/1000.0;
         qDebug("\n****Time To Build and Add Actors: %s ****\n", qPrintable(QString::number(elapsed, 'f', 2)));
-        /*
-        foreach(ActorPtr a, actors){
-            actorModel->appendRow(a->buildQStandardItem());
-            actorMap.insert(a->getName(), a);
-            if ((++index % 100) == 0){
-                emit updateProgressDialogBox(index);
-            }
-        }
-            */
+
         emit closeProgressDialogBox();
         qDebug("All items added to GUI");
-
+        */
         /// Set up Filter boxes
         QStringList companies = sql->getCompanyList();
         companies.prepend(COMBO_BOX_DEFAULT);
@@ -338,11 +328,11 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     /// PROGRESS & STATUS BAR UPDATING
     connect(curl,   SIGNAL(startProgress(QString,int)),     this,   SLOT(startProgress(QString,int)));
     connect(sql,    SIGNAL(startProgress(QString,int)),     this,   SLOT(startProgress(QString,int)));
-    connect(curl,   SIGNAL(updateProgress(int)),            this,   SLOT(updateProgress(int)));
-    connect(sql,    SIGNAL(updateProgress(int)),            this,   SLOT(updateProgress(int)));
+    connect(curl,   SIGNAL(updateProgress(int)),            ui->progressBar, SLOT(setValue(int)));
+    connect(sql,    SIGNAL(updateProgress(int)),            ui->progressBar, SLOT(setValue(int)));
     connect(curl,   SIGNAL(closeProgress(QString)),         this,   SLOT(closeProgress(QString)));
     connect(sql,    SIGNAL(closeProgress(QString)),         this,   SLOT(closeProgress(QString)));
-    connect(sql,    SIGNAL(updateStatus(QString)),          this,   SLOT(updateStatus(QString)));
+    connect(sql,    SIGNAL(updateStatus(QString)),          ui->statusLabel, SLOT(setText(QString)));
     /// SHOW MESSAGE DIALOGS
     connect(sql,    SIGNAL(showError(QString)),             this,   SLOT(showError(QString)));
     connect(curl,   SIGNAL(showError(QString)),             this,   SLOT(showError(QString)));
@@ -356,12 +346,16 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
     connect(this,   SIGNAL(saveActorChanges(ActorPtr)),     sql,    SLOT(updateActor(ActorPtr)));
     connect(this,   SIGNAL(saveActors(ActorList)),          sql,    SLOT(store(ActorList)));
     connect(this,   SIGNAL(saveScenes(SceneList)),          sql,    SLOT(store(SceneList)));
-    connect(this,   SIGNAL(loadActors()),                   sql,    SLOT(loadActors()));
-    connect(this,   SIGNAL(loadScenes()),                   sql,    SLOT(loadScenes()));
+    connect(ui->actionLoad_Actors,SIGNAL(triggered()),      sql,    SLOT(loadActors()));
+    connect(ui->pb_refreshActors, SIGNAL(pressed()),      sql,    SLOT(loadActors()));
+    connect(ui->pb_refreshScenes, SIGNAL(pressed()),      sql,    SLOT(loadScenes()));
     connect(sql,    SIGNAL(sendResult(ActorList)),          this,   SLOT(receiveActors(ActorList)));
     connect(sql,    SIGNAL(sendResult(SceneList)),          this,   SLOT(receiveScenes(SceneList)));
     connect(this,   SIGNAL(saveChangesToDB(ScenePtr)),      sql,    SLOT(saveChanges(ScenePtr)));
-    connect(this,   SIGNAL(purgeScenes()),                  sql,    SLOT(purgeScenes()));
+    connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   this,               SIGNAL(cb_companyFilterChanged(QString)));
+    connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterEthnicity(QString)));
+    connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterHairColor(QString)));
+    connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
     /// Connect Actor Profile Widget with Database & Curl Thread
     ui->profileWidget->hide();
     connect(ui->profileWidget,  SIGNAL(saveToDatabase(ActorPtr)),   sql,    SLOT(updateActor(ActorPtr)));
@@ -410,17 +404,14 @@ void MainWindow::scan_directory_chosen(QString root_directory){
             connect(scanner,SIGNAL(fs_to_db_checkNames(QStringList)),   sql,    SLOT(fs_to_db_checkNames(QStringList)));
             connect(scanner,SIGNAL(fs_to_db_storeScenes(SceneList)),    sql,    SLOT(fs_to_db_storeScenes(SceneList)));
             connect(scanner,SIGNAL(startProgress(QString,int)),         this,   SLOT(startProgress(QString,int)));
-            connect(scanner,SIGNAL(updateProgress(int)),                this,   SLOT(updateProgress(int)));
+            connect(scanner,SIGNAL(updateProgress(int)),                ui->progressBar, SLOT(setValue(int)));
             connect(scanner,SIGNAL(closeProgress(QString)),             this,   SLOT(closeProgress(QString)));
-            connect(scanner,SIGNAL(updateStatus(QString)),              this,   SLOT(updateStatus(QString)));
+            connect(scanner,SIGNAL(updateStatus(QString)),              ui->statusLabel, SLOT(setText(QString)));
             connect(scanner,SIGNAL(showError(QString)),                 this,   SLOT(showError(QString)));
-            connect(scanner,SIGNAL(finished()),                         this,   SLOT(scan_thread_finished()));
+            connect(scanner,SIGNAL(finished()),                         scanner, SLOT(deleteLater()));
             scanner->start();
         }
     }
-}
-void MainWindow::scan_thread_finished(){
-    this->scanner->deleteLater();
 }
 
 void MainWindow::db_to_mw_receiveActors(ActorList list){
@@ -443,7 +434,7 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
     foreach(ScenePtr s, list){
         //qDebug("Adding Scene with ID %d to List", s->getID());
         sceneModel->appendRow(s->buildQStandardItem());
-        sceneList.push_back(s);
+        sceneMap.insert(s->getID(), s);
     }
     emit resizeSceneView();
     qDebug("Added %d Scenes!", list.size());
@@ -541,19 +532,6 @@ void MainWindow::showCurrentActorProfile(){
     }
 }
 
-void MainWindow::refreshCurrentActor(){
-    if (!this->currentActor.isNull()){
-        QString new_filename = getHeadshotName(this->currentActor->getName());
-        QFileInfo info(new_filename);
-        if (info.exists() && info.size() > 200){
-            this->currentActor->setHeadshot(new_filename);
-            this->currentActor->updateQStandardItem();
-            emit loadActorProfile(currentActor);
-        }
-    }
-
-}
-
 /** \brief Show an error Dialog with the provided Text. */
 void MainWindow::showError(QString message){
     qWarning("Showing Error Dialog with text: '%s'", qPrintable(message));
@@ -565,17 +543,6 @@ void MainWindow::showSuccess(QString message){
     qDebug("Message Received: '%s'", qPrintable(message));
     QMessageBox box(QMessageBox::Information, tr("Success"), message, QMessageBox::Ok, this, Qt::WindowStaysOnTopHint);
     box.exec();
-}
-
-/** \brief Refresh Scenes from Database */
-void MainWindow::on_pb_refreshScenes_clicked(){
-    qDebug("Updating Scenes from Database");
-    emit loadScenes();
-}
-/** \brief Refresh Actors from Database */
-void MainWindow::on_pb_refreshActors_clicked(){
-    qDebug("Updating Scenes from Database");
-    emit loadActors();
 }
 
 /** \brief Initialize the progress bar to 0, set its new maximum value, and update the text on the status bar
@@ -648,9 +615,9 @@ void MainWindow::updateStatus(QString s)    {
 /** \brief Slot to receive list of scenes. */
 void MainWindow::receiveScenes(SceneList list){
     foreach(ScenePtr s, list){
-        if (!sceneList.contains(s)){
+        if (!sceneMap.contains(s->getID())){
+            sceneMap.insert(s->getID(), s);
             sceneModel->appendRow(s->buildQStandardItem());
-            sceneList.push_back(s);
         }
     }
     QStringList companies = sql->getCompanyList();
@@ -745,7 +712,8 @@ void MainWindow::receiveSingleActor(ActorPtr a){
 
 
 void MainWindow::on_pb_saveScenes_clicked(){
-    if (sceneList.size() > 0){
+    if (!sceneMap.isEmpty()){
+        this->sceneList = fromHashMap(sceneMap);
         qDebug("Saving %d scenes to database", sceneList.size());
         emit saveScenes(sceneList);
     } else {
@@ -802,22 +770,11 @@ void MainWindow::selectNewProfilePhoto(){
 }
 
 
-
-/** \brief Load all entries from the Actor Table in the Database */
-void MainWindow::on_actionLoad_Actors_triggered(){
-    emit loadActors();
-}
 /** \brief Save all Actor Items to the Actor Table of the Database */
 void MainWindow::on_actionSave_Scenes_triggered(){
     qDebug("Saving Actors to Database");
     actorList = MapToList(actorMap);
     emit saveActors(actorList);
-}
-/** \brief Reload the data shown in the current ActorProfileView Widget, if it is open. */
-void MainWindow::reloadProfile()  {
-    if (!ui->profileWidget->isHidden() && !currentActor.isNull()){
-        emit loadActorProfile(currentActor);
-    }
 }
 
 /** \brief Test Function to verify Lexical Parsing of Scene Titles.
@@ -826,10 +783,12 @@ void MainWindow::on_actionParse_Scene_triggered(){
     QString filename = QFileDialog::getOpenFileName(this, tr("Select Video to Parse"), "/Volumes");
     if (!filename.isEmpty()){
         ui->statusLabel->setText(QString("Parsing %1").arg(filename));
-        sceneParser input;
+        SceneParser input;
         input.parse(filename);
-        ScenePtr temp = ScenePtr(new Scene(input));
-        SceneRenamer output(temp.data());
+
+        Scene *scene = new Scene(input);
+        //SceneRenamer output(temp.data());
+        SceneRenamer output(scene);
         QString newName = output.getNewFilename();
         QString message = output.displayInfo();
         qDebug("Old Name:   %s", qPrintable(filename));
@@ -838,6 +797,7 @@ void MainWindow::on_actionParse_Scene_triggered(){
         box.resize(QSize(1000, 400));
         box.exec();
         ui->statusLabel->setText("");
+        delete scene;
     }
 }
 
@@ -854,13 +814,9 @@ void MainWindow::on_actionAdd_Actor_triggered(){
         connect(curl,       SIGNAL(ct_to_pd_sendActor(ActorPtr)),     addProfileDialog, SLOT(ct_to_pd_receiveProfile(ActorPtr)));
         connect(sql,        SIGNAL(db_to_pd_sendBackWithID(ActorPtr)),addProfileDialog, SLOT(db_to_pd_receiveProfileWithID(ActorPtr)));
         connect(addProfileDialog, SIGNAL(pd_to_mw_addDisplayItem(ActorPtr)), this, SLOT(pd_to_mw_addActorToDisplay(ActorPtr)));
-        connect(addProfileDialog, SIGNAL(closed()),                         this,       SLOT(closeAddActorDialog()));
+        connect(addProfileDialog, SIGNAL(closed()),                   addProfileDialog, SLOT(deleteLater()));
         addProfileDialog->show();
     }
-}
-
-void MainWindow::closeAddActorDialog(){
-    addProfileDialog->deleteLater();
 }
 
 void MainWindow::pd_to_mw_addActorToDisplay(ActorPtr a){
@@ -895,23 +851,11 @@ void MainWindow::on_actionCreate_Bio_triggered(){
 void MainWindow::receiveTestBio(ActorPtr a){
     qDebug("Receieved actor %s from Curl Test Thread", qPrintable(a->getName()));
     this->testProfileDialog = new ProfileDialog(a, this);
-    connect(testProfileDialog, SIGNAL(closed()), this, SLOT(testProfileDialogClosed()));
+    connect(testProfileDialog, SIGNAL(closed()), testProfileDialog, SLOT(deleteLater()));
+    connect(testProfileDialog, SIGNAL(closed()), curlTestObject, SLOT(deleteLater()));
+    connect(testProfileDialog, SIGNAL(closed()), curlTestThread, SLOT(terminate()));
+    connect(testProfileDialog, SIGNAL(closed()), curlTestThread, SLOT(deleteLater()));
     this->testProfileDialog->show();
-}
-
-/** \brief Close and delete the test dialog for biography retrieval. */
-void MainWindow::testProfileDialogClosed(){
-    if (testProfileDialog){
-        testProfileDialog->deleteLater();
-    }
-    curlTestObject->deleteLater();
-    curlTestThread->terminate();
-    curlTestThread->deleteLater();
-/*    curlTestThread->terminate();
-    if (curlTestThread){
-        curlTestThread->deleteLater();
-    }
-    */
 }
 
 
@@ -947,7 +891,14 @@ void MainWindow::renameFile(ScenePtr scene){
             newFileInfo.second = newName;
             scene->setFile(newFileInfo);
             QFile file(fullpath);
-            if (!file.rename(fullpath, newPath)){
+            bool saved = false;
+            if (fullpath == newPath){
+                saved = true;
+            } else {
+                saved = file.rename(fullpath, newPath);
+            }
+            if (!saved){
+                qWarning("Unable to rename:\n'%s' ------>\n'%s'\n", qPrintable(fullpath), qPrintable(newPath));
                 QMessageBox::warning(this, tr("Renaming Error"), QString("Error Renaming\n%1\n---->\n%2").arg(oldName).arg(newName), QMessageBox::Cancel);
             } else {
                 qDebug("File Renamed");
@@ -955,28 +906,30 @@ void MainWindow::renameFile(ScenePtr scene){
                 qDebug("Display Updated");
                 emit saveChangesToDB(scene);
                 qDebug("Database Updated");
-                QMessageBox::information(this, tr("Success"), QString("Successfully Renamed File:\n'%1'\n--->\n'%2'").arg(oldName).arg(newName), QMessageBox::Ok);
             }
         }
     }
 }
 
-void MainWindow::playVideo(QString filepath){
-
-    if (!videoOpen){
-        if (QFileInfo(filepath).exists()){
-            this->videoPlayer = new VideoPlayer(filepath);
-            this->videoThread = new QThread(this);
-            videoPlayer->moveToThread(videoThread);
-            connect(this,        SIGNAL(startVideoPlayback()),  videoPlayer,    SLOT(play()));
-            connect(videoPlayer, SIGNAL(error(QString)),        this,           SLOT(showError(QString)));
-            connect(videoPlayer, SIGNAL(videoStopped()),        this,           SLOT(videoFinished()));
-            this->videoOpen = true;
-            videoThread->start();
-            emit startVideoPlayback();
+void MainWindow::playVideo(int sceneID){
+    if (sceneMap.contains(sceneID)){
+        ScenePtr curr = sceneMap.value(sceneID);
+        QString filepath = curr->getFullpath();
+        if (!videoOpen){
+            if (QFileInfo(filepath).exists()){
+                this->videoPlayer = new VideoPlayer(filepath);
+                this->videoThread = new QThread(this);
+                videoPlayer->moveToThread(videoThread);
+                connect(this,        SIGNAL(startVideoPlayback()),  videoPlayer,    SLOT(play()));
+                connect(videoPlayer, SIGNAL(error(QString)),        this,           SLOT(showError(QString)));
+                connect(videoPlayer, SIGNAL(videoStopped()),        this,           SLOT(videoFinished()));
+                this->videoOpen = true;
+                videoThread->start();
+                emit startVideoPlayback();
+            }
+        } else {
+            qWarning("Video Player Already Open!");
         }
-    } else {
-        qWarning("Video Player Already Open!");
     }
 }
 
@@ -991,48 +944,12 @@ void MainWindow::videoFinished(){
     this->videoOpen = false;
 }
 
-void MainWindow::on_actionCleanDatabase_triggered(){
-    emit purgeScenes();
-}
-
-void MainWindow::on_cb_companyFilter_currentIndexChanged(const QString &arg1){
-    emit cb_companyFilterChanged(arg1);
-}
-
 void MainWindow::on_tb_clearActorFilters_clicked(){
     ui->cb_ethnicity->setCurrentIndex(-1);
     ui->cb_hairColor->setCurrentIndex(-1);
     ui->cb_sceneCount->setCurrentText("More Than");
     ui->sb_sceneCount->clear();
     actorProxyModel->clearFilters();
-}
-
-void MainWindow::on_cb_hairColor_currentIndexChanged(const QString &hairColorSelected){
-    if (hairColorSelected != COMBO_BOX_DEFAULT){
-        actorProxyModel->setFilterHairColor(hairColorSelected);
-    } else {
-        actorProxyModel->clearFilterHairColor();
-    }
-}
-void MainWindow::on_cb_ethnicity_currentIndexChanged(const QString &arg1){
-    if (arg1 != COMBO_BOX_DEFAULT){
-        actorProxyModel->setFilterEthnicity(arg1);
-    } else {
-        actorProxyModel->clearFilterEthnicity();
-    }
-}
-
-
-void MainWindow::on_cb_ethnicity_currentIndexChanged(int index){
-    if (index == -1){
-        actorProxyModel->clearFilterEthnicity();
-    }
-}
-
-void MainWindow::on_cb_hairColor_currentIndexChanged(int index){
-    if (index == -1){
-        actorProxyModel->clearFilterHairColor();
-    }
 }
 
 void MainWindow::on_actionWipe_Scenes_Table_triggered(){

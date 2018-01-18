@@ -23,45 +23,26 @@ bool operator==(const Scene &s1, const Scene &s2){
     return s1.equals(s2);
 }
 
-
-Scene::Scene():Entry(),
-    ID(0), length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
-    added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), dateString(""),md5sum(""){
-    this->ages = {};
-    displayBuilt = false;
-    this->file.first = "";
-    this->file.second = "";
+Scene::Scene():Entry(){
+    this->clear();
 }
-Scene::Scene(QString absolutePath): Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
-    added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), dateString("")
-{
-    this->file = splitAbsolutePath(absolutePath);
-    sceneParser p;
-    p.parse(file);
-    this->fromParser(p);
-    displayBuilt = false;
+Scene::Scene(QString absolutePath): Entry(){
+    this->clear();
+    if (valid(absolutePath)){
+        this->fromParser(SceneParser(absolutePath));
+    }
 }
 
-Scene::Scene(pqxx::result::const_iterator record):Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
-    added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), dateString(""){
-    this->ages = {};
+Scene::Scene(pqxx::result::const_iterator record):Entry(){
+    this->clear();
     this->fromRecord(record);
-    displayBuilt = false;
 }
 
-Scene::Scene(sceneParser p):Entry(), ID(0),
-    length(QTime(0,0,0)), height(0), width(0), sceneNumber(0), size(0),
-    added(QDate()), released(QDate()), opened(QDate()),
-    title(""), company(""), series(""), url(""), dateString(""), md5sum(""){
-    this->ages = {};
+Scene::Scene(SceneParser p):Entry(){
+    this->clear();
     this->fromParser(p);
-    displayBuilt = false;
 }
+/*
 Scene::Scene(const Scene &s):Entry(), ID(s.ID),
     length(s.length), height(s.height), width(s.width), sceneNumber(s.sceneNumber), size(s.size),
     added(s.added), released(s.released), opened(s.opened),
@@ -77,8 +58,40 @@ Scene::Scene(const Scene &s):Entry(), ID(s.ID),
 //    this->itemLength = s.itemLength;
 //    this->itemP
 }
+*/
+void Scene::clear(){
+    this->ID = 0;
+    this->length = QTime(0,0,0,0);
+    this->height = 0;
+    this->width = 0;
+    this->sceneNumber = 0;
+    this->size = 0;
+    this->added = QDate();
+    this->opened = QDate();
+    this->released = QDate();
+    this->title = "";
+    this->company = "";
+    this->series = "";
+    this->url = "";
+    this->dateString = "";
+    this->md5sum = "";
+    this->ages = {0, 0, 0, 0};
+    this->actors = QStringList();
+    this->file = QPair<QString,QString>("", "");
+    this->tags = QStringList();
+    this->displayBuilt = false;
+    this->row = {};
+    this->rating = Rating("R");
+}
 
-void Scene::fromParser(sceneParser p){
+void Scene::reparse(){
+    QString fullpath = getFullpath();
+    SceneParser p(fullpath);
+    p.parse();
+    fromParser(p);
+}
+
+void Scene::fromParser(SceneParser p){
     if (!p.isEmpty()){
         if (!p.isParsed()){
             p.parse();
@@ -170,20 +183,42 @@ void Scene::setTitle(const QString &t){
     }
 }
 void Scene::addActor(QString a){
-    if(!a.isEmpty() && !this->actors.contains(a)){
-        this->actors << a;
+    if (!actors.isEmpty()){
+        QVector<int> emptyIdxs = {};
+        for (int i = 0; i < actors.size(); ++i){
+            if (actors.at(i) == ""){
+                emptyIdxs.push_back(i);
+            }
+        }
+        foreach(int idx, emptyIdxs){
+            actors.removeAt(idx);
+        }
+    }
+    if (!a.isEmpty() && !this->actors.contains(a)){
+        actors << a;
     }
 }
 void Scene::removeActor(QString a){
     if (!a.isEmpty() && a.contains(a)){
-        this->actors.removeOne(a);
+        QVector<int> idxs = {};
+        for(int i = 0; i < actors.size(); ++i){
+            if (actors.at(i) == a){
+                idxs.push_back(i);
+            }
+        }
+        foreach(int idx, idxs){
+            actors.removeAt(idx);
+        }
     }
 }
 
 void Scene::renameActor(QString oldName, QString newName){
     if (!oldName.isEmpty() && !newName.isEmpty() && actors.contains(oldName)){
-        actors.removeOne(oldName);
-        actors.prepend(newName);
+        for(int i = 0; i < actors.size(); ++i){
+            if (actors.at(i) == oldName){
+                actors[i] = newName;
+            }
+        }
     }
 }
 
@@ -226,22 +261,33 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->added = QDate::fromString(temp, "yyyy-MM-dd");
-            }
-        }
+            } else { this->added = QDate(); }
+        } else { this->added = QDate(); }
+
         if (!entry.at("created").is_null()){
             QString temp = QString::fromStdString(entry["created"].as<std::string>());
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->released = QDate::fromString(temp, "yyyy-MM-dd");
                 this->dateString = temp.replace('-', '.');
+            } else {
+                this->released = QDate();
+                this->dateString = "";
             }
+        } else {
+            released = QDate();
+            dateString = "";
         }
         if (!entry.at("accessed").is_null()){
             QString temp = QString::fromStdString(entry["accessed"].as<std::string>());
             dateMatch = dateRegex.match(temp);
             if (dateMatch.hasMatch()){
                 this->opened = QDate::fromString(temp, "yyyy-MM-dd");
+            } else {
+                this->opened = QDate();
             }
+        } else {
+            this->opened = QDate();
         }
         if (!entry.at("tags").is_null()){
             this->tags = QString::fromStdString(entry["tags"].as<std::string>()).split(',', QString::SkipEmptyParts);
@@ -250,16 +296,12 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
         for (int idx = 0; idx < 4 && !error; ++idx){
             try{
                 std::string fieldname = qPrintable(QString("actor%1").arg(idx+1));
-                std::string fieldage  = qPrintable(QString("age%1").arg(idx+1));
                 if (!entry.at(fieldname).is_null()){
                     actors << QString::fromStdString(entry[fieldname].as<std::string>());
-                } else {
-                    actors << "";
-                }
-                if (!entry.at(fieldage).is_null()){
-                    ages.push_back(entry[fieldage].as<int>());
-                } else {
-                    ages.push_back(0);
+                    std::string fieldage  = qPrintable(QString("age%1").arg(idx+1));
+                    if (!entry.at(fieldage).is_null()){
+                        ages.push_back(entry[fieldage].as<int>());
+                    }
                 }
             } catch (std::out_of_range &e){
                 qWarning("Error: index %d out of range - %s", idx, e.what());
@@ -289,9 +331,26 @@ bool Scene::hasDisplay(){
     return displayBuilt;
 }
 
-ItemList Scene::getItemList(){
-    this->displayRow << itemActors << itemTitle << itemCompany << itemQuality << itemSize << itemLength << itemDate << itemRating;
-    return displayRow;
+bool Scene::equals(const QString &path) const{
+    bool same = false;
+    if (valid(path)){
+        if (valid(file.first)){
+            if (valid(file.second)){
+                QString fullpath = QString("%1/%2").arg(file.first).arg(file.second);
+                if (fullpath == path){
+                    same = true;
+                }
+            }
+        }
+    }
+    return same;
+}
+bool Scene::equals(const QPair<QString, QString> &p) const{
+    bool same = false;
+    if (valid(p.first) && valid(p.second) && valid(file.first) && valid(file.second)){
+        same = (p.first == file.first) && (p.second == file.second);
+    }
+    return same;
 }
 
 QList<QStandardItem *> Scene::getQStandardItem(){
@@ -301,7 +360,8 @@ QList<QStandardItem *> Scene::getQStandardItem(){
     } else {
 
     }
-    row << itemActors.data() << itemTitle.data() << itemCompany.data() << itemQuality.data() << itemSize.data() << itemLength.data() << itemDate.data() << itemRating.data();
+    row << itemActors << itemTitle << itemCompany << itemQuality \
+        << itemSize << itemLength << itemDate << itemRating << itemID;
     return row;
 }
 
@@ -313,26 +373,24 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     } else if (this->size > BYTES_PER_MEGABYTE){
         sizeString = QString("%1 MB").arg(size/BYTES_PER_MEGABYTE);
     }
-    this->itemSize = ItemPtr(new QStandardItem(sizeString));
-    this->itemTitle = ItemPtr(new QStandardItem());
-    this->itemTitle->setData(QVariant(title), Qt::DisplayRole);
-    this->itemCompany = ItemPtr(new QStandardItem());
-    this->itemCompany->setData(QVariant(company), Qt::DisplayRole);
     QString path = QString("%1/%2").arg(file.first).arg(file.second);
-    this->itemPath = ItemPtr(new QStandardItem(path));
+    this->itemSize      = new QStandardItem(sizeString);
+    this->itemTitle     = new QStandardItem(title);
+    this->itemCompany   = new QStandardItem(company);
+    this->itemPath      = new QStandardItem(path);
+    this->itemID        = new QStandardItem(QString::number(ID));
+
     QString date("");
     if (released.isValid()){
         date = released.toString("yyyy/MM/dd");
     }
-    this->itemDate = ItemPtr(new QStandardItem(date));
-    this->itemQuality = ItemPtr(new QStandardItem());
+    this->itemDate = new QStandardItem(date);
+    this->itemQuality = new QStandardItem("");
     if (height > 0){
         this->itemQuality->setData(QVariant(height), Qt::DecorationRole);
-    } else {
-        itemQuality->setText("");
     }
-    this->itemLength = ItemPtr(new QStandardItem(length.toString("h:mm:ss")));
-    this->itemRating = ItemPtr(new QStandardItem(rating.grade()));
+    this->itemLength = new QStandardItem(length.toString("h:mm:ss"));
+    this->itemRating = new QStandardItem(rating.grade());
     QString mainActor(""), featuredActors("");
     if (actors.size() > 0){
         mainActor = actors.at(0).trimmed();
@@ -350,13 +408,13 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
             }
         }
     }
-    this->itemActors = ItemPtr(new QStandardItem());
+    this->itemActors = new QStandardItem();
     this->itemActors->setData(QVariant(mainActor), Qt::DisplayRole);
-    this->itemFeaturedActors = ItemPtr(new QStandardItem());
+    this->itemFeaturedActors = new QStandardItem();
     this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
-    row << itemActors.data() << itemTitle.data() << itemCompany.data() << itemQuality.data() \
-        << itemFeaturedActors.data() <<  itemSize.data() << itemLength.data() \
-        << itemDate.data() << itemRating.data() << itemPath.data();
+    row << itemActors << itemTitle << itemCompany << itemQuality \
+        << itemFeaturedActors <<  itemSize << itemLength \
+        << itemDate << itemRating << itemPath << itemID;
     displayBuilt = true;
     return row;
 }

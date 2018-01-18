@@ -14,6 +14,7 @@ public:
     QString getFilterHair() const;
     QString getFilterEthnicity() const;
     int getFilterSceneCount() const;
+public slots:
     void setFilterHairColor(const QString &hairColor);
     void setFilterEthnicity(const QString &ethnicity);
     void setFilterSceneCount(const NumberFilterType &, const int &count);

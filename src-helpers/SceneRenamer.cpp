@@ -8,12 +8,16 @@
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
 SceneRenamer::SceneRenamer(Scene *scene){
-
-    QRegularExpression extRx(".+\\.([A-Za-z4]{2,4})");
-    this->current = ScenePtr(scene);
+    scan(ScenePtr(scene));
+}
+SceneRenamer::SceneRenamer(ScenePtr scene){
+    scan(scene);
+}
+void SceneRenamer::scan(ScenePtr scene){
+    this->current = scene;
     this->sceneOk = (!current.isNull());
     if (sceneOk){
-
+        QRegularExpression extRx(".+\\.([A-Za-z4]{2,4})");
         this->oldFilename   = scene->getFilename();
         this->title         = scene->getTitle().trimmed();
         this->releaseString = scene->dateString;

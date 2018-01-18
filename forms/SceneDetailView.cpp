@@ -6,13 +6,17 @@
 #include <QLabel>
 #include <QListIterator>
 #include <QMessageBox>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QFormLayout>
+#include <QGridLayout>
 #include "SceneParser.h"
 #include "Scene.h"
 #include "genericfunctions.h"
 #include "Rating.h"
 SceneDetailView::SceneDetailView(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SceneDetailView)
+    ui(new Ui::SceneDetailView), currentSceneID(-1)
 {
     ui->setupUi(this);
     changed = false;
@@ -46,57 +50,82 @@ SceneDetailView::~SceneDetailView(){
 }
 
 void SceneDetailView::loadScene(ScenePtr s){
-    if (!current.isNull() && changed){
-        QMessageBox b(QMessageBox::Question, tr("Unsaved Changes"), tr("Save changes before leaving this page?"),QMessageBox::Save | QMessageBox::No, this, Qt::WindowStaysOnTopHint);
-        if (b.exec() == QMessageBox::Save){
-            emit saveChanges(current);
+    try{
+        if (!current.isNull() && changed){
+            QMessageBox b(QMessageBox::Question, tr("Unsaved Changes"), tr("Save changes before leaving this page?"),QMessageBox::Save | QMessageBox::No, this, Qt::WindowStaysOnTopHint);
+            if (b.exec() == QMessageBox::Save){
+                emit saveChanges(current);
+            }
         }
+    } catch (std::exception &e){
+        qWarning("Caught Exception While Displaying menu: %s", e.what());
     }
-    this->current = ScenePtr(s.data());
-    ui->titleLineEdit->setText(s->getTitle());
-    ui->companyLineEdit->setText(s->getCompany());
-    ui->seriesLineEdit->setText(s->getSeries());
-    QTime duration = s->getLength();
-    ui->durationLineEdit->setText(duration.toString("h:mm:ss"));
+    try{
+        this->current = s;
+    } catch (std::bad_alloc &e){
+        qWarning("Bad Alloc Exception Caught while re-assigning 'current' scene object: %s", e.what());
+        return;
+    } catch (std::exception &e){
+        qWarning("Exception Caught while re-assigning 'current' scene object: %s", e.what());
+        return;
+    }
     QDate released = s->getReleased();
     QDate added = s->getAdded();
     QDate opened = s->getOpened();
-    ui->releasedLineEdit->setText(released.toString("MMMM d, yyyy"));
-    ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
-    ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
-    ui->filenameLineEdit->setText(s->getFullpath());
+    try{
+        this->currentSceneID = s->getID();
+        ui->titleLineEdit->setText(s->getTitle());
+        ui->companyLineEdit->setText(s->getCompany());
+        ui->seriesLineEdit->setText(s->getSeries());
+        QTime duration = s->getLength();
+        ui->durationLineEdit->setText(duration.toString("h:mm:ss"));
+        ui->releasedLineEdit->setText(released.toString("MMMM d, yyyy"));
+        ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
+        ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
+        ui->filenameLineEdit->setText(s->getFullpath());
 
-    ui->tagsTextEdit->setPlainText(s->tagString());
-    QString rating = s->getRating().grade();
-    int index = ui->ratingComboBox->findData(rating);
-    if (index != -1){
-        ui->ratingComboBox->setCurrentIndex(index);
+        ui->tagsTextEdit->setPlainText(s->tagString());
+    } catch (std::bad_alloc &e){
+        qWarning("Bad Alloc Exception Caught while Setting fields: %s", e.what());
+        return;
+    } catch (std::exception &e){
+        qWarning("Exception Caught while Setting fields : %s", e.what());
+        return;
     }
-    ui->sizeLineEdit->setText(QString("%1 MB").arg(s->getSize()/BYTES_PER_MEGABYTE));
-    int resolution = s->getHeight();
-    if (resolution > 0){
-        ui->resolutionLineEdit->setText(QString::number(resolution));
-    }
-    QStringList cast = s->getActors();
-    for (int i = 0; i < cast.size(); ++i){
-        QString name = cast.at(i);
-        ageList.at(i)->clear();
-        if (!name.isEmpty()){
-            castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
-            if (!released.isNull() && released.isValid()){
-                emit requestActorBirthday(cast.at(i));
-            }
-        } else {
-            castList.at(i)->clear();
-            ageLabelList.at(i)->clear();
+    try{
+        QString rating = s->getRating().grade();
+        int index = ui->ratingComboBox->findData(rating);
+        if (index != -1){
+            ui->ratingComboBox->setCurrentIndex(index);
         }
+        ui->sizeLineEdit->setText(QString("%1 MB").arg(s->getSize()/BYTES_PER_MEGABYTE));
+        int resolution = s->getHeight();
+        if (resolution > 0){
+            ui->resolutionLineEdit->setText(QString::number(resolution));
+        }
+        QStringList cast = s->getActors();
+        if (!cast.isEmpty()){
+            for (int i = 0; i < cast.size() && i < ageList.size(); ++i){
+                QString name = cast.at(i);
+                ageList.at(i)->clear();
+                if (!name.isEmpty()){
+                    castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
+                    if (!released.isNull() && released.isValid()){
+                        emit requestActorBirthday(cast.at(i));
+                    }
+                } else {
+                    castList.at(i)->clear();
+                    ageLabelList.at(i)->clear();
+                }
+            }
+        }
+    } catch (std::bad_alloc &e){
+        qWarning("Exception Caught while setting labels: %s", e.what());
+        return;
+    } catch (std::exception &e){
+        qWarning("Exception Caught while setting labels: %s", e.what());
+        return;
     }
-   //enableLineEdits(true);
-   foreach(QLineEdit *line, dataFields){
-       if (line->text().isEmpty()){
-           line->setReadOnly(false);
-       }
-   }
    changed = false;
    this->show();
 }
@@ -108,11 +137,8 @@ void SceneDetailView::on_pb_reparse_clicked()
 
 void SceneDetailView::rescanScene(){
     if (!current.isNull()){
-        QPair<QString,QString> sceneFile = current->getFile();
         qDebug("Reparsing Scene...");
-        sceneParser p(sceneFile);
-        p.parse();
-        this->current = ScenePtr(new Scene(p));
+        this->current->reparse();
         this->loadScene(current);
         qDebug("Scene Parsed!");
     } else {
@@ -121,7 +147,7 @@ void SceneDetailView::rescanScene(){
 }
 
 void SceneDetailView::playCurrentVideo(){
-    emit playVideo(current->getFullpath());
+    emit playVideo(currentSceneID);
 }
 
 void SceneDetailView::addActor(){

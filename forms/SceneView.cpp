@@ -39,30 +39,30 @@ SceneView::SceneView(QWidget *parent):
 
 void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
     qDebug("Selection Changed");
-    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
-    if (!filename.isNull() && !filename.isEmpty()){
-        if (currentFileSelection != filename){
-            this->currentFileSelection = filename;
-            emit sceneSelectionChanged(filename);
+    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+    if (id > 0){
+        if (currentFileSelection != id){
+            this->currentFileSelection = id;
+            emit sceneSelectionChanged(id);
         }
     }
 }
 
 void SceneView::sceneClicked(QModelIndex modelIndex){
     qDebug("Clicked");
-    QString filename = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
-    if (!filename.isNull() && !filename.isEmpty()){
-        this->currentFileSelection = filename;
-        emit sceneItemClicked(filename);
+    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+    if (id > 0){
+        this->currentFileSelection = id;
+        emit sceneItemClicked(id);
     }
 }
 
 
 void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
-    QString filepath = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_PATH_COLUMN), Qt::DisplayRole).toString();
-    if (!filepath.isNull() && !filepath.isEmpty()){
-        this->currentFileSelection = filepath;
-        emit playFile(filepath);
+    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+    if (id > 0){
+        this->currentFileSelection = id;
+        emit playFile(id);
     }
 }
 

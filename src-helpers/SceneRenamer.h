@@ -17,6 +17,8 @@ private:
     bool sceneOk;
 public:
     SceneRenamer(Scene *s);
+    SceneRenamer(ScenePtr s);
+
     QString getNewFilename();
     QString displayInfo();
 protected:
@@ -24,10 +26,11 @@ protected:
     QString formatCompany();
     QString formatTitle();
     QString formatParentheses();
-    void doubleCheckNames();
     QString makeTagString(QStringList) const;
     QString makeBracketString();
     QString makeFeaturedString(QStringList) const;
+private:
+    void scan(ScenePtr);
 };
 
 #endif // SCENERENAMER_H
