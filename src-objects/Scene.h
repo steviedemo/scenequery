@@ -22,6 +22,7 @@ class Scene : public Entry
 private:
     long long int ID;
     QPair<QString,QString> file;
+    QString filepath, filename;
     QTime length;
     int height, width, sceneNumber;
     qint64 size;
@@ -35,7 +36,6 @@ private:
     QStandardItem *itemQuality, *itemLength, *itemSize, *itemFeaturedActors, *itemPath, *itemID;
     QList<QStandardItem *>displayRow;
     bool displayBuilt;
-    QByteArray md5sum;
 public:    
     QString dateString;
     Scene   (void);
@@ -91,11 +91,12 @@ public:
     QDate       getAdded        (void) const {   return added;          }
     QDate       getReleased     (void) const;
     QString     getReleaseString(void) const;
-    QPair<QString,QString>  getFile (void) const {   return file;       }
-    QString     getFullpath     (void) const {   return QString("%1/%2").arg(file.first).arg(file.second); }
-    QString     getFilename     (void) const {   return file.second;    }
-    QString     getFolder       (void) const {   return file.first;     }
-    bool        hasValidFile    (void) const {  return (!(file.first.isNull() || file.first.isEmpty()) && !(file.second.isNull() || file.second.isEmpty())); }
+    QPair<QString,QString>  getFile (void) const;
+    QString     getFullpath     (void) const {   return QString("%1/%2").arg(filepath).arg(filename); }
+    QString     getFilename     (void) const {   return filename;    }
+    QString     getFolder       (void) const {   return filepath;     }
+
+    bool        hasValidFile    (void) const;
     QString     getActor     (int i=0) const {
         if (actors.size() > (i))
             return actors.at(i);

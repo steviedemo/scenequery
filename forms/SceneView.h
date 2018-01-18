@@ -26,6 +26,7 @@ private slots:
     void rowDoubleClicked(const QModelIndex &index);
     void selectionChanged(QModelIndex, QModelIndex);
     void sceneClicked(QModelIndex);
+    void receiveRequestForShownSceneIDs();
 private:
     void addData(int column, QString data);
     QItemSelectionModel *selectionModel;
@@ -41,6 +42,7 @@ signals:
     void playFile(int sceneID);
     void sceneSelectionChanged(int sceneID);
     void sceneItemClicked(int sceneID);
+    void sendSceneIDs(QVector<int>);
 };
 
 #endif // SCENEVIEW_H

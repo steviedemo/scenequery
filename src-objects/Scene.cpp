@@ -60,27 +60,27 @@ Scene::Scene(const Scene &s):Entry(), ID(s.ID),
 }
 */
 void Scene::clear(){
-    this->ID = 0;
-    this->length = QTime(0,0,0,0);
-    this->height = 0;
-    this->width = 0;
-    this->sceneNumber = 0;
-    this->size = 0;
-    this->added = QDate();
-    this->opened = QDate();
-    this->released = QDate();
-    this->title = "";
-    this->company = "";
-    this->series = "";
-    this->url = "";
-    this->dateString = "";
-    this->md5sum = "";
-    this->ages = {0, 0, 0, 0};
-    this->actors = QStringList();
-    this->file = QPair<QString,QString>("", "");
-    this->tags = QStringList();
-    this->displayBuilt = false;
-    this->row = {};
+    this->ID            = -1;
+    this->length        = QTime(0,0,0,0);
+    this->height        = 0;
+    this->width         = 0;
+    this->sceneNumber   = 0;
+    this->size          = 0;
+    this->added         = QDate();
+    this->opened        = QDate();
+    this->released      = QDate();
+    this->title         = QString("");
+    this->company       = QString("");
+    this->series        = QString("");
+    this->url           = QString("");
+    this->dateString    = QString("");
+    this->actors        = QStringList();
+    this->filename      = QString("");
+    this->filepath      = QString("");
+    this->tags          = QStringList();
+    this->displayBuilt  = false;
+    this->ages          = {};
+    this->row           = {};
     this->rating = Rating("R");
 }
 
@@ -96,9 +96,9 @@ void Scene::fromParser(SceneParser p){
         if (!p.isParsed()){
             p.parse();
         }
-        this->file.first = p.getFilepath();
-        this->file.second = p.getFilename();
-        //qDebug("Making Scene with name: '%s', and path: '%s'", qPrintable(file.second), qPrintable(file.first));
+        this->filepath = p.getFilepath();
+        this->filename = p.getFilename();
+        //qDebug("Making Scene with name: '%s', and path: '%s'", qPrintable(filename), qPrintable(filepath));
         this->actors    = p.getActors();
         this->title     = p.getTitle();
         this->company   = p.getCompany();
@@ -122,8 +122,8 @@ void Scene::fromParser(SceneParser p){
 
 Scene::Scene(QSqlRecord r){
     this->ID        = r.value("id").toLongLong();
-    this->file.second  = r.value("filename").toString();
-    this->file.first  = r.value("filepath").toString();
+    this->filename  = r.value("filename").toString();
+    this->filepath  = r.value("filepath").toString();
     this->title     = r.value("title").toString();
     this->company   = r.value("company").toString();
     this->series    = r.value("series").toString();
@@ -235,12 +235,12 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
         trace();
 
         if (!entry.at("filepath").is_null()){
-            file.first = QString::fromStdString(entry["filepath"].as<string>());
+            filepath = QString::fromStdString(entry["filepath"].as<string>());
         }
         if (!entry.at("filename").is_null()){
-            file.second = QString::fromStdString(entry["filename"].as<string>());
+            filename = QString::fromStdString(entry["filename"].as<string>());
         }
-        if (!file.second.isEmpty() && !file.first.isEmpty()){
+        if (!filename.isEmpty() && !filepath.isEmpty()){
             this->setFile(file);
         }
         if (!entry.at("title").is_null())  {   this->title     = QString::fromStdString(entry["title"].as<std::string>());     }
@@ -318,11 +318,19 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
 Scene::~Scene(){}
 
 void Scene::setFile(const QString &absolutePath){
-    this->file = splitAbsolutePath(absolutePath);
+    splitAbsolutePath(absolutePath, filepath, filename);
+
+}
+
+QPair<QString,QString>Scene::getFile() const{
+    QPair<QString,QString> f;
+    f.first = filepath;
+    f.second = filename;
+    return f;
 }
 
 bool Scene::exists() const{
-    QString absolutePath = QString("%1/%2").arg(file.first).arg(file.second);
+    QString absolutePath = QString("%1/%2").arg(filepath).arg(filename);
     QFile file(absolutePath);
     return file.exists();
 }
@@ -334,9 +342,9 @@ bool Scene::hasDisplay(){
 bool Scene::equals(const QString &path) const{
     bool same = false;
     if (valid(path)){
-        if (valid(file.first)){
-            if (valid(file.second)){
-                QString fullpath = QString("%1/%2").arg(file.first).arg(file.second);
+        if (valid(filepath)){
+            if (valid(filename)){
+                QString fullpath = QString("%1/%2").arg(filepath).arg(filename);
                 if (fullpath == path){
                     same = true;
                 }
@@ -347,8 +355,8 @@ bool Scene::equals(const QString &path) const{
 }
 bool Scene::equals(const QPair<QString, QString> &p) const{
     bool same = false;
-    if (valid(p.first) && valid(p.second) && valid(file.first) && valid(file.second)){
-        same = (p.first == file.first) && (p.second == file.second);
+    if (valid(p.first) && valid(p.second) && valid(filepath) && valid(filename)){
+        same = (p.first == filepath) && (p.second == filename);
     }
     return same;
 }
@@ -373,7 +381,7 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     } else if (this->size > BYTES_PER_MEGABYTE){
         sizeString = QString("%1 MB").arg(size/BYTES_PER_MEGABYTE);
     }
-    QString path = QString("%1/%2").arg(file.first).arg(file.second);
+    QString path = QString("%1/%2").arg(filepath).arg(filename);
     this->itemSize      = new QStandardItem(sizeString);
     this->itemTitle     = new QStandardItem(title);
     this->itemCompany   = new QStandardItem(company);
@@ -483,12 +491,16 @@ void Scene::setLength(double minutes){
     this->length = temp.addSecs(seconds);
 }
 */
+bool Scene::hasValidFile() const{
+     return (!(filepath.isNull() || filepath.isEmpty()) && !(filename.isNull() || filename.isEmpty()));
+}
+
 Query Scene::toQuery() const{
     Query q;
     q.setTable("scenes");
     q.addCriteria("ID", QString::number(this->ID));
-    q.add("FILEPATH", file.first);
-    q.add("FILENAME", file.second);
+    q.add("FILEPATH", filepath);
+    q.add("FILENAME", filename);
     q.add("TITLE", title);
     q.add("COMPANY", company);
     q.add("SERIES", series);

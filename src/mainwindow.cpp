@@ -19,6 +19,8 @@
 #include <QSplitter>
 #define MINIMUM_BIO_SIZE 11
 #define COMBO_BOX_DEFAULT "No Selection"
+#define LOAD_ACTORS
+#define LOAD_SCENES
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
     ui->setupUi(this);
 //    this->runMode = Debug;
@@ -128,6 +130,8 @@ void MainWindow::setupViews(){
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_deleteActor(QString)), this,               SLOT(apv_to_mw_deleteActor(QString)));
     connect(ui->profileWidget,  SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
+    connect(this,               SIGNAL(mw_to_sw_requestIDs()),          ui->sceneWidget,    SLOT(receiveRequestForShownSceneIDs()));
+    connect(ui->sceneWidget,    SIGNAL(sendSceneIDs(QVector<int>)),     this,               SLOT(sw_to_mw_receiveIDList(QVector<int>)));
     connect(ui->sceneWidget,    SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
     connect(sceneDetailView,    SIGNAL(playVideo(int)),                 this,               SLOT(playVideo(int)));
     connect(ui->actorTableView, SIGNAL(clicked(QModelIndex)),           this,               SLOT(actorTableView_clicked(QModelIndex)));
@@ -172,14 +176,27 @@ void MainWindow::apv_to_mw_deleteActor(QString name){
 }
 
 void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
-    if(!actorName.isEmpty()){
-        this->sceneUpdateList = scenesWithActor(actorName, sceneMap);
-        qDebug("Sending Actor Profile View %d scenes with '%s'", sceneUpdateList.size(), qPrintable(actorName));
-        emit mw_to_apv_sendScenes(sceneUpdateList);
+    if(!actorName.isEmpty() && actorName == currentActor->getName()){
+        emit mw_to_sw_requestIDs();
     } else {
         qWarning("Error: Not Returning any scenes to ActorProfileView, as an empty name was passed to MainWindow");
     }
 }
+void MainWindow::sw_to_mw_receiveIDList(QVector<int> ids){
+    sceneUpdateList.clear();
+    foreach(int id, ids){
+        if (sceneMap.contains(id)){
+            sceneUpdateList.push_back(sceneMap.value(id));
+        }
+    }
+    if (!sceneUpdateList.isEmpty()){
+        emit mw_to_apv_sendScenes(sceneUpdateList);
+        qDebug("Sending Actor Profile View %d scenes with '%s'", sceneUpdateList.size(), qPrintable(currentActor->getName()));
+    } else {
+        qWarning("No Scenes to Pass to from MainWindow to ActorProfileView");
+    }
+}
+
 void MainWindow::apv_to_mw_receiveActorRequest(QString name){
     if (actorMap.contains(name)){
         this->currentActor = actorMap.value(name);
@@ -264,6 +281,7 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
             initThread->deleteLater();
         }
         qDebug("\n\tMain Window Received %d Actors & %d Scenes from the init thread", actors.size(), scenes.size());
+#ifdef LOAD_SCENES
         int idx = 0;
         emit newProgressDialogBox(QString("Adding %1 Scenes...").arg(scenes.size()), scenes.size());
         foreach(ScenePtr s, scenes){
@@ -276,7 +294,8 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
             }
         }
         emit closeProgressDialogBox();
-        /*
+#endif
+#ifdef LOAD_ACTORS
         QTime timer(0,0,0);
         timer.start();
         index = 0;
@@ -301,7 +320,7 @@ void MainWindow::initializationFinished(ActorList actors, SceneList scenes){
 
         emit closeProgressDialogBox();
         qDebug("All items added to GUI");
-        */
+#endif
         /// Set up Filter boxes
         QStringList companies = sql->getCompanyList();
         companies.prepend(COMBO_BOX_DEFAULT);
@@ -906,6 +925,7 @@ void MainWindow::renameFile(ScenePtr scene){
                 qDebug("Display Updated");
                 emit saveChangesToDB(scene);
                 qDebug("Database Updated");
+                scene->updateQStandardItem();
             }
         }
     }

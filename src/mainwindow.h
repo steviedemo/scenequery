@@ -56,7 +56,7 @@ private slots:
     void sdv_to_mw_requestBirthday(QString);
     void sw_to_mw_selectionChanged(int id);
     void sw_to_mw_itemClicked(int id);
-
+    void sw_to_mw_receiveIDList(QVector<int>);
     /// Progress & Status Updates
     void startProgress(QString, int);
     void updateProgress(int value);
@@ -156,7 +156,7 @@ signals:
 
     void scanFolder         (QString);
     void scanActors         (SceneList, ActorList);
-
+    void mw_to_sw_requestIDs();
     void sendActorBirthday  (QString, QDate);
     void showSceneDetails   (ScenePtr);
     void hideSceneDetails   (void);

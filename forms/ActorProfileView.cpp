@@ -38,6 +38,8 @@ ActorProfileView::~ActorProfileView(){
 void ActorProfileView::on_tb_editName_clicked(){
     ui->label_name->hide();
     ui->nameEditFrame->show();
+    ui->nameLineEdit->clear();
+    ui->nameLineEdit->setPlaceholderText(current->getName());
 }
 
 void ActorProfileView::mw_to_apv_receiveScenes(SceneList list){
