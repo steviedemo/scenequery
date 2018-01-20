@@ -38,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
     qRegisterMetaType<QVector<QSharedPointer<Scene>>>("QVector<QSharedPointer<Scene>>");
     qRegisterMetaType<QVector<QSharedPointer<Actor>>>("QVector<QSharedPointer<Actor>>");
+    qRegisterMetaType<QVector<QList<QStandardItem *>>("QVector<QList<QStandardItem *>>");
     qRegisterMetaType<ScenePtr>("ScenePtr");
     qRegisterMetaType<ActorPtr>("ActorPtr");
     qRegisterMetaType<SceneList>("SceneList");
@@ -59,12 +60,6 @@ MainWindow::~MainWindow(){
     delete sqlThread;
     delete sceneDetailView;
     delete actorSelectionModel;
-    /*
-    delete actorProxyModel;
-    delete sceneProxyModel;
-    delete actorModel;
-    delete sceneModel;
-    */
     actorMap.clear();
     actorList.clear();
     sceneList.clear();
@@ -117,35 +112,23 @@ void MainWindow::setupViews(){
     connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearFilter()));
     connect(ui->sceneWidget,    SIGNAL(sendSceneCount(int)),            ui->profileWidget,  SLOT(acceptSceneCount(int)));
     connect(ui->profileWidget,  SIGNAL(requestSceneCount()),            ui->sceneWidget,    SLOT(receiveSceneCountRequest()));
-    connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
-    connect(this,               SIGNAL(loadActorProfile(ActorPtr)),     ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
-    connect(this,               SIGNAL(loadActorProfile(ActorPtr)),     ui->sceneWidget,    SLOT(actorFilterChanged(ActorPtr)));
     connect(this,               SIGNAL(cb_companyFilterChanged(QString)),ui->sceneWidget,   SLOT(companyFilterChanged(QString)));
-
+    connect(ui->profileWidget,  SIGNAL(profileChanged(ActorPtr)),       ui->sceneWidget,    SLOT(actorFilterChanged(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestScenes(QString)),this,              SLOT(apv_to_mw_receiveSceneListRequest(QString)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestActor(QString)),this,               SLOT(apv_to_mw_receiveActorRequest(QString)));
-    connect(this,               SIGNAL(mw_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(mw_to_apv_receiveActor(ActorPtr)));
-    connect(this,               SIGNAL(mw_to_apv_sendScenes(SceneList)),ui->profileWidget,  SLOT(mw_to_apv_receiveScenes(SceneList)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_deleteActor(QString)), this,               SLOT(apv_to_mw_deleteActor(QString)));
     connect(ui->profileWidget,  SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
-    connect(this,               SIGNAL(mw_to_sw_requestIDs()),          ui->sceneWidget,    SLOT(receiveRequestForShownSceneIDs()));
-    connect(ui->sceneWidget,    SIGNAL(sendSceneIDs(QVector<int>)),     this,               SLOT(sw_to_mw_receiveIDList(QVector<int>)));
     connect(ui->sceneWidget,    SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
     connect(sceneDetailView,    SIGNAL(playVideo(int)),                 this,               SLOT(playVideo(int)));
     connect(ui->actorTableView, SIGNAL(clicked(QModelIndex)),           this,               SLOT(actorTableView_clicked(QModelIndex)));
-    connect(this,               SIGNAL(resizeSceneView()),              ui->sceneWidget,    SLOT(resizeSceneView()));
     connect(ui->sceneWidget,    SIGNAL(sceneSelectionChanged(int)),     this,               SLOT(sw_to_mw_selectionChanged(int)));
     connect(ui->sceneWidget,    SIGNAL(sceneItemClicked(int)),          this,               SLOT(sw_to_mw_itemClicked(int)));
     /// Connect Scene Detail View
     connect(sceneDetailView,    SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
     connect(sceneDetailView,    SIGNAL(showActor(QString)),             this,               SLOT(sdv_to_mw_showActor(QString)));
     connect(sceneDetailView,    SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
-    connect(this,               SIGNAL(sendActorBirthday(QString,QDate)),sceneDetailView,   SLOT(receiveActorBirthday(QString,QDate)));
-    connect(this,               SIGNAL(showSceneDetails(ScenePtr)),      sceneDetailView,   SLOT(loadScene(ScenePtr)));
-  //  connect(this,               SIGNAL(hideSceneDetails()),             sceneDetailView,SLOT(hide()));
-    //connect(sql,              SIGNAL(initializationFinished(ActorList,SceneList)), this,  SLOT(initializationFinished(ActorList,SceneList)));
     connect(sql,                SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sql,                SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sql,                SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
@@ -154,14 +137,14 @@ void MainWindow::setupViews(){
 
 void MainWindow::sdv_to_mw_showActor(QString name){
     if (this->actorMap.contains(name)){
-        emit loadActorProfile(actorMap.value(name));
+        ui->profileWidget->loadActorProfile(actorMap.value(name));
     }
 }
 void MainWindow::sdv_to_mw_requestBirthday(QString name){
     if (this->actorMap.contains(name)){
         QDate birthday = actorMap.value(name)->getBirthday();
         if (!birthday.isNull() && birthday.isValid()){
-            emit sendActorBirthday(name, birthday);
+            this->sceneDetailView->receiveActorBirthday(name, birthday);
         }
     }
 }
@@ -177,30 +160,29 @@ void MainWindow::apv_to_mw_deleteActor(QString name){
 
 void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
     if(!actorName.isEmpty() && actorName == currentActor->getName()){
-        emit mw_to_sw_requestIDs();
+        QVector<int> ids = ui->sceneWidget->getIDs();
+        sceneUpdateList.clear();
+        foreach(int id, ids){
+            if (sceneMap.contains(id)){
+                sceneUpdateList.push_back(sceneMap.value(id));
+            }
+        }
+        if (!sceneUpdateList.isEmpty()){
+            qDebug("Sending Actor Profile View %d scenes with '%s'", sceneUpdateList.size(), qPrintable(currentActor->getName()));
+            ui->profileWidget->mw_to_apv_receiveScenes(sceneUpdateList);
+        } else {
+            qWarning("No Scenes to Pass to from MainWindow to ActorProfileView");
+        }
     } else {
         qWarning("Error: Not Returning any scenes to ActorProfileView, as an empty name was passed to MainWindow");
     }
 }
-void MainWindow::sw_to_mw_receiveIDList(QVector<int> ids){
-    sceneUpdateList.clear();
-    foreach(int id, ids){
-        if (sceneMap.contains(id)){
-            sceneUpdateList.push_back(sceneMap.value(id));
-        }
-    }
-    if (!sceneUpdateList.isEmpty()){
-        emit mw_to_apv_sendScenes(sceneUpdateList);
-        qDebug("Sending Actor Profile View %d scenes with '%s'", sceneUpdateList.size(), qPrintable(currentActor->getName()));
-    } else {
-        qWarning("No Scenes to Pass to from MainWindow to ActorProfileView");
-    }
-}
+
 
 void MainWindow::apv_to_mw_receiveActorRequest(QString name){
     if (actorMap.contains(name)){
         this->currentActor = actorMap.value(name);
-        emit mw_to_apv_sendActor(currentActor);
+        ui->profileWidget->mw_to_apv_receiveActor(currentActor);
     }
 }
 
@@ -209,7 +191,7 @@ void MainWindow::sw_to_mw_itemClicked(int id){
         ScenePtr s = sceneMap.value(id);
         if (!s.isNull()){
             qDebug("Showing Details of scene with id '%d'", id);
-            emit showSceneDetails(s);
+            this->sceneDetailView->loadScene(s);
         } else {
             qWarning("Unable to locate scene with ID '%d' in Scene List", id);
         }
@@ -238,8 +220,6 @@ void MainWindow::showEvent(QShowEvent */*event*/){
         connect(sql,        SIGNAL(sendResult(SceneList)),           initThread,    SLOT(receiveScenes(SceneList)));
         connect(initThread, SIGNAL(getActors()),                            sql,    SLOT(loadActors()));
         connect(initThread, SIGNAL(getScenes()),                            sql,    SLOT(loadScenes()));
-
-
         qDebug("Starting Initialization Thread");
         this->initThread->start();
     } else {
@@ -455,7 +435,7 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
         sceneModel->appendRow(s->buildQStandardItem());
         sceneMap.insert(s->getID(), s);
     }
-    emit resizeSceneView();
+    ui->sceneWidget->resizeSceneView();
     qDebug("Added %d Scenes!", list.size());
 }
 
@@ -468,7 +448,7 @@ void MainWindow::actorSelectionChanged(QModelIndex current, QModelIndex /*previo
             this->currentActor = actorMap.value(name);
             qDebug("'%s' Selected", qPrintable(name));
             if (!ui->profileWidget->isHidden()){
-                emit loadActorProfile(currentActor);
+                ui->profileWidget->loadActorProfile(currentActor);
             }
         } else {
             qWarning("Actor Map doesn't Contain '%s'", qPrintable(name));
@@ -491,7 +471,7 @@ void MainWindow::actorTableView_clicked(const QModelIndex &index){
         QString name = actorProxyModel->data(actorProxyModel->index(index.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
         if (actorMap.contains(name)){
             this->currentActor = actorMap.value(name);
-            emit loadActorProfile(currentActor);
+            ui->profileWidget->loadActorProfile(currentActor);
         } else {
             qCritical("Name not in map: %s", qPrintable(name));
         }
@@ -547,7 +527,7 @@ void MainWindow::removeActorItem(){
 }
 void MainWindow::showCurrentActorProfile(){
     if (!currentActor.isNull()){
-        emit loadActorProfile(currentActor);
+        ui->profileWidget->loadActorProfile(currentActor);
     }
 }
 
@@ -643,7 +623,7 @@ void MainWindow::receiveScenes(SceneList list){
     foreach(QString company, companies){
         ui->cb_companyFilter->addItem(company);
     }
-    emit resizeSceneView();
+    ui->sceneWidget->resizeSceneView();
 }
 
 void MainWindow::resetActorFilterSelectors(){
@@ -674,7 +654,7 @@ void MainWindow::receiveActors(ActorList list){
                         if (name == currentActor->getName()){
                             currentActor->setBio(b);
                             currentActor->updateQStandardItem();
-                            emit loadActorProfile(currentActor);
+                            ui->profileWidget->loadActorProfile(currentActor);
                         } else {
                             actorMap[name]->setBio(b);
                             actorMap[name]->updateQStandardItem();
@@ -706,7 +686,7 @@ void MainWindow::receiveSingleActor(ActorPtr a){
         updatedActor->updateQStandardItem();
         if (name == currentActor->getName() && !ui->profileWidget->isHidden()){
             qDebug("Updating Profile View");
-            emit loadActorProfile(updatedActor);
+            ui->profileWidget->loadActorProfile(updatedActor);
             emit saveActorChanges(currentActor);
         } else {
             qDebug("Saving Updates to database");
@@ -780,7 +760,7 @@ void MainWindow::selectNewProfilePhoto(){
                 qDebug("Successfully copied %s to %s", qPrintable(source_filename), qPrintable(new_filename));
                 this->currentActor->setHeadshot(new_filename);
                 this->currentActor->updateQStandardItem();
-                emit loadActorProfile(currentActor);
+                ui->profileWidget->loadActorProfile(currentActor);
             } else {
                 qWarning("Error Copying %s to %s", qPrintable(source_filename), qPrintable(new_filename));
             }
@@ -985,5 +965,5 @@ void MainWindow::on_actionWipe_Actor_Table_triggered(){
 
 void MainWindow::on_actionItemDetails_triggered(){
    qDebug("Show Profile Shortcut Triggered");
-   emit loadActorProfile(currentActor);
+   ui->profileWidget->loadActorProfile(currentActor);
 }

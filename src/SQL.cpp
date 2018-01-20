@@ -1,4 +1,4 @@
-#include "sql.h"
+#include "SQL.h"
 #include "Actor.h"
 #include "Scene.h"
 #include "filenames.h"
@@ -375,15 +375,15 @@ void SQL::loadScene(pqxx::result::const_iterator &i){
         ScenePtr scene = QSharedPointer<Scene>(new Scene(i));
         if (!scenes.contains(scene)){
             mx.lock();
-            count.addInsert();
-            emit updateStatus(QString("Loaded %1 Scenes").arg(count.added));
-            emit updateProgress(count.idx);
+            sceneCount.addInsert();
+            emit updateStatus(QString("Loaded %1 Scenes").arg(sceneCount.added));
+            emit updateProgress(sceneCount.idx);
             scenes.push_back(scene);
             mx.unlock();
         } else {
             mx.lock();
-            count.idx++;
-            emit updateProgress(count.idx);
+            sceneCount.idx++;
+            emit updateProgress(sceneCount.idx);
             mx.unlock();
         }
     } else {
@@ -394,14 +394,14 @@ void SQL::loadActor(pqxx::result::const_iterator &i){
     ActorPtr actor = ActorPtr(new Actor(i));
     if (!actors.contains(actor)){
         mx.lock();
-        count.addInsert();
-        emit updateProgress(count.idx);
-        emit updateStatus(QString("Loaded %1 Actors").arg(count.added));
+        actorCount.addInsert();
+        emit updateProgress(actorCount.idx);
+        emit updateStatus(QString("Loaded %1 Actors").arg(actorCount.added));
         actors.push_back(actor);
         mx.unlock();
     } else {
         mx.lock();
-        emit updateProgress(++count.idx);
+        emit updateProgress(++actorCount.idx);
         mx.unlock();
     }
 }
@@ -427,6 +427,42 @@ void SQL::threaded_profile_photo_scaler(ActorPtr a){
     mx.unlock();
 }
 
+void miniSQL::run(){
+    QString statement = QString("SELECT * FROM %1").arg((currentTable==SCENE) ? "scenes" : "actors");
+    sqlConnection connection(statement);
+    if (!connection.execute()){
+        qWarning("Error Loading items from database!");
+    } else {
+        pqxx::result r = connection.getResult();
+        if (r.size() == 0){
+            qWarning("No Items in table");
+            return;
+        }
+        if (currentTable==SCENE){
+            emit startProgress(LOAD_SCENE_PROGRESS, r.size());
+        } else {
+            emit startProgress(LOAD_ACTOR_PROGRESS, r.size());
+        }
+        int idx = 0;
+        for(result::const_iterator i = r.begin(); i != r.end(); ++i){
+            if (currentTable == SCENE){
+                ScenePtr s = ScenePtr(new Scene(i));
+                sceneList.push_back(s);
+                emit updateProgress(LOAD_SCENE_PROGRESS, idx++);
+            } else {
+                ActorPtr a = ActorPtr(new Actor(i));
+                actorList.push_back(a);
+                emit updateProgress(LOAD_ACTOR_PROGRESS, idx++);
+            }
+        }
+        emit closeProgress();
+    }
+    if (currentTable == SCENE){
+        emit done(sceneList);
+    } else {
+        emit done(actorList);
+    }
+}
 
 void SQL::initialize(){
     int index = 0;
@@ -475,7 +511,7 @@ void SQL::initialize(){
  */
 void SQL::loadScenes(){
     this->scenes = {};
-    count.reset();
+    sceneCount.reset();
     qDebug("Loading Scenes From Database...");
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM scenes"));
     if (!sql->execute()){
@@ -499,7 +535,7 @@ void SQL::loadScenes(){
 
 void SQL::loadActors(){
     this->actors = {};
-    count.reset();
+    actorCount.reset();
     sqlConnection *sql = new sqlConnection(QString("SELECT * FROM actors"));
     qDebug("Loading Actors");
     if (!sql->execute()){
@@ -589,13 +625,13 @@ bool SQL::insertOrUpdateActor(QSharedPointer<Actor> A){
     success = sql->execute();
     mx.lock();
     if (success && (operation == SQL_INSERT)){
-        count.addInsert();
+        actorCount.addInsert();
     } else if (success && (operation == SQL_UPDATE)){
-        count.addUpdate();
+        actorCount.addUpdate();
     } else {
-        count.addFailed();
+        actorCount.addFailed();
     }
-    emit updateProgress(count.idx);
+    emit updateProgress(actorCount.idx);
     mx.unlock();
     delete sql;
     return success;
@@ -610,7 +646,7 @@ void SQL::store(ActorList actorList){
     }
     sync.waitForFinished();
     emit closeProgress("Database Updated with list of Actors");
-    qDebug("\n\nAdded %d new Actors.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), actorList.size());
+    qDebug("\n\nAdded %d new Actors.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", actorCount.added, actorCount.updated, actorCount.total(), actorList.size());
     emit actorSaveComplete();
 }
 
@@ -630,19 +666,19 @@ bool SQL::insertOrUpdateScene(ScenePtr S){
     success = sql.execute();
     mx.lock();
     if (success && (operation == SQL_INSERT)){
-        count.addInsert();
+        sceneCount.addInsert();
     } else if (success && (operation == SQL_UPDATE)){
-        count.addUpdate();
+        sceneCount.addUpdate();
     } else {
-        count.addFailed();
+        sceneCount.addFailed();
     }
-    emit updateProgress(count.idx);
+    emit updateProgress(sceneCount.idx);
     mx.unlock();
     return success;
 }
 
 void SQL::store(SceneList sceneList){
-    count.reset();
+    sceneCount.reset();
     emit startProgress("Updating Database with list of scenes", sceneList.size());
     QFutureSynchronizer<bool> sync;
     foreach(QSharedPointer<Scene> S, sceneList){
@@ -650,7 +686,7 @@ void SQL::store(SceneList sceneList){
     }
     sync.waitForFinished();
     emit closeProgress("Finished Updating Database with scene list");
-    qDebug("\n\nAdded %d new Scenes.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", count.added, count.updated, count.total(), sceneList.size());
+    qDebug("\n\nAdded %d new Scenes.\nUpdated %d Existing Records.\n%d/%d Records from list used to modify table.\n", sceneCount.added, sceneCount.updated, sceneCount.total(), sceneList.size());
     emit sceneSaveComplete();
 }
 

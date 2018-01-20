@@ -4,7 +4,7 @@
 #include "Query.h"
 #include "curlTool.h"
 #include "filenames.h"
-#include "sql.h"
+#include "SQL.h"
 #include <QRegularExpression>
 #include <QStringList>
 #include <QPixmap>

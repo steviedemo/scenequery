@@ -77,7 +77,7 @@ void SceneView::setSourceModel(QAbstractItemModel *model){
     proxyModel->setSourceModel(model);
 }
 
-void SceneView::receiveRequestForShownSceneIDs(){
+QVector<int> getIDs(){
     QVector<int> ids = {};
     qDebug("SceneView receievd Request for a list of the show scenes' IDs");
     for(int i = 0; i < proxyModel->rowCount(); ++i){
@@ -86,7 +86,11 @@ void SceneView::receiveRequestForShownSceneIDs(){
         ids.push_back(id);
         qDebug("Adding Scene With ID '%d'", id);
     }
-    emit sendSceneIDs(ids);
+    return ids;
+}
+
+void SceneView::receiveRequestForShownSceneIDs(){
+    emit sendSceneIDs(getIDs());
 }
 
 void SceneView::resizeSceneView(){

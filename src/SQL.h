@@ -27,6 +27,27 @@ struct operation_count {
     void addFailed(){   idx++;  failed++;   }
 };
 
+class miniSQL : public QThread {
+    Q_OBJECT
+public :
+    explicit miniSQL(QString table){    currentTable = ((table=="scenes") ? SCENE : ACTOR); }
+    ~miniSQL();
+    void run();
+private:
+    enum Table{ ACTOR, SCENE };
+    Table currentTable;
+    ActorList actorList;
+    SceneList sceneList;
+signals:
+    void startProgress(int);
+    void startProgress(int ID, int max);
+    void updateProgress(int);
+    void updateProgress(int ID, int value);
+    void closeProgress(void);
+    void closeProgress(int ID);
+    void done(ActorList);
+    void done(SceneList);
+};
 
 class SQL : public QObject {
     Q_OBJECT
@@ -79,7 +100,7 @@ protected:
     bool            hasActor            (QString);
 private:
     QMutex mx;
-    operation_count count;
+    operation_count actorCount, sceneCount;
     QString connectionName;
     sqlConnection connection;
     SceneList scenes;

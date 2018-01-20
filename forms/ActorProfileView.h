@@ -74,6 +74,7 @@ private:
     QVector<QTextEdit *> textEdits;
     SceneList updateList;
 signals:
+    void profileChanged(ActorPtr a);
     void requestSceneCount();
     void updateFromWeb  (ActorPtr a);
     void saveToDatabase (ActorPtr a);
