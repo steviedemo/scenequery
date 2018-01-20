@@ -5,7 +5,9 @@
 #include "Actor.h"
 #include <QRegularExpression>
 #include <QPixmap>
-#define DEFAULT_PROFILE_PHOTO ":/Icons/blank_profile_photo_female.png"
+#include <QImageWriter>
+#define DEFAULT_PROFILE_PHOTO       ":/Icons/blank_profile_photo_female.png"
+#define DEFAULT_PROFILE_PHOTO_THUMB ":/Icons/blank_profile_photo_female_thumb.png"
 
 /** \brief take a string containing a file name or absolute path, and extract the file extension, before returning it.
  *          If an empty string or a string violating the expected format is passed, an empty string is returned.
@@ -66,6 +68,12 @@ QString getHeadshotName(const QString &actorName){
     QString fullPath = QString("%1/%2.jpg").arg(findHeadshotLocation()).arg(filename);
     return fullPath;
 }
+QString getHeadshotThumbnailName(const QString &actorName){
+    QString name_copy = QString("%1").arg(actorName);
+    QString filename = name_copy.trimmed().replace(QRegularExpression("[\\s\\.']"), "_").toLower();
+    QString fullPath = QString("%1/%2_thumb%3.jpg").arg(findHeadshotLocation()).arg(filename).arg(ACTOR_LIST_PHOTO_HEIGHT);
+    return fullPath;
+}
 
 
 /** \brief  Check the filesystem for the existence of the headshot for the actor with the name provided.
@@ -83,10 +91,46 @@ bool headshotDownloaded(const QString &actorName){
     return downloaded;
 }
 
+bool thumbnailExists(const QString actorName){
+    bool exists = false;
+    QString filepath = getHeadshotThumbnailName(actorName);
+    QFile f(filepath);
+    //qDebug("Searching for %s's headshot (filename: %s)...", qPrintable(actorName), qPrintable(filepath));
+    if (f.exists()){
+        exists = (QFileInfo(f).size() > 200);
+    }
+    return exists;
+}
+
 QString getProfilePhoto(const QString &actorName){
     QString location = DEFAULT_PROFILE_PHOTO;
     if (headshotDownloaded(actorName)){
         location = getHeadshotName(actorName);
+    }
+    return location;
+}
+
+QString getHeadshotThumbnail(const QString &actorName){
+    QString location = DEFAULT_PROFILE_PHOTO_THUMB;
+    QString thumbnailName = getHeadshotThumbnailName(actorName);
+    QFile small(thumbnailName);
+    if (!small.exists() || small.size() < 200){
+        QString headshotName = getHeadshotName(actorName);
+        QFile big(headshotName);
+        if (!big.exists() || big.size() < 200){
+            return location;
+        } else {
+            QImage thumb = scaleImage(headshotName, ACTOR_LIST_PHOTO_HEIGHT);
+            QImageWriter writer(thumbnailName);
+            if(writer.write(thumb)){
+                location = thumbnailName;
+                qDebug("Created new thumbnail for '%s'", qPrintable(actorName));
+            } else {
+                qWarning("Error creating Thumbnail, '%s'", qPrintable(thumbnailName));
+            }
+        }
+    } else {
+        location = getHeadshotThumbnailName(actorName);
     }
     return location;
 }

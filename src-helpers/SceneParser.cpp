@@ -288,8 +288,8 @@ void SceneParser::bashScript(QString fileToAnalyze){
 void SceneParser::parseParentheses(QString name){
     QString data("");
     QRegularExpression rx(".*\\((.+)\\).*");
-    QRegularExpression widthRegex("[0-9]+p");
-    QRegularExpression dateRegex("([0-9]{4})\\.([0-9]{2})\\.([0-9]{2})");
+    QRegularExpression heightRegex("[0-9]+p");
+    QRegularExpression dateRegex("([0-9\\.]{10})");
     QRegularExpression ratingRegex("\\b[ABCR]{1}[\\+\\-]{0,3}\\b");
     try{
         QRegularExpressionMatch m = rx.match(name);
@@ -300,29 +300,39 @@ void SceneParser::parseParentheses(QString name){
             return;
         }
         QStringList tagList;
-        QStringList list = data.split(QChar(','));
-        int index = 0;
-        foreach(QString item, list){
+        QStringList list = data.split(QChar(','), QString::SkipEmptyParts);
+        qDebug("Tag List: ");
+        foreach(QString tag, list){
+            qDebug("\t%s", qPrintable(tag));
+        }
+        for(int index = 0; index < list.size(); ++index){
+            QString item = list.at(index);
             QRegularExpressionMatch dateMatch = dateRegex.match(item);
-            QRegularExpressionMatch widthMatch = widthRegex.match(item);
+            QRegularExpressionMatch heightMatch = heightRegex.match(item);
             QRegularExpressionMatch ratingMatch = ratingRegex.match(item);
-            if (dateMatch.hasMatch()){
-                //qDebug("Tag: %s - Date", qPrintable(item));
-                this->release = QDate::fromString(item, "yyyy.MM.dd");
-            } else if (widthMatch.hasMatch()){
-                //qDebug("Tag: %s - Quality", qPrintable(item));
-                this->height = item.remove('p').toInt();
-            } else if (ratingMatch.hasMatch()){
-                //qDebug("Tag: %s - Rating", qPrintable(item));
+            if (ratingMatch.hasMatch()){
+                qDebug("Tag: %s - Rating", qPrintable(item));
                 this->rating.fromString(item.trimmed());
-            } else if (index == 0){
-                //qDebug("Tag: %s - Series", qPrintable(item));
-                this->series = item.trimmed();
+                continue;
+            } else if (index == 0 || index == 1){
+                if (dateMatch.hasMatch()){
+                    qDebug("Tag: %s - Date", qPrintable(item));
+                    this->release = QDate::fromString(heightMatch.captured(1), "yyyy.MM.dd");
+                    continue;
+                } else if (index == 0){
+                    qDebug("Tag: %s - Series", qPrintable(item));
+                    this->series = item.trimmed();
+                    continue;
+                }
+            }
+            else if (heightMatch.hasMatch()){
+                qDebug("Tag: %s - Quality", qPrintable(item));
+                this->height = item.remove('p').toInt();
+                continue;
             } else {
-                //qDebug("Tag: %s - Tag", qPrintable(item));
+                qDebug("Tag: %s - Tag", qPrintable(item));
                 tagList << item.trimmed();
             }
-            ++index;
         }
         this->tags = tagList;
     } catch (std::exception &e){

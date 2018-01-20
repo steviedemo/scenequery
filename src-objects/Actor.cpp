@@ -170,7 +170,7 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
         this->photoPath = getProfilePhoto(name);
     }
     //QImage scaledImage = QImage(photoPath).scaled(30,30, Qt::KeepAspectRatio,Qt::FastTransformation);
-    QImage scaledImage = scaleImage(photoPath, 30);
+    QImage scaledImage(getHeadshotThumbnail(name));
     this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
     //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     row << itemPhoto << itemName << itemHair << itemEthnicity << itemSceneCount << itemBioSize;

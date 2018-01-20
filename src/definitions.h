@@ -6,7 +6,7 @@
 #define IMAGE_WIDTH 250
 #define IMAGE_HEIGHT 300
 #define DEFAULT_PROFILE_PHOTO ":/Icons/blank_profile_photo_female.png"
-#define ACTOR_LIST_PHOTO_HEIGHT 40
+#define ACTOR_LIST_PHOTO_HEIGHT 30
 #define BYTES_PER_MEGABYTE 1048576
 #define BYTES_PER_GIGABYTE 1073741824.0
 /// Actor List Headers

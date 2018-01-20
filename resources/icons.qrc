@@ -82,5 +82,6 @@
         <file>Icons/video-thumbnail-default.png</file>
         <file>Icons/shiny-grey-play-button.png</file>
         <file>Icons/add_icon.png</file>
+        <file>Icons/blank_profile_photo_female_thumb.png</file>
     </qresource>
 </RCC>
