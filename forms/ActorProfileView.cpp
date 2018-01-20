@@ -179,8 +179,7 @@ void ActorProfileView::reloadProfilePhoto(){
 }
 
 void ActorProfileView::loadActorProfile(ActorPtr a){
-//    this->newName.clear();
-//    this->oldName.clear();
+    emit profileChanged(a);
     outputDetails(a);
     this->show();
 }

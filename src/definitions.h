@@ -29,6 +29,11 @@
 #define SCENE_PATH_COLUMN       9
 #define SCENE_ID_COLUMN         10
 
+#define BUILD_ACTOR_PROGRESS 0
+#define BUILD_SCENE_PROGRESS 1
+#define LOAD_ACTOR_PROGRESS  2
+#define LOAD_SCENE_PROGRESS  3
+
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 typedef QSharedPointer<class Scene>         ScenePtr;

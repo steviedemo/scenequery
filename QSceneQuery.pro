@@ -78,9 +78,7 @@ SOURCES += \
     src-objects/Rating.cpp \
     src-objects/Scene.cpp \
     src-objects/SceneList.cpp \
-    PSQL/src/query.cpp \
     PSQL/src/sqlconnection.cpp \
-    src/sql.cpp \
     src-helpers/filenames.cpp \
     forms/profiledialog.cpp \
     src/InitializationThread.cpp \
@@ -97,7 +95,10 @@ SOURCES += \
     forms/SceneDetailView.cpp \
     src-objects/Filepath.cpp \
     src-helpers/SceneRenamer.cpp \
-    src-helpers/SceneParser.cpp
+    src-helpers/SceneParser.cpp \
+    src/SQL.cpp \
+    PSQL/src/Query.cpp \
+    forms/SplashScreen.cpp
 
 HEADERS  += \
     src-helpers/config.h \
@@ -111,8 +112,6 @@ HEADERS  += \
     src-objects/Height.h \
     src-objects/Rating.h \
     src-objects/Scene.h \
-    PSQL/src/query.h \
-    src/sql.h \
     PSQL/src/sqlconnection.h \
     PSQL/src/sql_definitions.h \
     PSQL/src/database.h \
@@ -134,12 +133,16 @@ HEADERS  += \
     forms/SceneDetailView.h \
     src-objects/Filepath.h \
     src-helpers/SceneRenamer.h \
-    src-helpers/SceneParser.h
+    src-helpers/SceneParser.h \
+    src/SQL.h \
+    PSQL/src/Query.h \
+    forms/SplashScreen.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
     forms/ActorProfileView.ui \
-    forms/SceneDetailView.ui
+    forms/SceneDetailView.ui \
+    forms/SplashScreen.ui
 
 QMAKE_CLEAN += \
     build/* \

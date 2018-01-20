@@ -13,6 +13,7 @@ public:
     void setSourceModel(QAbstractItemModel *model);
     QVBoxLayout *getLayout();
     void addScene(ScenePtr, const QModelIndex &parent = QModelIndex());
+    QVector<int> getIDs();
 public slots:
     void receiveSceneCountRequest();
     void resizeSceneView();

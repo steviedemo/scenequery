@@ -1,7 +1,7 @@
 #ifndef INITIALIZATIONTHREAD_H
 #define INITIALIZATIONTHREAD_H
 #include <QThread>
-#include "sql.h"
+#include "SQL.h"
 #include "definitions.h"
 class InitializationThread : public QThread
 {

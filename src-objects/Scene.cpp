@@ -3,7 +3,7 @@
 #include "filenames.h"
 #include "genericfunctions.h"
 #include "SceneParser.h"
-#include "sql.h"
+#include "SQL.h"
 #include "query.h"
 #include <QSqlQuery>
 #include <QVariant>

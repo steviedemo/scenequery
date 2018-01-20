@@ -1,6 +1,7 @@
 #include "InitializationThread.h"
 #include "Actor.h"
 #include "SceneList.h"
+
 InitializationThread::InitializationThread(){
     this->actors = {};
     this->scenes = {};

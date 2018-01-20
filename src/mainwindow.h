@@ -6,7 +6,7 @@
 #include "SceneList.h"
 #include "Actor.h"
 #include "Scene.h"
-#include "sql.h"
+#include "SQL.h"
 #include "profiledialog.h"
 #include "ActorProxyModel.h"
 #include "InitializationThread.h"
@@ -150,30 +150,20 @@ private:
 
 signals:
     void closing();
-    void stopThreads();
     void startInitialization();
     void skipInitialization(ActorList, SceneList);
 
     void scanFolder         (QString);
-    void scanActors         (SceneList, ActorList);
-    void mw_to_sw_requestIDs();
-    void sendActorBirthday  (QString, QDate);
-    void showSceneDetails   (ScenePtr);
-    void hideSceneDetails   (void);
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
-    void mw_to_apv_sendScenes(SceneList);
-    void mw_to_apv_sendActor(ActorPtr);
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
     void updateBios         (ActorList);
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
-    void getHeadshots       (ActorList);
     void actorSelectionChanged(QString);
     void startVideoPlayback (void);
-    void resizeSceneView    (void);
     /// Filtering
     void cb_companyFilterChanged(QString);
     /** Progress Bar & Dialog **/
