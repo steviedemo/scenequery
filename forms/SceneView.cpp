@@ -37,22 +37,12 @@ SceneView::SceneView(QWidget *parent):
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
     connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
     connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    this->initComplete = true;
 }
 
 void SceneView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
-    //this->table->resizeColumnsToContents();
-}
-void SceneView::searchByFilename(const QString &searchTerm){
-    //QRegExp rx(QString(".*%1.*").arg(searchTerm));
-    proxyModel->setFilterFilename(searchTerm);
-    //QModelIndex index = findSceneIndex(rx, SCENE_PATH_COLUMN);
-//    if (index.isValid()){
-//        this->table->selectRow(index.row());
-//    }
-}
-void SceneView::searchByID(const int &id){
-    proxyModel->setFilterID(id);
+
 }
 
 QModelIndex SceneView::findSceneIndex(const QRegExp &rx, const int column){
@@ -141,6 +131,17 @@ void SceneView::resizeSceneView(){
 
 void SceneView::clearFilter(){
     actorFilterChanged("");
+
+}
+void SceneView::searchByFilename(const QString &searchTerm){
+    this->filenameFilterChanged(searchTerm);
+}
+void SceneView::clearSearchFilter(){
+    this->filenameFilterChanged("");
+}
+
+void SceneView::searchByID(const int &id){
+    proxyModel->setFilterID(id);
 }
 void SceneView::actorFilterChanged(ActorPtr a){
     actorFilterChanged(a->getName());
@@ -163,11 +164,19 @@ void SceneView::qualityFilterChanged(int resolution){
 }
 
 void SceneView::actorFilterChanged(QString name){
+    filenameFilterChanged("");
+    this->nameFilter = name;
     proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
     table->resizeColumnsToContents();
   //  emit displayChanged(proxyModel->rowCount());
 }
+void SceneView::filenameFilterChanged(QString word){
+    this->fileFilter = word;
+    proxyModel->setFilterRegExp(".*"+word+".*");
+    proxyModel->setFilterFilename(word);
+}
+
 void SceneView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);
 }

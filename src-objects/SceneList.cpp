@@ -25,6 +25,7 @@ int countWithActor(const QString name, const QHash<int, ScenePtr> &hash){
     }
     return count;
 }
+
 SceneList fromHashMap(const QHash<int, ScenePtr>&hash){
     SceneList list = {};
     QHashIterator<int,ScenePtr> it(hash);

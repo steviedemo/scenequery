@@ -7,7 +7,6 @@ SceneProxyModel::SceneProxyModel(QObject *parent)
     setDefaultValues();
 }
 void SceneProxyModel::setDefaultValues(){
-    key = NONE;
     nameFilter="";
     companyFilter="";
     fileFilter = "";
@@ -20,7 +19,7 @@ void SceneProxyModel::removeFilters(){
     setFilter(".*");
 }
 void SceneProxyModel::setFilter(QString text){
-    invalidateFilter();
+//    invalidateFilter();
     this->setFilterRegExp(text);
     this->setFilterFixedString(text);
 }
@@ -46,13 +45,11 @@ void SceneProxyModel::setFilterID(const int &id){
 }
 void SceneProxyModel::setFilterFilename(const QString &searchTerm){
     this->fileFilter = searchTerm;
+    setFilter(searchTerm);
 }
 
 bool SceneProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const{
-    bool accepted = nameMatchesFilter(source_row, source_parent) && \
-                    filenameMatchesFilter(source_row, source_parent);
-    return accepted;
-
+    return (nameMatchesFilter(source_row, source_parent) && filenameMatchesFilter(source_row, source_parent));
 }
 
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
@@ -66,6 +63,7 @@ bool SceneProxyModel::filenameMatchesFilter(int row, const QModelIndex &index) c
     } else {
         QString filenameData = getCellData(row, SCENE_PATH_COLUMN, index);
         match = filenameData.contains(fileFilter);
+     //   qDebug("'%s' %s match filter '%s'", qPrintable(filenameData), (match ? "Does" : "Doesn't"), qPrintable(fileFilter));
     }
     return match;
 }

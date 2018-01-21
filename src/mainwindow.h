@@ -128,16 +128,16 @@ private:
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
     ActorProxyModel *actorProxyModel;
+    QItemSelectionModel *actorSelectionModel;
     QStandardItem *actorParent, *sceneParent;
     QStringList names, actorHeaders, sceneHeaders;
     SceneList sceneList, sceneUpdateList;
     bool videoOpen;
-    QVector<QList<QStandardItem *>> rows;
-    QItemSelectionModel *actorSelectionModel;
+    QString prevSearchActor, prevSearchScene;
+    RowList rows;
     /// Threads
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
-    InitializationThread *initThread;
     SplashScreen *splashScreen;
     VideoPlayer *videoPlayer;
     QThread     *videoThread;

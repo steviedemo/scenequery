@@ -24,11 +24,13 @@ public slots:
     void qualityFilterChanged(int);
     void updateSceneItem(int id);
     void searchByFilename(const QString &);
+    void clearSearchFilter();
     void searchByID(const int &);
+    void actorFilterChanged(QString name);
+    void filenameFilterChanged(QString word);
+    void actorFilterChanged(ActorPtr);
 private slots:
     void rowCountChanged(QModelIndex, int, int);
-    void actorFilterChanged(QString name);
-    void actorFilterChanged(ActorPtr);
     void clearFilter(void);
     void rowDoubleClicked(const QModelIndex &index);
     void selectionChanged(QModelIndex, QModelIndex);
@@ -43,8 +45,9 @@ private:
     SceneProxyModel *proxyModel;
     QTableView *table;
     QVBoxLayout *mainLayout;
-    int newRow;
-    int currentFileSelection;
+    int newRow, currentFileSelection;
+    bool initComplete;
+    QString nameFilter, fileFilter;
 signals:
     void displayChanged(int);
     void sendSceneCount(int);

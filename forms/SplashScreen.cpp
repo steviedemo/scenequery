@@ -18,7 +18,6 @@ SplashScreen::SplashScreen(QWidget *parent) :
     }
     this->scenes = {};
     this->actors = {};
-    qRegisterMetaType<RowList>("RowList");
 }
 
 void SplashScreen::showEvent(QShowEvent *){

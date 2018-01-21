@@ -37,11 +37,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
     qRegisterMetaType<QVector<QSharedPointer<Scene>>>("QVector<QSharedPointer<Scene>>");
     qRegisterMetaType<QVector<QSharedPointer<Actor>>>("QVector<QSharedPointer<Actor>>");
-    qRegisterMetaType<QVector<QList<QStandardItem *>>>("QVector<QList<QStandardItem *>>");
     qRegisterMetaType<ScenePtr>("ScenePtr");
     qRegisterMetaType<ActorPtr>("ActorPtr");
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
+    qRegisterMetaType<RowList>("RowList");
     this->videoOpen = false;
     this->sceneMap = QHash<int,ScenePtr>();
     ui->setupUi(this);
@@ -79,9 +79,12 @@ MainWindow::~MainWindow(){
         sqlThread->wait();
         delete sqlThread;
     }
+    delete actorModel;
+    delete actorProxyModel;
     delete sceneDetailView;
     delete actorSelectionModel;
     actorMap.clear();
+    sceneMap.clear();
     actorList.clear();
     sceneList.clear();
 }
@@ -152,6 +155,10 @@ void MainWindow::connectViews(){
     connect(sceneDetailView,    SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
     connect(ui->tb_seachActors, SIGNAL(pressed()),                      this,               SLOT(searchActors()));
     connect(ui->tb_searchScenes,SIGNAL(pressed()),                      this,               SLOT(searchScenes()));
+    connect(ui->tb_clearSearchScenes,SIGNAL(pressed()),                 ui->sceneWidget,    SLOT(clearSearchFilter()));
+    connect(ui->tb_clearSearchScenes,SIGNAL(pressed()),                 ui->le_searchScenes,SLOT(clear()));
+    connect(ui->tb_clearSearchActors,SIGNAL(pressed()),                 ui->le_searchActors,SLOT(clear()));
+
 
 }
 
@@ -471,13 +478,19 @@ ActorPtr MainWindow::getSelectedActor(){
 
 void MainWindow::searchScenes(){
     QString searchTerm = ui->le_searchScenes->text();
-    this->sceneProxyModel->setFilterFilename(searchTerm);
+    if (!searchTerm.isEmpty()){
+        qDebug("Searching Scenes for '%s'", qPrintable(searchTerm));
+        ui->sceneWidget->searchByFilename(searchTerm);
+        this->prevSearchScene = searchTerm;
+    }
 }
 
 void MainWindow::searchActors(){
     if (ui->le_searchActors){
+
         QString name = ui->le_searchActors->text();
         if (!name.isEmpty()){
+            this->prevSearchActor = name;
             QModelIndex index = findActorIndex(name);
             if (index.isValid()){
                 ui->actorTableView->selectRow(index.row());
