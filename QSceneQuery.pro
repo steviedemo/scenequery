@@ -81,7 +81,6 @@ SOURCES += \
     PSQL/src/sqlconnection.cpp \
     src-helpers/filenames.cpp \
     forms/profiledialog.cpp \
-    src/InitializationThread.cpp \
     forms/RatingDelegate.cpp \
     forms/RatingEditor.cpp \
     forms/SceneProxyModel.cpp \
@@ -119,7 +118,6 @@ HEADERS  += \
     src-helpers/filenames.h \
     src-objects/SceneList.h \
     forms/profiledialog.h \
-    src/InitializationThread.h \
     forms/RatingDelegate.h \
     forms/RatingEditor.h \
     forms/SceneProxyModel.h \

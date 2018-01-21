@@ -7,7 +7,6 @@
 #include "Scene.h"
 #include "Actor.h"
 #include "ActorProfileView.h"
-#include "InitializationThread.h"
 #include <QtConcurrent>
 #include <QInputDialog>
 #include <QtGlobal>

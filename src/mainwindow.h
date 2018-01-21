@@ -9,7 +9,6 @@
 #include "SQL.h"
 #include "profiledialog.h"
 #include "ActorProxyModel.h"
-#include "InitializationThread.h"
 #include "SceneDetailView.h"
 #include "SceneProxyModel.h"
 #include "SceneView.h"
