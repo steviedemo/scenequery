@@ -11,16 +11,22 @@ class SceneView : public QWidget
 public:
     SceneView(QWidget *parent = 0);
     void setSourceModel(QAbstractItemModel *model);
-    QVBoxLayout *getLayout();
     void addScene(ScenePtr, const QModelIndex &parent = QModelIndex());
     QVector<int> getIDs();
+    void updateSceneDisplay(int);
+    int countRows();
 public slots:
     void receiveSceneCountRequest();
+
     void resizeSceneView();
     void companyFilterChanged(QString);
     void tagFilterChanged(QString);
     void qualityFilterChanged(int);
+    void updateSceneItem(int id);
+    void searchByFilename(const QString &);
+    void searchByID(const int &);
 private slots:
+    void rowCountChanged(QModelIndex, int, int);
     void actorFilterChanged(QString name);
     void actorFilterChanged(ActorPtr);
     void clearFilter(void);
@@ -29,6 +35,7 @@ private slots:
     void sceneClicked(QModelIndex);
     void receiveRequestForShownSceneIDs();
 private:
+    QModelIndex findSceneIndex(const QRegExp &rx, const int column);
     void addData(int column, QString data);
     QItemSelectionModel *selectionModel;
     QWidget *parent;
@@ -39,6 +46,7 @@ private:
     int newRow;
     int currentFileSelection;
 signals:
+    void displayChanged(int);
     void sendSceneCount(int);
     void playFile(int sceneID);
     void sceneSelectionChanged(int sceneID);

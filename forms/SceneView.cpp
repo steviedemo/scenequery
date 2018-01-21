@@ -35,6 +35,43 @@ SceneView::SceneView(QWidget *parent):
     connect(selectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(selectionChanged(QModelIndex,QModelIndex)));
     connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(sceneClicked(QModelIndex)));
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
+    connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
+}
+
+void SceneView::rowCountChanged(QModelIndex, int, int){
+    emit displayChanged(proxyModel->rowCount());
+    //this->table->resizeColumnsToContents();
+}
+void SceneView::searchByFilename(const QString &searchTerm){
+    //QRegExp rx(QString(".*%1.*").arg(searchTerm));
+    proxyModel->setFilterFilename(searchTerm);
+    //QModelIndex index = findSceneIndex(rx, SCENE_PATH_COLUMN);
+//    if (index.isValid()){
+//        this->table->selectRow(index.row());
+//    }
+}
+void SceneView::searchByID(const int &id){
+    proxyModel->setFilterID(id);
+}
+
+QModelIndex SceneView::findSceneIndex(const QRegExp &rx, const int column){
+    QAbstractItemModel *model = this->table->model();
+    QSortFilterProxyModel proxy;
+    proxy.setSourceModel(model);
+    proxy.setFilterKeyColumn(column);
+    proxy.setFilterRegExp(rx);
+    QModelIndex index = proxy.mapToSource(proxy.index(0,0));
+    if (!index.isValid()){
+        index = QModelIndex();
+        qWarning("Unable to find Scene with column %d matching '%s'", column, qPrintable(rx.pattern()));
+    }
+    return index;
+}
+
+void SceneView::updateSceneDisplay(int id){
+#warning Placeholder for updating Scene Display Row
+    qDebug("Placeholder Function in SceneView for updating scene Display item");
 }
 
 void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
@@ -57,7 +94,6 @@ void SceneView::sceneClicked(QModelIndex modelIndex){
     }
 }
 
-
 void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
     if (id > 0){
@@ -66,9 +102,14 @@ void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
     }
 }
 
-QVBoxLayout *SceneView::getLayout(){
-    return mainLayout;
+int SceneView::countRows(){
+    return proxyModel->rowCount();
 }
+
+void SceneView::updateSceneItem(int id){
+
+}
+
 void SceneView::receiveSceneCountRequest(){
     emit sendSceneCount(proxyModel->rowCount());
 }
@@ -77,7 +118,7 @@ void SceneView::setSourceModel(QAbstractItemModel *model){
     proxyModel->setSourceModel(model);
 }
 
-QVector<int> getIDs(){
+QVector<int> SceneView::getIDs(){
     QVector<int> ids = {};
     qDebug("SceneView receievd Request for a list of the show scenes' IDs");
     for(int i = 0; i < proxyModel->rowCount(); ++i){
@@ -108,20 +149,24 @@ void SceneView::actorFilterChanged(ActorPtr a){
 void SceneView::companyFilterChanged(QString company){
     proxyModel->setFilterRegExp(company);
     proxyModel->setFilterCompany(company);
+    //emit displayChanged(proxyModel->rowCount());
 }
 void SceneView::tagFilterChanged(QString tag){
     proxyModel->setFilterRegExp(tag);
     proxyModel->setFilterTag(tag);
+ //   emit displayChanged(proxyModel->rowCount());
 }
 void SceneView::qualityFilterChanged(int resolution){
     proxyModel->setFilterRegExp(QString::number(resolution));
     proxyModel->setFilterQuality(resolution);
+   // emit displayChanged(proxyModel->rowCount());
 }
 
 void SceneView::actorFilterChanged(QString name){
     proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
     table->resizeColumnsToContents();
+  //  emit displayChanged(proxyModel->rowCount());
 }
 void SceneView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);

@@ -17,23 +17,23 @@ public:
     void setFilterTag(const QString &tag);
     int filterQuality() const { return qualityFilter;   }
     void setFilterQuality(const int &quality);
+    void setFilterFilename(const QString &);
+    void setFilterID(const int &id);
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
-    //bool lessThan(const QModelIndex &source_left, const QModelIndex &source_right) const override;
 private:
     void setFilter(QString text);
     enum FilterKey{ NAME, COMPANY, TAG, QUALITY, NONE};
-    bool getFilterData(FilterKey, int &column, QString &filterText) const;
     QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
-    const char *enumToString() const;
     void setDefaultValues();
+    bool filenameMatchesFilter(int row, const QModelIndex & index) const;
     bool nameMatchesFilter(int row, const QModelIndex &index) const;
     bool companyMatchesFilter(QString company) const;
     bool tagMatchesFilter(QString tag) const;
     bool qualityMatchesFilter(QString qualityString) const;
     QString currentFilter;
-    QString nameFilter, companyFilter, tagFilter;
-    int qualityFilter;
+    QString nameFilter, companyFilter, tagFilter, fileFilter;
+    int qualityFilter, idFilter;
     FilterKey key;
 };
 

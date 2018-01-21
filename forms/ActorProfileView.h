@@ -22,8 +22,8 @@ public:
 
 public slots:
     void loadActorProfile(ActorPtr a);
-    void acceptSceneCount(int);
-
+    void mw_to_apv_receiveScenes(SceneList);
+    void mw_to_apv_receiveActor(ActorPtr);
 private slots:
     void reloadProfilePhoto();
     void on_selectNewPhoto_clicked();
@@ -40,21 +40,6 @@ private slots:
     void on_closeProfile_clicked();
     void on_tb_saveNameEdit_clicked();
     void on_tb_cancelNameEdit_clicked();
-    //void on_reloadFromDb_clicked();
-//    void on_birthDateDateEdit_userDateChanged(const QDate &date);
-//    void on_hairColorLineEdit_textChanged(const QString &arg1);
-//    void on_ethnicityLineEdit_textChanged(const QString &arg1);
-//    void on_nationalityLineEdit_textEdited(const QString &arg1);
-//    void on_heightLineEdit_textEdited(const QString &arg1);
-//    void on_weightLineEdit_textEdited(const QString &arg1);
-//    void on_eyeColorLineEdit_textEdited(const QString &arg1);
-//    void on_measurementsLineEdit_textEdited(const QString &arg1);
-//    void on_aliasesTextEdit_textChanged();
-//    void on_piercingsTextEdit_textChanged();
-//    void on_tattoosTextEdit_textChanged();
-    void onTimeout(void);
-    void mw_to_apv_receiveScenes(SceneList);
-    void mw_to_apv_receiveActor(ActorPtr);
 
 private:
     void setupFields();
@@ -75,7 +60,6 @@ private:
     SceneList updateList;
 signals:
     void profileChanged(ActorPtr a);
-    void requestSceneCount();
     void updateFromWeb  (ActorPtr a);
     void saveToDatabase (ActorPtr a);
     void deleteCurrent  ();

@@ -33,12 +33,14 @@
 #define BUILD_SCENE_PROGRESS 1
 #define LOAD_ACTOR_PROGRESS  2
 #define LOAD_SCENE_PROGRESS  3
+#define COUNT_SCENE_PROGRESS 4
 
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 typedef QSharedPointer<class Scene>         ScenePtr;
 typedef QSharedPointer<class Actor>         ActorPtr;
 typedef QSharedPointer<class QStandardItem> ItemPtr;
+typedef QVector<QList<QStandardItem *>>     RowList;
 using ItemList           = QList<QSharedPointer<class QStandardItem>>;
 //using SceneList             = QVector<QSharedPointer<class Scene>>;
 using ActorList             = QVector<QSharedPointer<class Actor>>;

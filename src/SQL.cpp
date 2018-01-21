@@ -19,14 +19,9 @@
 #include <QVector>
 #include <QRegularExpression>
 #define trace(); qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
+#define START_PSQL "/usr/local/bin/pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
 using namespace pqxx;
 
-#define START_PSQL "/usr/local/bin/pg_ctl -D /usr/local/var/postgres -l /usr/local/var/postgres/server.log start"
-SQL::SQL(QString name){
-    // Start Postgresql
-    startServer();
-    this->connectionName = name;
-}
 
 void SQL::startServer(){
     qDebug("Starting Postgresql..");
@@ -40,8 +35,6 @@ void SQL::startServer(){
         qWarning("Error Starting Postgres");
     }
 }
-/** Destructor */
-SQL::~SQL(){}
 
 /** Get a Printable form of the given Query Type enum */
 const char *SQL::toString(queryType t){
@@ -293,14 +286,16 @@ void SQL::fs_to_db_checkNames(QStringList nameList){
 
 
 void SQL::drop(ActorPtr a){
-    qDebug("Deleting '%s' from the actors table", qPrintable(a->getName()));
     QString name = QString("%1").arg(a->getName());
     name.replace('\'', "\'\'");
-    name.prepend('\'');
-    name.append('\'');
-    QString statement = QString("DELETE from actors where NAME = %1").arg(name);
+    QString statement = QString("delete from actors where name='%1'").arg(name);
+    qDebug("%s", qPrintable(statement));
     sqlConnection sql(statement.toStdString());
-    sql.execute();
+    if (!sql.execute()){
+        qWarning("Error Deleting '%s' from the Actors Database", qPrintable(name));
+    } else {
+        qDebug("Deleted '%s' from the Actor Database", qPrintable(name));
+    }
 }
 
 /*------------------------------------------------------------------
@@ -410,100 +405,7 @@ void SQL::saveChanges(ScenePtr s){
     sqlConnection sql(s->toQuery(), SQL_UPDATE);
     if (!sql.execute()){
         emit showError("Error Saving changes to database");
-    } else {
-        emit showSuccess("Changes saved to Database");
     }
-}
-
-void SQL::threaded_profile_photo_scaler(ActorPtr a){
-    qDebug("Setting profile photo for %s", qPrintable(a->getName()));
-    QString path_to_photo = getProfilePhoto(a->getName());
-    mx.lock();
-    QPixmap photo = QPixmap(path_to_photo);
-    mx.unlock();
-    a->setScaledProfilePhoto(QVariant(photo.scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)));
-    mx.lock();
-    emit updateProgress(++initIndex);
-    mx.unlock();
-}
-
-void miniSQL::run(){
-    QString statement = QString("SELECT * FROM %1").arg((currentTable==SCENE) ? "scenes" : "actors");
-    sqlConnection connection(statement);
-    if (!connection.execute()){
-        qWarning("Error Loading items from database!");
-    } else {
-        pqxx::result r = connection.getResult();
-        if (r.size() == 0){
-            qWarning("No Items in table");
-            return;
-        }
-        if (currentTable==SCENE){
-            emit startProgress(LOAD_SCENE_PROGRESS, r.size());
-        } else {
-            emit startProgress(LOAD_ACTOR_PROGRESS, r.size());
-        }
-        int idx = 0;
-        for(result::const_iterator i = r.begin(); i != r.end(); ++i){
-            if (currentTable == SCENE){
-                ScenePtr s = ScenePtr(new Scene(i));
-                sceneList.push_back(s);
-                emit updateProgress(LOAD_SCENE_PROGRESS, idx++);
-            } else {
-                ActorPtr a = ActorPtr(new Actor(i));
-                actorList.push_back(a);
-                emit updateProgress(LOAD_ACTOR_PROGRESS, idx++);
-            }
-        }
-        emit closeProgress();
-    }
-    if (currentTable == SCENE){
-        emit done(sceneList);
-    } else {
-        emit done(actorList);
-    }
-}
-
-void SQL::initialize(){
-    int index = 0;
-    this->actors = {};
-    this->scenes = {};
-    qDebug("Initiliazing Item Lists");
-    sqlConnection sceneSql(QString("SELECT * FROM scenes"));
-    sqlConnection actorSql(QString("SELECT * FROM actors"));
-    if (!sceneSql.execute()){
-        qWarning("Error Loading Scenes");
-    }
-    if (!actorSql.execute()){
-        qWarning("Error Loading Actors");
-    }
-    pqxx::result actorResult = actorSql.getResult();
-    pqxx::result sceneResult = sceneSql.getResult();
-    int totalItems = actorResult.size() + sceneResult.size();
-    emit startProgress(QString("Reading %1 items in from database").arg(totalItems), (2*actorResult.size() + sceneResult.size()));
-    qDebug("Adding %lu Scenes", sceneResult.size());
-    for (pqxx::result::const_iterator S = sceneResult.begin(); S != sceneResult.end(); ++S){
-        ScenePtr s = ScenePtr(new Scene(S));
-        scenes.push_back(s);
-        emit updateProgress(++index);
-
-    }
-    qDebug("Adding %lu Actors", actorResult.size());
-    for (pqxx::result::const_iterator A = sceneResult.begin(); A != sceneResult.end(); ++A){
-        ActorPtr a = ActorPtr(new Actor(A));
-        actors.push_back(a);
-        emit updateProgress(++index);
-    }
-    qDebug("Building Scaled Actor Profile Photos");
-    QFutureSynchronizer<void>sync;
-    for(int i = 0; i < actors.size(); ++i){
-        ActorPtr a = actors.at(i);
-        sync.addFuture(QtConcurrent::run(this, &SQL::threaded_profile_photo_scaler, a));
-    }
-    sync.waitForFinished();
-    qDebug("Initialization Complete");
-    emit closeProgress();
-    emit initializationFinished(actors, scenes);
 }
 
 /** \brief Load scenes from the database into the list of scenes passed

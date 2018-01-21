@@ -64,11 +64,10 @@ public:
     QString headshotTitle(void);
     void    setHeadshot (QString s);
     void    setDefaultHeadshot();
-    void    buildScaledProfilePhoto(void);
     void    setScaledProfilePhoto(QVariant);
     // Setters
     void    setScenes   (class SceneList list);
-    void    setSceneCount(int i)        {   this->sceneCount = i;           }
+    void    setSceneCount(const int &i);
     void    addScene    (ScenePtr s);
     void    setBio      (const Biography &b);
     void    setName     (QString n)     {   this->name = n; bio.setName(n); }

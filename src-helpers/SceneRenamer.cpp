@@ -7,11 +7,19 @@
 #include "Scene.h"
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
-SceneRenamer::SceneRenamer(Scene *scene){
-    scan(ScenePtr(scene));
-}
-SceneRenamer::SceneRenamer(ScenePtr scene){
+SceneRenamer::SceneRenamer(ScenePtr scene): current(scene), actors(QStringList()), tags(QStringList()),
+    folder(""), extension(""), newFilename(""), oldFilename(""), title(""), company(""),
+    series(""), releaseString(""), rating(""), tagString(""), mainActor(""), featuredActors(""),
+    actorCount(0), height(0), sceneNumber(0), sceneOk(false)
+{
     scan(scene);
+}
+SceneRenamer::SceneRenamer(Scene *scene): current(ScenePtr(scene)), actors(QStringList()), tags(QStringList()),
+    folder(""), extension(""), newFilename(""), oldFilename(""), title(""), company(""),
+    series(""), releaseString(""), rating(""), tagString(""), mainActor(""), featuredActors(""),
+    actorCount(0), height(0), sceneNumber(0), sceneOk(false)
+{
+    scan(current);
 }
 void SceneRenamer::scan(ScenePtr scene){
     this->current = scene;
@@ -76,6 +84,8 @@ QString SceneRenamer::getNewFilename(){
         out << "[" << company << "] ";
     }
     /// Add Title
+    title.remove(QRegularExpression("feat\\..*"));
+    qDebug("Adding Title: '%s'", qPrintable(title));
     out << title;
     /// Add Scene Number if it exists
     if (sceneNumber > 0){
@@ -85,6 +95,7 @@ QString SceneRenamer::getNewFilename(){
     QString featuredString = makeFeaturedString(actors);
     if (!featuredString.isEmpty()){
         out << " feat. " << featuredString;
+        qDebug("Featured String being added: 'feat. %s'", qPrintable(featuredString));
     }
     QString data = makeBracketString();
     if (!data.isEmpty()){
@@ -107,6 +118,7 @@ QString SceneRenamer::makeFeaturedString(QStringList names) const{
         QMapIterator<QString,int> it(actorMap);
         while(it.hasNext()){
             it.next();
+            qDebug("Adding featured actor to new name: %s", qPrintable(it.key()));
             out << it.key();
             if (it.hasNext()){
                 out << ", ";

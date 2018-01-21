@@ -9,15 +9,16 @@
 class SceneRenamer
 {
 private:
-    QString folder, extension, newFilename, oldFilename, title, company, series, releaseString, rating, tagString;
+    ScenePtr current;
     QStringList actors, tags;
+    QString folder, extension, newFilename, oldFilename, title, company, series, releaseString, rating, tagString;
+    QString mainActor, featuredActors;
     int actorCount;
     int height, sceneNumber;
-    ScenePtr current;
     bool sceneOk;
 public:
-    SceneRenamer(Scene *s);
     SceneRenamer(ScenePtr s);
+    SceneRenamer(Scene *s);
 
     QString getNewFilename();
     QString displayInfo();

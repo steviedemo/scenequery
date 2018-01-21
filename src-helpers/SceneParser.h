@@ -47,6 +47,7 @@ public:
     SceneParser(QPair<QString,QString> file);
     SceneParser(QString absolutePath);
     ~SceneParser();
+    void        print       ();
     void        parse       (void);
     void        parse       (QPair<QString,QString>);
     void        parse       (QString absolutePath);

@@ -39,7 +39,7 @@ void ActorProfileView::on_tb_editName_clicked(){
     ui->label_name->hide();
     ui->nameEditFrame->show();
     ui->nameLineEdit->clear();
-    ui->nameLineEdit->setPlaceholderText(current->getName());
+    ui->nameLineEdit->setText(current->getName());
 }
 
 void ActorProfileView::mw_to_apv_receiveScenes(SceneList list){
@@ -84,6 +84,7 @@ void ActorProfileView::on_tb_saveNameEdit_clicked(){
                 s->renameActor(oldName, newName);
                 emit renameFile(s);
             }
+            this->hide();
         } else {
             qWarning("Error Running Query '%s'", qPrintable(query));
         }
@@ -99,7 +100,6 @@ void ActorProfileView::on_tb_cancelNameEdit_clicked(){
 }
 
 void ActorProfileView::setupFields(){
-    lineEdits.push_back(ui->scenesLineEdit);
     lineEdits.push_back(ui->ethnicityLineEdit);
     lineEdits.push_back(ui->birthCityLineEdit);
     lineEdits.push_back(ui->ageLineEdit);
@@ -130,9 +130,6 @@ void ActorProfileView::clearFields(){
     ui->birthDateDateEdit->clear();
 }
 
-void ActorProfileView::acceptSceneCount(int count){
-    ui->scenesLineEdit->setText(QString::number(count));
-}
 
 void ActorProfileView::on_deletePhoto_clicked(){
     if (!current->usingDefaultPhoto()){
@@ -238,16 +235,12 @@ void ActorProfileView::outputDetails(ActorPtr a){
     ui->tattoosTextEdit->setText(bio.getTattoos());
     QImage headshot = scaleImage(a->getHeadshot(), IMAGE_HEIGHT, Qt::SmoothTransformation);
     ui->profilePhoto->setPixmap(QPixmap::fromImage(headshot));
-    /// Request The scene count in a few seconds, once the scene filtering has been performed.
-    QTimer::singleShot(3, this, SLOT(onTimeout()));
-}
-
-void ActorProfileView::onTimeout(){
-    emit requestSceneCount();
+    int width = getScaledWidth(headshot, IMAGE_HEIGHT);
+    QSize scaledSize(width, IMAGE_HEIGHT);
+    ui->profilePhoto->setFixedSize(scaledSize);
 }
 
 void ActorProfileView::on_deleteActor_clicked(){
-    emit deleteCurrent();
     emit deleteActor(current);
 }
 void ActorProfileView::on_downloadPhoto_clicked(){

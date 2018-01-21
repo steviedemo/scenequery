@@ -41,6 +41,20 @@ SceneParser::SceneParser(QString path):
 SceneParser::~SceneParser(){
 }
 
+void SceneParser::print(){
+    QString s("");
+    QTextStream out(&s);
+    out << "Title:      " << title << endl;
+    out << "Actors:     " << listToString(actors) << endl;
+    out << "Released:   " << release.toString("yyyy/MM/dd") << endl;
+    out << "Series:     " << series << endl;
+    out << "Rating:     " << rating.grade() << endl;
+    out << "Size:       " << size << endl;
+    out << "Length:     " << length.toString("h:mm:ss") << endl;
+    out << "Company:    " << company << endl;
+    out << endl;
+    qDebug("%s", qPrintable(s));
+}
 
 QByteArray checksum(const QString &absolutePath){
     qDebug("Calculating Checksum for %s", qPrintable(absolutePath));
@@ -84,6 +98,7 @@ void SceneParser::parse(QPair<QString,QString> path){
     bashScript(absolutePath);
     doubleCheckNames();
     this->parsed = true;
+    print();
 }
 
 /** \brief Extract various pieces of data from a file name, and store them in the appropriate data types. */
@@ -109,6 +124,7 @@ void SceneParser::parse(QString absolutePath){
     doubleCheckNames();
     //readMetadata(f.absolutePath());
     parsed = true;
+    print();
 }
 
 void SceneParser::doubleCheckNames(){
@@ -139,7 +155,9 @@ QString SceneParser::parseTitle(QString file_name){
         QRegularExpression tempRx("(.+) - .+");
         QRegularExpressionMatch tempMatch = tempRx.match(file_name);
         if (tempMatch.hasMatch()){
-            actors.push_back(tempMatch.captured(1));
+            QString name = tempMatch.captured(1);
+            actors.push_back(name);
+            qDebug("Adding Actor '%s'", qPrintable(name));
         }
     }
     QString temp("");
@@ -164,8 +182,9 @@ QString SceneParser::parseTitle(QString file_name){
             rx.setPattern("(.+) - (.+)");
             m = rx.match(file_name);
             if (m.hasMatch()){
-                this->actors.push_back(m.captured(1).trimmed());
-                temp = m.captured(2);
+                temp = m.captured(2).trimmed();
+                this->actors.push_back(temp);
+                qDebug("Adding Actor '%s'", qPrintable(temp));
             }
         }
     } catch(std::exception &e) {
@@ -291,6 +310,8 @@ void SceneParser::parseParentheses(QString name){
     QRegularExpression heightRegex("[0-9]+p");
     QRegularExpression dateRegex("([0-9\\.]{10})");
     QRegularExpression ratingRegex("\\b[ABCR]{1}[\\+\\-]{0,3}\\b");
+    QRegularExpression yearRegex("20[0-9]{2}");
+    bool dateSet = false, seriesSet(false), ratingSet(false);
     try{
         QRegularExpressionMatch m = rx.match(name);
         if (m.hasMatch()){
@@ -308,30 +329,36 @@ void SceneParser::parseParentheses(QString name){
         for(int index = 0; index < list.size(); ++index){
             QString item = list.at(index);
             QRegularExpressionMatch dateMatch = dateRegex.match(item);
+            QRegularExpressionMatch yearMatch = yearRegex.match(item);
             QRegularExpressionMatch heightMatch = heightRegex.match(item);
             QRegularExpressionMatch ratingMatch = ratingRegex.match(item);
-            if (ratingMatch.hasMatch()){
+            if (ratingMatch.hasMatch() && !ratingSet){
                 qDebug("Tag: %s - Rating", qPrintable(item));
                 this->rating.fromString(item.trimmed());
-                continue;
-            } else if (index == 0 || index == 1){
-                if (dateMatch.hasMatch()){
+                ratingSet = true;
+            } else if ((index == 0 || index == 1) && !heightMatch.hasMatch()){
+                if (dateMatch.hasMatch() && ! dateSet){
                     qDebug("Tag: %s - Date", qPrintable(item));
-                    this->release = QDate::fromString(heightMatch.captured(1), "yyyy.MM.dd");
-                    continue;
-                } else if (index == 0){
+                    this->release = QDate::fromString(dateMatch.captured(1), "yyyy.MM.dd");
+                    qDebug("Release: %s", qPrintable(release.toString("yyyy/MM/dd")));
+                    dateSet = true;
+                } else if (!dateSet && yearMatch.hasMatch()){
+                    qDebug("Tag %s - Year", qPrintable(item));
+                    int year = item.trimmed().toInt();
+                    this->release = QDate(year, 1, 1);
+                    dateSet = true;
+                } else if (index == 0 && !seriesSet){
                     qDebug("Tag: %s - Series", qPrintable(item));
                     this->series = item.trimmed();
-                    continue;
+                    seriesSet = true;
                 }
-            }
-            else if (heightMatch.hasMatch()){
+            } else if (heightMatch.hasMatch()){
                 qDebug("Tag: %s - Quality", qPrintable(item));
                 this->height = item.remove('p').toInt();
-                continue;
             } else {
+                item = item.trimmed();
                 qDebug("Tag: %s - Tag", qPrintable(item));
-                tagList << item.trimmed();
+                tagList << item;
             }
         }
         this->tags = tagList;

@@ -13,6 +13,7 @@
 #include "SceneDetailView.h"
 #include "SceneProxyModel.h"
 #include "SceneView.h"
+#include "SplashScreen.h"
 #include "VideoPlayer.h"
 #include <QHash>
 #include <QItemSelectionModel>
@@ -40,12 +41,14 @@ public:
 
 private slots:
     /// Receivers
-    void initializationFinished(ActorList, SceneList);
+    void initDone(ActorList, SceneList, RowList, RowList);
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveSingleActor(ActorPtr);
 
-    void renameFile(ScenePtr);
+    void searchActors();
+    void searchScenes();
+
     void apv_to_mw_receiveSceneListRequest(QString actorName);
     void apv_to_mw_receiveActorRequest(QString name);
     void apv_to_mw_deleteActor(QString name);
@@ -56,12 +59,9 @@ private slots:
     void sdv_to_mw_requestBirthday(QString);
     void sw_to_mw_selectionChanged(int id);
     void sw_to_mw_itemClicked(int id);
-    void sw_to_mw_receiveIDList(QVector<int>);
     /// Progress & Status Updates
     void startProgress(QString, int);
-    void updateProgress(int value);
     void closeProgress(QString);
-    void updateStatus(QString);
     void showError(QString);
     void showSuccess(QString);
     void newProgressDialog(QString, int);
@@ -69,12 +69,12 @@ private slots:
     void updateProgressDialog(QString);
     void closeProgressDialog();
 
-    void actorSelectionChanged(QModelIndex , QModelIndex);
-
-    /// Window Events
-    void showEvent(QShowEvent *event);
-    void removeActorItem();
+    void renameFile(ScenePtr);
+    void removeActorItem(ActorPtr);
     void showCurrentActorProfile();
+    /// Window Events
+    void actorTableViewRowsChanged(QModelIndex, int, int);
+    void actorSelectionChanged(QModelIndex , QModelIndex);
     void on_actionAdd_Actor_triggered();
     void actorTableView_clicked(const QModelIndex &index);
 
@@ -108,11 +108,14 @@ private slots:
 private:
     RunMode runMode;
     QString newName;
-    void buildQStandardItem(ActorPtr);
     void resetActorFilterSelectors(void);
     void setupViews         (void);
+    void connectViews       (void);
+    void startThreads       (void);
     ActorPtr getSelectedActor(void);
-    QModelIndex findActorIndex(QString name);
+    QModelIndex findActorIndex(const QString &name) const;
+    QModelIndex findActorIndex_Exact(const QString &name) const;
+    QModelIndex findActorIndex_base(const QRegExp &rx, const int column) const;
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
@@ -136,6 +139,7 @@ private:
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     InitializationThread *initThread;
+    SplashScreen *splashScreen;
     VideoPlayer *videoPlayer;
     QThread     *videoThread;
     curlTool    *curlTestObject;
@@ -156,6 +160,7 @@ signals:
     void scanFolder         (QString);
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
+
     void dropActor          (ActorPtr);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);

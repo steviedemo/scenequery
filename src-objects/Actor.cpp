@@ -127,14 +127,6 @@ void Actor::setScaledProfilePhoto(QVariant profile){
     this->profilePhoto = profile;
 }
 
-void Actor::buildScaledProfilePhoto()   {
-    qDebug("Building Scaled Profile Photo for %s", qPrintable(name));
-    if (photoPath.isEmpty()){
-        photoPath = getProfilePhoto(name);
-    }
-    this->profilePhoto = QVariant(QPixmap(photoPath).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
-}
-
 void Actor::setDefaultHeadshot(){
     this->photoPath = DEFAULT_PROFILE_PHOTO;
     this->profilePhoto = QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
@@ -179,7 +171,6 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
 }
 
 void Actor::updateQStandardItem(){
-    qDebug("Updating Display Item for %s", qPrintable(name));
     this->photoPath = getProfilePhoto(name);
     this->itemSceneCount->setText(QString::number(sceneList.size()));
     //QString photo = getProfilePhoto(name);
@@ -199,7 +190,10 @@ void Actor::updateQStandardItem(){
 
     this->itemBioSize->setText(QString("%1").arg(size(), 2, 10, QChar('0')));
     this->itemSceneCount->setText(QString("%1").arg(sceneCount, 2, 10, QChar('0')));
-    qDebug("%s's Display Item Updated", qPrintable(name));
+}
+
+void Actor::setSceneCount(const int &i){
+    this->sceneCount = i;
 }
 
 void Actor::setBio(const Biography &other){
