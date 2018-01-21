@@ -98,7 +98,7 @@ void SceneParser::parse(QPair<QString,QString> path){
     bashScript(absolutePath);
     doubleCheckNames();
     this->parsed = true;
-    print();
+ //   print();
 }
 
 /** \brief Extract various pieces of data from a file name, and store them in the appropriate data types. */
@@ -124,12 +124,19 @@ void SceneParser::parse(QString absolutePath){
     doubleCheckNames();
     //readMetadata(f.absolutePath());
     parsed = true;
-    print();
+  //  print();
 }
 
 void SceneParser::doubleCheckNames(){
     QStringList l;
     foreach(QString actor, actors){
+        if (actor.contains(" & ")){
+            actor = actor.remove(QRegularExpression(" & .*"));
+        } else if (actor.contains(" - ")){
+            actor = actor.remove(QRegularExpression(" - .*"));
+        } else if (actor.contains(".")){
+            actor = actor.remove(QRegularExpression("\\.[a-z]{3}$"));
+        }
         if (!l.contains(actor)){
             l << actor;
         }
@@ -157,7 +164,7 @@ QString SceneParser::parseTitle(QString file_name){
         if (tempMatch.hasMatch()){
             QString name = tempMatch.captured(1);
             actors.push_back(name);
-            qDebug("Adding Actor '%s'", qPrintable(name));
+      //      qDebug("Adding Actor '%s'", qPrintable(name));
         }
     }
     QString temp("");
@@ -184,7 +191,7 @@ QString SceneParser::parseTitle(QString file_name){
             if (m.hasMatch()){
                 temp = m.captured(2).trimmed();
                 this->actors.push_back(temp);
-                qDebug("Adding Actor '%s'", qPrintable(temp));
+   //             qDebug("Adding Actor '%s'", qPrintable(temp));
             }
         }
     } catch(std::exception &e) {
@@ -271,7 +278,7 @@ void SceneParser::bashScript(QString fileToAnalyze){
     QString script = QString("%1/scripts/collect_exif.sh").arg(findDataLocation());
     try{
         if (system_call_blocking(script, QStringList() << fileToAnalyze, output)){
-            qDebug("Bash Script Output:\n%s\n", qPrintable(output));
+  //          qDebug("Bash Script Output:\n%s\n", qPrintable(output));
             QRegularExpressionMatchIterator it = rx.globalMatch(output);
             while(it.hasNext()){
                 QRegularExpressionMatch m = it.next();
@@ -322,10 +329,10 @@ void SceneParser::parseParentheses(QString name){
         }
         QStringList tagList;
         QStringList list = data.split(QChar(','), QString::SkipEmptyParts);
-        qDebug("Tag List: ");
-        foreach(QString tag, list){
-            qDebug("\t%s", qPrintable(tag));
-        }
+//        qDebug("Tag List: ");
+//        foreach(QString tag, list){
+//            qDebug("\t%s", qPrintable(tag));
+//        }
         for(int index = 0; index < list.size(); ++index){
             QString item = list.at(index);
             QRegularExpressionMatch dateMatch = dateRegex.match(item);
@@ -333,31 +340,31 @@ void SceneParser::parseParentheses(QString name){
             QRegularExpressionMatch heightMatch = heightRegex.match(item);
             QRegularExpressionMatch ratingMatch = ratingRegex.match(item);
             if (ratingMatch.hasMatch() && !ratingSet){
-                qDebug("Tag: %s - Rating", qPrintable(item));
+ //               qDebug("Tag: %s - Rating", qPrintable(item));
                 this->rating.fromString(item.trimmed());
                 ratingSet = true;
             } else if ((index == 0 || index == 1) && !heightMatch.hasMatch()){
                 if (dateMatch.hasMatch() && ! dateSet){
-                    qDebug("Tag: %s - Date", qPrintable(item));
+   //                 qDebug("Tag: %s - Date", qPrintable(item));
                     this->release = QDate::fromString(dateMatch.captured(1), "yyyy.MM.dd");
-                    qDebug("Release: %s", qPrintable(release.toString("yyyy/MM/dd")));
+     //               qDebug("Release: %s", qPrintable(release.toString("yyyy/MM/dd")));
                     dateSet = true;
                 } else if (!dateSet && yearMatch.hasMatch()){
-                    qDebug("Tag %s - Year", qPrintable(item));
+       //             qDebug("Tag %s - Year", qPrintable(item));
                     int year = item.trimmed().toInt();
                     this->release = QDate(year, 1, 1);
                     dateSet = true;
                 } else if (index == 0 && !seriesSet){
-                    qDebug("Tag: %s - Series", qPrintable(item));
+         //           qDebug("Tag: %s - Series", qPrintable(item));
                     this->series = item.trimmed();
                     seriesSet = true;
                 }
             } else if (heightMatch.hasMatch()){
-                qDebug("Tag: %s - Quality", qPrintable(item));
+ //               qDebug("Tag: %s - Quality", qPrintable(item));
                 this->height = item.remove('p').toInt();
             } else {
                 item = item.trimmed();
-                qDebug("Tag: %s - Tag", qPrintable(item));
+//                qDebug("Tag: %s - Tag", qPrintable(item));
                 tagList << item;
             }
         }

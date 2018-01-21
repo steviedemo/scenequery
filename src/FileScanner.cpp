@@ -7,18 +7,25 @@
 #include <QtConcurrent>
 #include <QFutureSynchronizer>
 #include <QMediaMetaData>
+#include <QThreadPool>
 #include <QVideoFrame>
 #include <QDir>
 #include <unistd.h>
-FileScanner::FileScanner(QString path):
-    scanDir(path), index(0){
+FileScanner::FileScanner(const QString &path):
+    index(0){
+    this->rootFolders << path;
     this->actorList = {};
     this->sceneList = {};
     this->setTerminationEnabled(true);
 }
+FileScanner::FileScanner(const QStringList &paths):
+    rootFolders(paths), index(0){
+    this->actorList = {};
+    this->sceneList = {};
+    this->setTerminationEnabled(true);
+}
+
 FileScanner::~FileScanner(){}
-
-
 
 /** \brief Slot to break out of the thread's Event Loop */
 void FileScanner::stopThread(){
@@ -26,23 +33,62 @@ void FileScanner::stopThread(){
     this->keepRunning = false;
 }
 
+void FileScanner::db_to_fs_receiveUnsavedScenes(QFileInfoList newFiles){
+    this->scanFiles = newFiles;
+    qDebug("File Scanner Got list of %d files not in database to create", newFiles.size());
+}
+
+void MiniScanner::run(){
+    if (!root.isEmpty() && QDir(root).exists()){
+        qDebug("Scanning root folder %s...", qPrintable(root));
+        this->infoList = FileScanner::recursiveScan(root);
+    }
+    emit done(infoList);
+}
+void FileScanner::miniscanComplete(QFileInfoList list){
+    QMutexLocker ml(&fileListMx);
+    foreach(QFileInfo i, list){
+        if (!foundFiles.contains(i)){
+            this->foundFiles << i;
+        }
+    }
+    ++threadsComplete;
+}
+
+void FileScanner::getFiles(){
+    if (!rootFolders.isEmpty()){
+        this->threadPool = new QThreadPool();
+        foreach(QString folder, rootFolders){
+            MiniScanner *m = new MiniScanner(folder);
+            connect(m, SIGNAL(done(QFileInfoList)), this, SLOT(miniscanComplete(QFileInfoList)));
+            this->threadPool->globalInstance()->start(m);
+            this->threadsStarted++;
+        }
+        threadPool->waitForDone(180000);
+        delete threadPool;
+    }
+}
+
 /** \brief Thread's Main Event Loop */
 void FileScanner::run(){
-    if (scanDir.isEmpty()){
+    if (rootFolders.isEmpty()){
         qWarning("Can't Scan Empty Directory. File Scanner Stopping.");
         return;
     }
     this->keepRunning = true;
     this->index = 0;
     this->sceneList = {};
-    qDebug("Scanning '%s' for files...", qPrintable(scanDir));
-    QFileInfoList fileList;
-    if (QDir(scanDir).exists()){
-        emit updateStatus(QString("Scanning %1 and its subdirectories...").arg(scanDir));
-        fileList = recursiveScan(scanDir);
-        if (fileList.size() > 0){
+    foreach(QString folder, rootFolders){
+        QFileInfoList currList = recursiveScan(folder);
+        foreach(QFileInfo item, currList){
+            this->foundFiles << item;
+        }
+    }
+    if (this->foundFiles.size() > 0){
+        emit fs_to_db_checkScenes(foundFiles);
+        if (scanFiles.size() > 0){
             // Run multiple threads that create scene objects
-            sceneList = makeScenes(fileList);
+            sceneList = makeScenes(scanFiles);
             // Store the scenes to the database
             emit fs_to_db_storeScenes(sceneList);
             // Extract a list of unique names from the scenes.
@@ -52,10 +98,10 @@ void FileScanner::run(){
             qDebug("File Scanner Passing List of Names to SQL Thread to check if they are already in the database");
             emit fs_to_db_checkNames(nameList);
         } else {
-            showError("No files to scan in!");
+            emit showError("No New Files");
         }
     } else {
-        emit showError(QString("%1 doesn't exist!").arg(scanDir));
+        emit showError("No files to scan in!");
     }
     qDebug("File Scanner Thread Finished");
 }
@@ -64,7 +110,7 @@ void FileScanner::run(){
  *  \param QFileInfo rootFolder:    The folder to scan for files.
  *  \return QFileInfoList:          List of files in this folder and in all subdirectories.
  */
-QFileInfoList FileScanner::recursiveScan(QFileInfo rootFolder){
+QFileInfoList FileScanner::recursiveScan(const QFileInfo &rootFolder){
     QStringList nameFilters;
     QFileInfoList fileList;
     if (!rootFolder.exists()){
@@ -119,17 +165,18 @@ void FileScanner::parseScene(QFileInfo f){
  */
 QStringList FileScanner::getNames(SceneList list){
     QStringList names;
-    int total = list.size();
+    int index = 0;
     emit startProgress("Scanning in actor names", list.size());
-    for (int i = 0; i < total; ++i){
-        ScenePtr s = list.at(i);
-        emit updateProgress(i);
-        QStringList cast = s->getActors();
-        for (int j = 0; j < cast.size(); ++j){
-            if (!names.contains(cast.at(j))){
-                qDebug("Adding '%s' to list of names", qPrintable(cast.at(j)));
-                names.append(cast.at(j));
+    foreach(ScenePtr s, list){
+        QString name = s->getActor(0);
+        if (!name.isEmpty()){
+            if (!names.contains(name)){
+                qDebug("Adding '%s' to list of names to add to the database", qPrintable(name));
+                names << name;
             }
+        }
+        if (++index % 50 == 0){
+            emit updateProgress(index);
         }
     }
     emit closeProgress("Name list completed.");

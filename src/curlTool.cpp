@@ -309,9 +309,6 @@ void curlTool::updateBios(ActorList list){
             this->threadPool->globalInstance()->start(d);
             this->threadsStarted++;
         }
-        if (threadsStarted > 0){
-        //    qDebug("*****************************\nAll Threads Started\n*****************************");
-        }
         qDebug("Waiting for %d Curl Threads to finish", list.size());
         threadPool->waitForDone(180000); // 3 Minute Timeout
         delete threadPool;

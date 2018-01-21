@@ -131,8 +131,12 @@ void SceneView::resizeSceneView(){
 
 void SceneView::clearFilter(){
     actorFilterChanged("");
-
 }
+void SceneView::clearActorFilterOnly(){
+    this->nameFilter = "";
+    proxyModel->setFilterActor("");
+}
+
 void SceneView::searchByFilename(const QString &searchTerm){
     this->filenameFilterChanged(searchTerm);
 }
@@ -146,31 +150,29 @@ void SceneView::searchByID(const int &id){
 void SceneView::actorFilterChanged(ActorPtr a){
     actorFilterChanged(a->getName());
 }
-
-void SceneView::companyFilterChanged(QString company){
-    proxyModel->setFilterRegExp(company);
-    proxyModel->setFilterCompany(company);
-    //emit displayChanged(proxyModel->rowCount());
-}
-void SceneView::tagFilterChanged(QString tag){
-    proxyModel->setFilterRegExp(tag);
-    proxyModel->setFilterTag(tag);
- //   emit displayChanged(proxyModel->rowCount());
-}
-void SceneView::qualityFilterChanged(int resolution){
-    proxyModel->setFilterRegExp(QString::number(resolution));
-    proxyModel->setFilterQuality(resolution);
-   // emit displayChanged(proxyModel->rowCount());
-}
-
 void SceneView::actorFilterChanged(QString name){
     filenameFilterChanged("");
     this->nameFilter = name;
     proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
     table->resizeColumnsToContents();
-  //  emit displayChanged(proxyModel->rowCount());
 }
+
+void SceneView::companyFilterChanged(QString company){
+    proxyModel->setFilterRegExp(company);
+    proxyModel->setFilterCompany(company);
+}
+
+void SceneView::tagFilterChanged(QString tag){
+    proxyModel->setFilterRegExp(tag);
+    proxyModel->setFilterTag(tag);
+}
+
+void SceneView::qualityFilterChanged(int resolution){
+    proxyModel->setFilterRegExp(QString::number(resolution));
+    proxyModel->setFilterQuality(resolution);
+}
+
 void SceneView::filenameFilterChanged(QString word){
     this->fileFilter = word;
     proxyModel->setFilterRegExp(".*"+word+".*");

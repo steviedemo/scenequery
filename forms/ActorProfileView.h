@@ -23,7 +23,6 @@ public:
 public slots:
     void loadActorProfile(ActorPtr a);
     void mw_to_apv_receiveScenes(SceneList);
-    void mw_to_apv_receiveActor(ActorPtr);
 private slots:
     void reloadProfilePhoto();
     void on_selectNewPhoto_clicked();
@@ -36,14 +35,13 @@ private slots:
     void on_editProfile_clicked();
     void on_updateFromWeb_clicked();
 
-    void on_clearFields_clicked();
-    void on_closeProfile_clicked();
     void on_tb_saveNameEdit_clicked();
     void on_tb_cancelNameEdit_clicked();
+    void hideEvent(QHideEvent *event);
+    void clearFields();
 
 private:
     void setupFields();
-    void clearFields();
     void outputDetails(ActorPtr);
     void setResetAndSaveButtons(bool enabled=true);
     Ui::ActorProfileView *ui;

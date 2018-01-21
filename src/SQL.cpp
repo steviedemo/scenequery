@@ -204,6 +204,27 @@ void SQL::fs_to_db_storeScenes(SceneList list){
     qDebug("%d Scenes stored to database", saves);
     emit db_to_mw_sendScenes(list);
 }
+void SQL::fs_to_db_checkScenes(QFileInfoList files){
+    sqlConnection *sql = new sqlConnection();
+    QFileInfoList newFiles;
+    emit startProgress(QString("Checking Database for the existence of %1 files").arg(files.size()), files.size());
+    int idx = 0;
+    foreach(QFileInfo f, files){
+        QString path = f.absolutePath().replace('\'', "''");
+        QString name = f.fileName().replace('\'', "''");
+        QString query = QString("SELECT FROM scenes WHERE filename='%1' AND filepath='%2'").arg(name).arg(path);
+     //   qDebug("%s", qPrintable(query));
+        if (sql->execute(query.toStdString())){
+            if (sql->getResult().size() == 0){
+                newFiles << f;
+            }
+        }
+        ++idx;
+        emit updateProgress(idx);
+    }
+    emit closeProgress(QString("%1 New Files will be added.").arg(newFiles.size()));
+    emit db_to_fs_sendUnsavedScenes(newFiles);
+}
 
 
 /** Called:  curlTool ---> SQL

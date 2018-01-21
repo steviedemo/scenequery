@@ -68,6 +68,7 @@ public slots:
 
     void            fs_to_db_storeScenes(SceneList);
     void            fs_to_db_checkNames (QStringList);
+    void            fs_to_db_checkScenes(QFileInfoList);
     void            ct_to_db_storeActors(ActorList);
     void            pd_to_db_saveActor  (ActorPtr);
 
@@ -87,7 +88,7 @@ signals:
     void db_to_mw_sendScenes(SceneList);
     void db_to_ct_buildActors(QStringList);
     void db_to_pd_sendBackWithID(ActorPtr);
-
+    void db_to_fs_sendUnsavedScenes(QFileInfoList);
     void initializationFinished(ActorList, SceneList);
     void updateStatus(QString status);
     void startProgress(QString, int);

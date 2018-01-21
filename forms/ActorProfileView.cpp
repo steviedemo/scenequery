@@ -6,6 +6,7 @@
 #include <sqlconnection.h>
 #include <QTimer>
 #include <QMessageBox>
+#include <QHideEvent>
 #include <QFileDialog>
 #include "imageeditor.h"
 #include "SceneParser.h"
@@ -21,8 +22,12 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     this->sc_hideProfile = new QShortcut(QKeySequence("Esc"), this);
     connect(sc_downloadCurrentProfile,  SIGNAL(activated()), this, SLOT(on_updateFromWeb_clicked()));
     connect(sc_saveChangesToActor,      SIGNAL(activated()), this, SLOT(on_saveProfile_clicked()));
-    connect(sc_hideProfile,             SIGNAL(activated()), this, SLOT(on_closeProfile_clicked()));
     connect(sc_chooseNewPhoto,          SIGNAL(activated()), this, SLOT(on_selectNewPhoto_clicked()));
+    connect(sc_hideProfile,             SIGNAL(activated()), this, SLOT(hide()));
+    connect(ui->closeProfile,           SIGNAL(pressed()),   this, SLOT(hide()));
+    connect(ui->clearFields,            SIGNAL(pressed()),   this, SLOT(clearFields()));
+    connect(this,                       SIGNAL(hidden()),    this,  SLOT(clearFields()));
+
     ui->nameEditFrame->hide();
     this->updateList = {};
 }
@@ -45,10 +50,6 @@ void ActorProfileView::on_tb_editName_clicked(){
 void ActorProfileView::mw_to_apv_receiveScenes(SceneList list){
     this->updateList = list;
     qDebug("Actor Profile View Received %d scenes for %s", list.size(), qPrintable(current->getName()));
-}
-
-void ActorProfileView::mw_to_apv_receiveActor(ActorPtr a){
-    loadActorProfile(a);
 }
 
 void ActorProfileView::on_tb_saveNameEdit_clicked(){
@@ -120,6 +121,7 @@ void ActorProfileView::setupFields(){
     }
     ui->birthDateDateEdit->setDate(QDate(1988, 1, 1));
 }
+
 void ActorProfileView::clearFields(){
     foreach(QLineEdit *le, lineEdits){
         le->clear();
@@ -143,9 +145,6 @@ void ActorProfileView::on_deletePhoto_clicked(){
     }
 }
 
-void ActorProfileView::on_clearFields_clicked(){
-    clearFields();
-}
 
 void ActorProfileView::on_selectNewPhoto_clicked(){
     QString saveFile = getHeadshotName(this->current->getName());
@@ -294,29 +293,13 @@ void ActorProfileView::on_updateFromWeb_clicked(){
     emit updateFromWeb(current);
 }
 
-void ActorProfileView::on_closeProfile_clicked(){
+void ActorProfileView::hideEvent(QHideEvent *event){
     emit hidden();
-    this->hide();
+    event->accept();
 }
 
-/*
-void ActorProfileView::on_reloadFromDb_clicked(){
-    emit clearChanges();
-}
-*/
-//void ActorProfileView::on_birthDateDateEdit_userDateChanged(const QDate &/*date*/){   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_hairColorLineEdit_textChanged(const QString &/*arg1*/)  {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_ethnicityLineEdit_textChanged(const QString &)          {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_nationalityLineEdit_textEdited(const QString &)         {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_heightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_weightLineEdit_textEdited(const QString &)              {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_eyeColorLineEdit_textEdited(const QString &)            {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_measurementsLineEdit_textEdited(const QString &)        {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_aliasesTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_piercingsTextEdit_textChanged()                         {   setResetAndSaveButtons(true);   }
-//void ActorProfileView::on_tattoosTextEdit_textChanged()                           {   setResetAndSaveButtons(true);   }
+
 void ActorProfileView::setResetAndSaveButtons(bool enabled){
-    //ui->reloadFromDb->setEnabled(enabled);
     ui->saveProfile->setEnabled(enabled);
 }
 

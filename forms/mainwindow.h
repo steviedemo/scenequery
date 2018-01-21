@@ -79,6 +79,7 @@ private slots:
 
     /// Buttons
     void on_actionScan_Directory_triggered();
+
     void scan_directory_chosen(QString);
     void on_pb_saveScenes_clicked();
     void on_pb_saveActors_clicked();
@@ -104,9 +105,12 @@ private slots:
 
     void on_actionItemDetails_triggered();
 
+    void on_actionScan_All_Folders_triggered();
+
 private:
     RunMode runMode;
     QString newName;
+    void startScanner(const QStringList &);
     void resetActorFilterSelectors(void);
     void setupViews         (void);
     void connectViews       (void);

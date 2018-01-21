@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
     qRegisterMetaType<RowList>("RowList");
+    qRegisterMetaType<QFileInfoList>("QFileInfoList");
     this->videoOpen = false;
     this->sceneMap = QHash<int,ScenePtr>();
     ui->setupUi(this);
@@ -132,7 +133,7 @@ void MainWindow::setupViews(){
 
 void MainWindow::connectViews(){
     /// Make Relevant connections between widgets
-    connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearFilter()));
+    connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearActorFilterOnly()));
     connect(ui->sceneWidget,    SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,         SLOT(display(int)));
     connect(actorModel,         SIGNAL(rowsInserted(QModelIndex,int,int)), this,             SLOT(actorTableViewRowsChanged(QModelIndex,int,int)));
     connect(actorModel,         SIGNAL(rowsRemoved(QModelIndex,int,int)),   this,           SLOT(actorTableViewRowsChanged(QModelIndex,int,int)));
@@ -334,7 +335,7 @@ void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
 void MainWindow::apv_to_mw_receiveActorRequest(QString name){
     if (actorMap.contains(name)){
         this->currentActor = actorMap.value(name);
-        ui->profileWidget->mw_to_apv_receiveActor(currentActor);
+        ui->profileWidget->loadActorProfile(currentActor);
     }
 }
 
@@ -368,6 +369,12 @@ void MainWindow::on_actionScan_Directory_triggered(){
     this->fileDialog->show();
 }
 
+void MainWindow::on_actionScan_All_Folders_triggered(){
+#warning make this a user-created list in the future
+    qDebug("Scanning All Folders");
+    startScanner(QStringList() << "/Volumes/16TB_MyBook/" << "/Volumes/4TB_Seagate/" << "/Volumes/8TB_White/");
+}
+
 void MainWindow::scan_directory_chosen(QString root_directory){
     qDebug("Scan Directory Selected: '%s'", qPrintable(root_directory));
     if (fileDialog){
@@ -377,18 +384,25 @@ void MainWindow::scan_directory_chosen(QString root_directory){
     if (!root_directory.isEmpty()){
         QDir path(root_directory);
         if (path.exists()){
-            this->scanner = new FileScanner(root_directory);
-            connect(scanner,SIGNAL(fs_to_db_checkNames(QStringList)),   sql,    SLOT(fs_to_db_checkNames(QStringList)));
-            connect(scanner,SIGNAL(fs_to_db_storeScenes(SceneList)),    sql,    SLOT(fs_to_db_storeScenes(SceneList)));
-            connect(scanner,SIGNAL(startProgress(QString,int)),         this,   SLOT(startProgress(QString,int)));
-            connect(scanner,SIGNAL(updateProgress(int)),                ui->progressBar, SLOT(setValue(int)));
-            connect(scanner,SIGNAL(closeProgress(QString)),             this,   SLOT(closeProgress(QString)));
-            connect(scanner,SIGNAL(updateStatus(QString)),              ui->statusLabel, SLOT(setText(QString)));
-            connect(scanner,SIGNAL(showError(QString)),                 this,   SLOT(showError(QString)));
-            connect(scanner,SIGNAL(finished()),                         scanner, SLOT(deleteLater()));
-            scanner->start();
+            startScanner(QStringList() << root_directory);
         }
     }
+}
+
+void MainWindow::startScanner(const QStringList &folders){
+    this->scanner = new FileScanner(folders);
+    connect(scanner,SIGNAL(fs_to_db_checkNames(QStringList)),   sql,    SLOT(fs_to_db_checkNames(QStringList)));
+    connect(scanner,SIGNAL(fs_to_db_storeScenes(SceneList)),    sql,    SLOT(fs_to_db_storeScenes(SceneList)));
+    connect(scanner,SIGNAL(fs_to_db_checkScenes(QFileInfoList)),sql,    SLOT(fs_to_db_checkScenes(QFileInfoList)), Qt::BlockingQueuedConnection);
+    connect(sql,    SIGNAL(db_to_fs_sendUnsavedScenes(QFileInfoList)),scanner, SLOT(db_to_fs_receiveUnsavedScenes(QFileInfoList)), Qt::DirectConnection);
+    connect(scanner,SIGNAL(startProgress(QString,int)),         this,   SLOT(startProgress(QString,int)));
+    connect(scanner,SIGNAL(updateProgress(int)),                ui->progressBar, SLOT(setValue(int)));
+    connect(scanner,SIGNAL(closeProgress(QString)),             this,   SLOT(closeProgress(QString)));
+    connect(scanner,SIGNAL(updateStatus(QString)),              ui->statusLabel, SLOT(setText(QString)));
+    connect(scanner,SIGNAL(showError(QString)),                 this,   SLOT(showError(QString)));
+    connect(scanner,SIGNAL(finished()),                         scanner, SLOT(deleteLater()));
+    scanner->start();
+
 }
 
 void MainWindow::db_to_mw_receiveActors(ActorList list){
@@ -993,3 +1007,4 @@ void MainWindow::on_actionItemDetails_triggered(){
    qDebug("Show Profile Shortcut Triggered");
    ui->profileWidget->loadActorProfile(currentActor);
 }
+

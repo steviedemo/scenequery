@@ -1009,6 +1009,9 @@ QRadioButton{
      <height>35</height>
     </size>
    </property>
+   <property name="toolButtonStyle">
+    <enum>Qt::ToolButtonTextUnderIcon</enum>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -1016,10 +1019,11 @@ QRadioButton{
     <bool>false</bool>
    </attribute>
    <addaction name="actionScan_Directory"/>
+   <addaction name="actionScan_All_Folders"/>
+   <addaction name="actionSave_Scenes"/>
    <addaction name="actionSave_Actors"/>
    <addaction name="actionCleanDatabase"/>
    <addaction name="actionRefresh_Display"/>
-   <addaction name="actionSave_Scenes"/>
    <addaction name="actionLoad_Actors"/>
    <addaction name="actionAdd_Actor"/>
    <addaction name="actionUpdate_Bios"/>
@@ -1033,7 +1037,7 @@ QRadioButton{
      <normaloff>:/Icons/add_folder_icon.png</normaloff>:/Icons/add_folder_icon.png</iconset>
    </property>
    <property name="text">
-    <string>Scan Directory</string>
+    <string>Scan</string>
    </property>
    <property name="statusTip">
     <string>Scan Folder</string>
@@ -1051,10 +1055,13 @@ QRadioButton{
      <normaloff>:/Icons/film-spool-icon.png</normaloff>:/Icons/film-spool-icon.png</iconset>
    </property>
    <property name="text">
-    <string>Store Scenes to Database</string>
+    <string>Save</string>
+   </property>
+   <property name="iconText">
+    <string>Save</string>
    </property>
    <property name="toolTip">
-    <string>Store Scenes to Database</string>
+    <string>Save Scenes</string>
    </property>
    <property name="statusTip">
     <string>Store Scenes to Database</string>
@@ -1154,6 +1161,9 @@ QRadioButton{
    <property name="whatsThis">
     <string>Save Actors</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
   </action>
   <action name="actionCleanDatabase">
    <property name="icon">
@@ -1163,8 +1173,14 @@ QRadioButton{
    <property name="text">
     <string>cleanDatabase</string>
    </property>
+   <property name="iconText">
+    <string>Purge Scenes</string>
+   </property>
    <property name="statusTip">
     <string>Clean Database entries</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+Backspace</string>
    </property>
    <property name="iconVisibleInMenu">
     <bool>true</bool>
@@ -1183,6 +1199,9 @@ QRadioButton{
    </property>
    <property name="statusTip">
     <string>Add New Actor By Name</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+=</string>
    </property>
   </action>
   <action name="actionWipe_Actor_Table">
@@ -1215,7 +1234,7 @@ QRadioButton{
     </font>
    </property>
    <property name="shortcut">
-    <string>Backspace</string>
+    <string>Ctrl+Backspace</string>
    </property>
   </action>
   <action name="actionItemDetails">
@@ -1230,7 +1249,22 @@ QRadioButton{
     <string>Show Details</string>
    </property>
    <property name="shortcut">
-    <string>Return</string>
+    <string>Shift+Return</string>
+   </property>
+  </action>
+  <action name="actionScan_All_Folders">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/film_folder_icon.png</normaloff>:/Icons/film_folder_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Scan All</string>
+   </property>
+   <property name="statusTip">
+    <string>Scan All Folders</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+N</string>
    </property>
   </action>
  </widget>

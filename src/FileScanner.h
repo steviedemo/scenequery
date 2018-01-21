@@ -15,45 +15,68 @@
 #include <QVector>
 #include <QMap>
 #include <QMutex>
+#include <QThreadPool>
 #include "SceneList.h"
 
+class MiniScanner : public QObject, public QRunnable{
+    Q_OBJECT
+public:
+    explicit MiniScanner(const QString &path) : root(path), infoList({}){}
+    ~MiniScanner(){}
+    void run();
+private:
+    QString root;
+    QFileInfoList infoList;
+
+signals:
+    void done(QFileInfoList);
+};
 
 class FileScanner : public QThread
 {
     Q_OBJECT
 public:
-    FileScanner(QString path);
+    FileScanner(const QString &path);
+    FileScanner(const QStringList &paths);
     ~FileScanner();
     bool setPath(QString);
     void run();
     bool generateThumbnail(ScenePtr s);
+    static QFileInfoList   recursiveScan   (const QFileInfo &rootFolder);
 
 public slots:
     void scanForActors(SceneList, ActorList);
+    void db_to_fs_receiveUnsavedScenes(QFileInfoList);
     void stopThread();
+private slots:
+    void miniscanComplete(QFileInfoList);
 private:
+    void            getFiles            (void);
     QString         getThumbnailFormat  (QString sceneFilename);
     QString         formatImageName     (QString filename, QString photoExtension="jpeg");
     bool            getDimensions       (QString name, class Height &height, int &weight);
-
-    QFileInfoList   recursiveScan   (QFileInfo rootFolder);
     SceneList       makeScenes      (QFileInfoList fileList);
     void            parseScene      (QFileInfo currentFile);
     QStringList     getNames        (SceneList list);
     ActorList parseActorList(SceneList);
     void getActorsFromScene(ScenePtr s);
     QString scanDir;
+    QStringList rootFolders;
     ActorList actorList;
     SceneList sceneList;
     QStringList nameList;
+    QThreadPool *threadPool;
+    int threadsStarted, threadsComplete;
     int index;
     int added;
-    bool keepRunning;
-    QMutex subMx, threadMx;
+    bool keepRunning, updateListReceived;
+    QMutex subMx, threadMx, fileListMx;
+    QFileInfoList scanFiles, foundFiles;
     bool waitingOnCurlThread;
 signals:
     /** Scan Process **/
     void fs_to_db_storeScenes(SceneList);
+    void fs_to_db_checkScenes(QFileInfoList);
     void fs_to_db_checkNames(QStringList);
 
     /// Progress Updating

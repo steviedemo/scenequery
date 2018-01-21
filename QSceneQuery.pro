@@ -39,7 +39,7 @@ INCLUDEPATH += \
     src \
     forms \
     src-objects \
-    src-helpers \
+    src \
     PSQL/src \
     -I/usr/local/opt/qt/bin \
     -I$${PQXX}/include/pqxx \
@@ -65,12 +65,12 @@ LIBS += \
     -lpq
 
 SOURCES += \
-    src-helpers/config.cpp \
+    src/config.cpp \
     src/curlTool.cpp \
     src/FileScanner.cpp \
-    src-helpers/genericfunctions.cpp \
+    src/genericfunctions.cpp \
     src/main.cpp\
-    src/mainwindow.cpp \
+    forms/mainwindow.cpp \
     src-objects/Actor.cpp \
     src-objects/Biography.cpp \
     src-objects/Entry.cpp \
@@ -79,7 +79,7 @@ SOURCES += \
     src-objects/Scene.cpp \
     src-objects/SceneList.cpp \
     PSQL/src/sqlconnection.cpp \
-    src-helpers/filenames.cpp \
+    src/filenames.cpp \
     forms/profiledialog.cpp \
     forms/RatingDelegate.cpp \
     forms/RatingEditor.cpp \
@@ -93,19 +93,19 @@ SOURCES += \
     forms/ActorTableView.cpp \
     forms/SceneDetailView.cpp \
     src-objects/Filepath.cpp \
-    src-helpers/SceneRenamer.cpp \
-    src-helpers/SceneParser.cpp \
+    src/SceneRenamer.cpp \
+    src/SceneParser.cpp \
     src/SQL.cpp \
     PSQL/src/Query.cpp \
     forms/SplashScreen.cpp
 
 HEADERS  += \
-    src-helpers/config.h \
+    src/config.h \
     src/curlTool.h \
     src/definitions.h \
     src/FileScanner.h \
-    src-helpers/genericfunctions.h \
-    src/mainwindow.h \
+    src/genericfunctions.h \
+    forms/mainwindow.h \
     src-objects/Actor.h \
     src-objects/Biography.h \
     src-objects/Height.h \
@@ -115,7 +115,7 @@ HEADERS  += \
     PSQL/src/sql_definitions.h \
     PSQL/src/database.h \
     src-objects/Entry.h \
-    src-helpers/filenames.h \
+    src/filenames.h \
     src-objects/SceneList.h \
     forms/profiledialog.h \
     forms/RatingDelegate.h \
@@ -130,8 +130,8 @@ HEADERS  += \
     forms/ActorTableView.h \
     forms/SceneDetailView.h \
     src-objects/Filepath.h \
-    src-helpers/SceneRenamer.h \
-    src-helpers/SceneParser.h \
+    src/SceneRenamer.h \
+    src/SceneParser.h \
     src/SQL.h \
     PSQL/src/Query.h \
     forms/SplashScreen.h

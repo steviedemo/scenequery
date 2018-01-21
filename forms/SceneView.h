@@ -29,9 +29,11 @@ public slots:
     void actorFilterChanged(QString name);
     void filenameFilterChanged(QString word);
     void actorFilterChanged(ActorPtr);
+
 private slots:
     void rowCountChanged(QModelIndex, int, int);
     void clearFilter(void);
+    void clearActorFilterOnly();
     void rowDoubleClicked(const QModelIndex &index);
     void selectionChanged(QModelIndex, QModelIndex);
     void sceneClicked(QModelIndex);
