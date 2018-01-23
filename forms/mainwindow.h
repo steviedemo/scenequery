@@ -26,6 +26,7 @@
 #include <QSortFilterProxyModel>
 #include <QStandardItem>
 #include <QTableView>
+#include <QSettings>
 
 enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
@@ -149,6 +150,7 @@ private:
     Display currentDisplay;
     int index;
     QMutex mx;
+    QSettings *settings;
 
 signals:
     void closing();
@@ -158,8 +160,7 @@ signals:
     void scanFolder         (QString);
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);
-
-    void dropActor          (ActorPtr);
+    void deleteActor        (QString);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
     void updateBios         (ActorList);

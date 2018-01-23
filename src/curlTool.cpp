@@ -32,13 +32,16 @@ QString request(QString urlString){
     QString html("");
     try{
         CURL *curl;
-        CURLcode res;
+        //CURLcode res;
         std::string readBuffer;
         curl = curl_easy_init();
         curl_easy_setopt(curl, CURLOPT_URL, qPrintable(urlString));
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        res = curl_easy_perform(curl);
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK){
+            qWarning("Error: Curl request returned error code '%d'", res);
+        }
         curl_easy_cleanup(curl);
         html = QString::fromStdString(readBuffer);
     } catch(std::exception &e){
@@ -424,10 +427,8 @@ void curlTool::resetCounters(){
 
 ///SLOT
 void curlTool::downloadPhoto(ActorPtr a){
-    bool success = false;
     QString photo = downloadHeadshot(a->getName());
     if (!photo.isEmpty() && QFileInfo(photo).exists()){
-        success = true;
         a->setHeadshot(photo);
     }
     emit updateSingleProfile(a);

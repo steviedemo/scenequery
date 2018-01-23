@@ -45,7 +45,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<QFileInfoList>("QFileInfoList");
     this->videoOpen = false;
     this->sceneMap = QHash<int,ScenePtr>();
+    QCoreApplication::setOrganizationName("SQ");
+    QCoreApplication::setApplicationName("Scene Query");
+    this->settings = new QSettings("Demedash", "SceneQuery", this);
+
     ui->setupUi(this);
+
     setupViews();
     connectViews();
     /// Create Thread Objects
@@ -80,9 +85,7 @@ MainWindow::~MainWindow(){
         sqlThread->wait();
         delete sqlThread;
     }
-    delete actorModel;
-    delete actorProxyModel;
-    delete actorSelectionModel;
+    delete settings;
     actorMap.clear();
     sceneMap.clear();
     actorList.clear();
@@ -127,17 +130,19 @@ void MainWindow::setupViews(){
 }
 
 void MainWindow::connectViews(){
+    ui->tb_seachActors->
     /// Make Relevant connections between widgets
     connect(ui->profileWidget,          SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearActorFilterOnly()));
     connect(ui->sceneWidget,            SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,SLOT(display(int)));
     connect(ui->actorTableView,         SIGNAL(displayChanged(int)),            ui->lcd_actorCount, SLOT(display(int)));
-    connect(this,                       SIGNAL(cb_companyFilterChanged(QString)),ui->sceneWidget,   SLOT(companyFilterChanged(QString)));
     connect(ui->profileWidget,          SIGNAL(profileChanged(ActorPtr)),       ui->sceneWidget,    SLOT(actorFilterChanged(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
     connect(ui->profileWidget,          SIGNAL(apv_to_mw_requestScenes(QString)),this,              SLOT(apv_to_mw_receiveSceneListRequest(QString)));
     connect(ui->profileWidget,          SIGNAL(requestActor(QString)),          ui->actorTableView, SLOT(selectActor(QString)));
     connect(ui->profileWidget,          SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
     connect(ui->profileWidget,          SIGNAL(deleteActor(QString)),           ui->actorTableView, SLOT(removeActor(QString)));
+    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          this,               SLOT(removeActorItem(ActorPtr)));
+    connect(this,                       SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
     connect(ui->profileWidget,          SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
     connect(ui->sceneWidget,            SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
@@ -149,11 +154,26 @@ void MainWindow::connectViews(){
     connect(sceneDetailView,            SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
     connect(sceneDetailView,            SIGNAL(showActor(QString)),             this,               SLOT(sdv_to_mw_showActor(QString)));
     connect(sceneDetailView,            SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
+
+    connect(ui->le_searchActors,        &QLineEdit::returnPressed,              [=]{    ui->actorTableView->filterChangedName(ui->le_searchActors->text()); });
     connect(ui->tb_seachActors,         SIGNAL(pressed()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(pressed()),                      this,               SLOT(searchScenes()));
+    connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   ui->sceneWidget,    SLOT(companyFilterChanged(QString)));
     connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->sceneWidget,    SLOT(clearSearchFilter()));
     connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->le_searchScenes,SLOT(clear()));
     connect(ui->tb_clearSearchActors,   SIGNAL(pressed()),                      ui->le_searchActors,SLOT(clear()));
+    connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterEthnicity(QString)));
+    connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterHairColor(QString)));
+    connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
+    connect(this,                       SIGNAL(purgeScenes()),                  sql,                SLOT(purgeScenes()));
+    connect(this,                       SIGNAL(saveActorChanges(ActorPtr)),     sql,                SLOT(updateActor(ActorPtr)));
+    connect(this,                       SIGNAL(saveActors(ActorList)),          sql,                SLOT(store(ActorList)));
+    connect(this,                       SIGNAL(saveScenes(SceneList)),          sql,                SLOT(store(SceneList)));
+    connect(ui->actionLoad_Actors,      SIGNAL(triggered()),                    sql,                SLOT(loadActors()));
+    connect(ui->pb_refreshActors,       SIGNAL(pressed()),                      sql,                SLOT(loadActors()));
+    connect(ui->pb_refreshScenes,       SIGNAL(pressed()),                      sql,                SLOT(loadScenes()));
+    connect(sql,                        SIGNAL(sendResult(ActorList)),          this,               SLOT(receiveActors(ActorList)));
+    connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
 
 
 }
@@ -212,28 +232,13 @@ void MainWindow::startThreads(){
     connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr)),  this,               SLOT(receiveSingleActor(ActorPtr)));
     connect(curl,                       SIGNAL(updateFinished(ActorList)),      this,               SLOT(receiveActors(ActorList)));
     /// Set up the SQL Thread for communications with the main thread
-    connect(this,                       SIGNAL(saveActorChanges(ActorPtr)),     sql,                SLOT(updateActor(ActorPtr)));
-    connect(this,                       SIGNAL(saveActors(ActorList)),          sql,                SLOT(store(ActorList)));
-    connect(this,                       SIGNAL(saveScenes(SceneList)),          sql,                SLOT(store(SceneList)));
-    connect(ui->actionLoad_Actors,      SIGNAL(triggered()),                    sql,                SLOT(loadActors()));
-    connect(ui->pb_refreshActors,       SIGNAL(pressed()),                      sql,                SLOT(loadActors()));
-    connect(ui->pb_refreshScenes,       SIGNAL(pressed()),                      sql,                SLOT(loadScenes()));
-    connect(sql,                        SIGNAL(sendResult(ActorList)),          this,               SLOT(receiveActors(ActorList)));
-    connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
-    connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   this,               SIGNAL(cb_companyFilterChanged(QString)));
-    connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterEthnicity(QString)));
-    connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterHairColor(QString)));
-    connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
-    connect(this,                       SIGNAL(purgeScenes()),                  sql,                SLOT(purgeScenes()));
+
     /// Connect Actor Profile Widget with Database & Curl Thread
     ui->profileWidget->hide();
     connect(ui->profileWidget,          SIGNAL(saveToDatabase(ActorPtr)),       sql,                SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(updateFromWeb(ActorPtr)),        curl,               SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(downloadPhoto(ActorPtr)),        curl,               SLOT(downloadPhoto(ActorPtr)));
-    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          ui->actorTableView, SLOT(removeActor(ActorPtr)));
-    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          this,               SLOT(removeActorItem(ActorPtr)));
   //connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          sql,                SLOT(drop(ActorPtr)));
-    connect(this,                       SIGNAL(dropActor(ActorPtr)),            sql,                SLOT(drop(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(apv_to_ct_updateBio(QString)),   curl,               SLOT(apv_to_ct_getProfile(QString)));
     connect(curl,                       SIGNAL(ct_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
 
@@ -448,23 +453,22 @@ void MainWindow::on_actionDeleteActor_triggered(){
     qDebug("Delete Actor Shortcut Detected");
     if (!currentActor.isNull()){
         removeActorItem(currentActor);
+        emit deleteActor(currentActor->getName());
     }
 }
 
 void MainWindow::removeActorItem(ActorPtr actor){
     if (!actor.isNull()){
         QString name = actor->getName();
-        QModelIndex idx = ui->actorTableView->findActorIndex_Exact(name);
         if (actorMap.contains(name)){
             qDebug("Removing %s from actor map.", qPrintable(name));
             actorMap.remove(name);
         } else {
             qWarning("Can't remove '%s' from map - not in map!", qPrintable(name));
         }
-        qDebug("Removing %s from database", qPrintable(name));
-        emit dropActor(actor);
     }
 }
+
 void MainWindow::showCurrentActorProfile(){
     if (!currentActor.isNull()){
         ui->profileWidget->loadActorProfile(currentActor);

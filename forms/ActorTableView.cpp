@@ -51,7 +51,7 @@ void ActorTableView::resizeToContents(){
 }
 
 QString ActorTableView::selectedName() const{
-    return proxyModel->data(proxyModel->index(table->currentIndex().row(), ACTOR_NAME_COLUMN), Qt::DisplayRole);
+    return proxyModel->data(proxyModel->index(table->currentIndex().row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
 }
 
 QModelIndex ActorTableView::currentIndex(){
@@ -60,6 +60,7 @@ QModelIndex ActorTableView::currentIndex(){
 
 void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex){
     this->prevIdx = currentIdx;
+    this->currentIdx = modelIndex;
     QString name = selectedName();
     if (!name.isEmpty()){
         if (itemClicked){
@@ -72,7 +73,7 @@ void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex){
     this->currentSelection = name;
 }
 
-void ActorTableView::rowClicked(QModelIndex idx){
+void ActorTableView::rowClicked(QModelIndex /*idx*/){
     itemClicked = true;
 }
 void ActorTableView::removeActor(ActorPtr a){

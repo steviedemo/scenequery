@@ -3,7 +3,7 @@
 
 #include <QObject>
 #include <QStandardItem>
-#include "query.h"
+#include "Query.h"
 #include <pqxx/result.hxx>
 class Entry : public QStandardItem
 {

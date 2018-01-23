@@ -1236,7 +1236,7 @@ QRadioButton{
   <customwidget>
    <class>ActorProfileView</class>
    <extends>QWidget</extends>
-   <header location="global">actorprofileview.h</header>
+   <header location="global">ActorProfileView.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

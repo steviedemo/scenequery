@@ -39,11 +39,11 @@ private slots:
     void on_pb_reparse_clicked();
 
 private:
+    Ui::SceneDetailView *ui;
     void enableLineEdits(bool readOnly);
     bool changed;
     ScenePtr current;
     int currentSceneID;
-    Ui::SceneDetailView *ui;
     QList<QLabel *> castList, ageList, ageLabelList;
     QList<QLineEdit *>dataFields;
 
