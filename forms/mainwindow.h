@@ -167,6 +167,7 @@ signals:
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
     void startVideoPlayback (void);
+    void purgeScenes();
     /// Filtering
     void cb_companyFilterChanged(QString);
     /** Progress Bar & Dialog **/

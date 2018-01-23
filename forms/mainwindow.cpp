@@ -222,6 +222,7 @@ void MainWindow::startThreads(){
     connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterEthnicity(QString)));
     connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterHairColor(QString)));
     connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
+    connect(this,   SIGNAL(purgeScenes()),                  sql,    SLOT(purgeScenes()));
     /// Connect Actor Profile Widget with Database & Curl Thread
     ui->profileWidget->hide();
     connect(ui->profileWidget,  SIGNAL(saveToDatabase(ActorPtr)),   sql,    SLOT(updateActor(ActorPtr)));
@@ -355,6 +356,7 @@ void MainWindow::scan_directory_chosen(QString root_directory){
 }
 
 void MainWindow::startScanner(const QStringList &folders){
+
     this->scanner = new FileScanner(folders);
     connect(scanner,SIGNAL(fs_to_db_checkNames(QStringList)),   sql,    SLOT(fs_to_db_checkNames(QStringList)));
     connect(scanner,SIGNAL(fs_to_db_storeScenes(SceneList)),    sql,    SLOT(fs_to_db_storeScenes(SceneList)));
@@ -366,6 +368,7 @@ void MainWindow::startScanner(const QStringList &folders){
     connect(scanner,SIGNAL(updateStatus(QString)),              ui->statusLabel, SLOT(setText(QString)));
     connect(scanner,SIGNAL(showError(QString)),                 this,   SLOT(showError(QString)));
     connect(scanner,SIGNAL(finished()),                         scanner, SLOT(deleteLater()));
+    connect(scanner,SIGNAL(finished()),                         this,   SIGNAL(purgeScenes()));
     scanner->start();
 
 }
@@ -460,8 +463,7 @@ void MainWindow::searchActors(){
 void MainWindow::on_actionDeleteActor_triggered(){
     qDebug("Delete Actor Shortcut Detected");
     if (!currentActor.isNull()){
-        //emit dropActor(currentActor);
-        this->removeActorItem(currentActor);
+        removeActorItem(currentActor);
     }
 }
 
