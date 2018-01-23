@@ -10,10 +10,10 @@ SceneView::SceneView(QWidget *parent):
     this->table = new QTableView;
     proxyModel->setFilterRole(Qt::DisplayRole);
     table->setModel(proxyModel);
+    table->setSortingEnabled(true);
     table->verticalHeader()->hide();
     table->horizontalHeader()->show();
     table->setShowGrid(false);
-    table->setSortingEnabled(true);
     table->sortByColumn(0, Qt::AscendingOrder);
     table->setCornerButtonEnabled(false);
     table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);

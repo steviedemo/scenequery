@@ -110,6 +110,19 @@ QString getProfilePhoto(const QString &actorName){
     return location;
 }
 
+bool writeHeadshotThumbnail(const QString &headshotFilename){
+    QString thumbnailFilename = QString("%1").arg(headshotFilename);
+    thumbnailFilename.replace(QRegularExpression("\\.jpg"), QString("_thumb%1.jpg").arg(ACTOR_LIST_PHOTO_HEIGHT));
+    return writeHeadshotThumbnail(headshotFilename, thumbnailFilename);
+}
+
+bool writeHeadshotThumbnail(const QString &headshotFilename, const QString &thumbnailFilename){
+    QImage thumb = scaleImage(headshotFilename, ACTOR_LIST_PHOTO_HEIGHT);
+    QImageWriter writer(thumbnailFilename);
+    return writer.write(thumb);
+}
+
+
 QString getHeadshotThumbnail(const QString &actorName){
     QString location = DEFAULT_PROFILE_PHOTO_THUMB;
     QString thumbnailName = getHeadshotThumbnailName(actorName);
@@ -119,15 +132,10 @@ QString getHeadshotThumbnail(const QString &actorName){
         QFile big(headshotName);
         if (!big.exists() || big.size() < 200){
             return location;
+        } else if (writeHeadshotThumbnail(headshotName, thumbnailName)){
+            qDebug("Created new thumbnail for '%s'", qPrintable(actorName));
         } else {
-            QImage thumb = scaleImage(headshotName, ACTOR_LIST_PHOTO_HEIGHT);
-            QImageWriter writer(thumbnailName);
-            if(writer.write(thumb)){
-                location = thumbnailName;
-                qDebug("Created new thumbnail for '%s'", qPrintable(actorName));
-            } else {
-                qWarning("Error creating Thumbnail, '%s'", qPrintable(thumbnailName));
-            }
+            qWarning("Error creating Thumbnail, '%s'", qPrintable(thumbnailName));
         }
     } else {
         location = getHeadshotThumbnailName(actorName);

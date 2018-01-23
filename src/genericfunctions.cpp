@@ -34,9 +34,14 @@ QStringList getRatingList(){
     ratings << "A+++" << "A++" << "A+" << "A" << "A-" << "B+" << "B" << "B-" << "C" << "R";
     return ratings;
 }
-int getScaledWidth(QImage &source, int height){
+int getScaledWidth(const QImage &source, const int height){
     int width = ((height*source.width())/source.height());
     return width;
+}
+QSize getScaledSize(const QImage &source, const int height){
+    int width = getScaledWidth(source, height);
+    QSize size = QSize(width, height);
+    return size;
 }
 
 QImage scaleImage(QString file, int height, Qt::TransformationMode mode){

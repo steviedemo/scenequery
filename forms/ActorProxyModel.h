@@ -15,20 +15,24 @@ public:
     QString getFilterEthnicity() const;
     int getFilterSceneCount() const;
 public slots:
+    void setFilterName(const QString &name);
     void setFilterHairColor(const QString &hairColor);
     void setFilterEthnicity(const QString &ethnicity);
     void setFilterSceneCount(const NumberFilterType &, const int &count);
+    void clearFilterName(void);
     void clearFilterHairColor(void);
     void clearFilterEthnicity(void);
     void clearFilterSceneCount(void);
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 private:
-    QRegularExpression hairRx, skinRx, anythingRx;
+    QRegularExpression hairRx, skinRx, anythingRx, nameRx;
     QRegularExpressionMatch match;
+    QString nameFilter;
     int sceneCountFilter;
     NumberFilterType countRelation;
     QString getCellData(int row, int col, const QModelIndex &currIndex) const;
+    bool nameMatchesFilter(int row, const QModelIndex &index) const;
     bool hairMatchesFilter(int row, const QModelIndex &index) const;
     bool ethnicityMatchesFilter(int row, const QModelIndex &index) const;
     bool sceneCountMatchesFilter(int row, const QModelIndex &index) const;

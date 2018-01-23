@@ -8,9 +8,20 @@ ActorProxyModel::ActorProxyModel(QObject *parent):
 }
 void ActorProxyModel::clearFilters(){
     this->sceneCountFilter = -1;
+    this->nameRx = anythingRx;
+    this->nameFilter = "";
     this->hairRx = anythingRx;
     this->skinRx = anythingRx;
 }
+void ActorProxyModel::setFilterName(const QString &name){
+    this->nameFilter = name;
+    this->nameRx = QRegularExpression(QString(".*%1.*").arg(name));
+}
+void ActorProxyModel::clearFilterName(){
+    this->nameRx = anythingRx;
+    this->nameFilter = "";
+}
+
 //******* Ethnicity Filter ******//
 void ActorProxyModel::setFilterEthnicity(const QString &ethnicity){
     QString skinFilter = QString(".*%1.*").arg(ethnicity);
@@ -43,11 +54,17 @@ QString ActorProxyModel::getCellData(int row, int col, const QModelIndex &currIn
 }
 
 //************* Checking cells against a filter **********************/
+
 bool ActorProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const{
     bool accepted = hairMatchesFilter(source_row, source_parent);
     accepted = accepted && ethnicityMatchesFilter(source_row, source_parent);
     accepted = accepted && sceneCountMatchesFilter(source_row, source_parent);
     return accepted;
+}
+bool ActorProxyModel::nameMatchesFilter(int row, const QModelIndex &index) const{
+    QString name = getCellData(row, ACTOR_NAME_COLUMN, index);
+    QRegularExpressionMatch m = nameRx.match(name);
+    return m.hasMatch();
 }
 bool ActorProxyModel::hairMatchesFilter(int row, const QModelIndex &index) const{
     QString hair = getCellData(row, ACTOR_HAIR_COLUMN, index);

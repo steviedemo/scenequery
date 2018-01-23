@@ -144,6 +144,7 @@ QList<QStandardItem *> Actor::getQStandardItem(){
     return row;
 }
 
+
 QList<QStandardItem *> Actor::buildQStandardItem(){
     //qDebug("Creating Display item for %s", qPrintable(name));
     this->itemName      = new QStandardItem(name);

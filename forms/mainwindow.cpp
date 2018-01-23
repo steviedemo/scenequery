@@ -82,7 +82,6 @@ MainWindow::~MainWindow(){
     }
     delete actorModel;
     delete actorProxyModel;
-    delete sceneDetailView;
     delete actorSelectionModel;
     actorMap.clear();
     sceneMap.clear();
@@ -94,20 +93,16 @@ MainWindow::~MainWindow(){
 void MainWindow::setupViews(){
     ui->tabWidget_filters->hide();
     /// Set up Actor Table View
+
     this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
-    actorModel->setHorizontalHeaderLabels(actorHeaders);
     this->actorModel->setSortRole(Qt::DecorationRole);
-
     this->actorParent = actorModel->invisibleRootItem();
     this->actorProxyModel = new ActorProxyModel(this);
-//    this->actorProxyModel = new QSortFilterProxyModel(this);
+    actorModel->setHorizontalHeaderLabels(actorHeaders);
     this->actorProxyModel->setSourceModel(actorModel);
-    ui->actorTableView->setModel(actorProxyModel);
-    ui->actorTableView->setSortingEnabled(true);
-    ui->actorTableView->verticalHeader()->hide();
-    ui->actorTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    ui->actorTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->actorTableView->setSourceModel(actorProxyModel);
+
     /// Set up the Scene Table View
     this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
     this->sceneModel = new QStandardItemModel();
@@ -134,27 +129,27 @@ void MainWindow::setupViews(){
 void MainWindow::connectViews(){
     /// Make Relevant connections between widgets
     connect(ui->profileWidget,  SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearActorFilterOnly()));
-    connect(ui->sceneWidget,    SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,         SLOT(display(int)));
-    connect(actorModel,         SIGNAL(rowsInserted(QModelIndex,int,int)), this,             SLOT(actorTableViewRowsChanged(QModelIndex,int,int)));
-    connect(actorModel,         SIGNAL(rowsRemoved(QModelIndex,int,int)),   this,           SLOT(actorTableViewRowsChanged(QModelIndex,int,int)));
+    connect(ui->sceneWidget,    SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,SLOT(display(int)));
+    connect(ui->actorTableView, SIGNAL(displayChanged(int)),            ui->lcd_actorCount, SLOT(display(int)));
     connect(this,               SIGNAL(cb_companyFilterChanged(QString)),ui->sceneWidget,   SLOT(companyFilterChanged(QString)));
     connect(ui->profileWidget,  SIGNAL(profileChanged(ActorPtr)),       ui->sceneWidget,    SLOT(actorFilterChanged(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestScenes(QString)),this,              SLOT(apv_to_mw_receiveSceneListRequest(QString)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_requestActor(QString)),this,               SLOT(apv_to_mw_receiveActorRequest(QString)));
     connect(ui->profileWidget,  SIGNAL(apv_to_mw_deleteActor(QString)), this,               SLOT(apv_to_mw_deleteActor(QString)));
+    connect(ui->profileWidget,  SIGNAL(apv_to_mw_deleteActor(QString)), ui->actorTableView, SLOT(removeActor(QString)));
     connect(ui->profileWidget,  SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
     connect(ui->sceneWidget,    SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
     connect(sceneDetailView,    SIGNAL(playVideo(int)),                 this,               SLOT(playVideo(int)));
-    connect(ui->actorTableView, SIGNAL(clicked(QModelIndex)),           this,               SLOT(actorTableView_clicked(QModelIndex)));
+    connect(ui->actorTableView, SIGNAL(actorClicked(QString)),          this,               SLOT(actorTableView_clicked(QString)));
     connect(ui->sceneWidget,    SIGNAL(sceneSelectionChanged(int)),     this,               SLOT(sw_to_mw_selectionChanged(int)));
     connect(ui->sceneWidget,    SIGNAL(sceneItemClicked(int)),          this,               SLOT(sw_to_mw_itemClicked(int)));
     /// Connect Scene Detail View
     connect(sceneDetailView,    SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
     connect(sceneDetailView,    SIGNAL(showActor(QString)),             this,               SLOT(sdv_to_mw_showActor(QString)));
     connect(sceneDetailView,    SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
-    connect(ui->tb_seachActors, SIGNAL(pressed()),                      this,               SLOT(searchActors()));
+    connect(ui->tb_seachActors, SIGNAL(pressed()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,SIGNAL(pressed()),                      this,               SLOT(searchScenes()));
     connect(ui->tb_clearSearchScenes,SIGNAL(pressed()),                 ui->sceneWidget,    SLOT(clearSearchFilter()));
     connect(ui->tb_clearSearchScenes,SIGNAL(pressed()),                 ui->le_searchScenes,SLOT(clear()));
@@ -165,43 +160,15 @@ void MainWindow::connectViews(){
 
 
 void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows, RowList sceneRows){
+    splashScreen->close();
+    splashScreen->deleteLater();
     qDebug("Main Window Received %d actors, %d scenes, %d actor rows & %d scene rows", \
            actors.size(), scenes.size(), actorRows.size(), sceneRows.size());
-    qint64 itemCount = actors.size() + scenes.size() + actorRows.size() + sceneRows.size();
-    ui->progressBar->setMaximum(itemCount);
-    ui->progressBar->setValue(0);
-    ui->statusLabel->setText(QString("Adding %1 items to the display").arg(itemCount));
-    int index = 0;
-    ui->statusLabel->setText(QString("Adding %1 Actors").arg(actors.size()));
-    foreach(ActorPtr a, actors){
-        actorMap.insert(a->getName(), a);
-        if (++index % 50 == 0){
-            ui->progressBar->setValue(index);
-        }
-    }
-    ui->statusLabel->setText(QString("Adding %1 Scenes to map").arg(scenes.size()));
-    foreach(ScenePtr s, scenes){
-        sceneMap.insert(s->getID(), s);
-        if (++index % 50 == 0){
-            ui->progressBar->setValue(index);
-        }
-    }
-    ui->statusLabel->setText(QString("Adding %1 Actors to the display").arg(actorRows.size()));
-    foreach(QList<QStandardItem *> row, actorRows){
-        actorModel->appendRow(row);
-        if (++index % 50 == 0){
-            ui->progressBar->setValue(index);
-        }
-    }
-    ui->statusLabel->setText(QString("Adding %1 Scenes to the Display").arg(sceneRows.size()));
-    foreach(QList<QStandardItem *>row, sceneRows){
-        sceneModel->appendRow(row);
-        if (++index % 50 == 0){
-            ui->progressBar->setValue(index);
-        }
-    }
+    foreach(ActorPtr a, actors)                     { actorMap.insert(a->getName(), a); }
+    foreach(ScenePtr s, scenes)                     { sceneMap.insert(s->getID(),   s); }
+    foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
+    foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
     ui->statusLabel->setText("Initialization Complete");
-    ui->progressBar->setValue(ui->progressBar->maximum());
     /// Set up Filter boxes
     QStringList companies = sql->getCompanyList();
     companies.prepend(COMBO_BOX_DEFAULT);
@@ -213,14 +180,10 @@ void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows,
     ethnicities.prepend(COMBO_BOX_DEFAULT);
     ui->cb_ethnicity->addItems(ethnicities);
     /// Set up Selection Model
-    qDebug("Setting up Actor Table Selection Model");
-    this->actorSelectionModel = ui->actorTableView->selectionModel();
-    connect(actorSelectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(actorSelectionChanged(QModelIndex,QModelIndex)));
+    connect(ui->actorTableView, SIGNAL(actorSelectionChanged(QString)), this, SLOT(actorSelectionChanged(QString)));
     ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
-    ui->actorTableView->resizeColumnsToContents();
-    splashScreen->close();
-    splashScreen->deleteLater();
-
+    ui->actorTableView->resizeToContents();
+    ui->sceneWidget->resizeSceneView();
     startThreads();
 }
 
@@ -264,7 +227,8 @@ void MainWindow::startThreads(){
     connect(ui->profileWidget,  SIGNAL(saveToDatabase(ActorPtr)),   sql,    SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(updateFromWeb(ActorPtr)),    curl,   SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(downloadPhoto(ActorPtr)),    curl,   SLOT(downloadPhoto(ActorPtr)));
-    connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      this,   SLOT(removeActorItem(ActorPtr)));
+    connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      ui->actorTableView,   SLOT(removeActor(ActorPtr)));
+    connect(ui->profileWidget, SIGNAL(deleteActor(ActorPtr)),       this,   SLOT(removeActorItem(ActorPtr)));
     //connect(ui->profileWidget,  SIGNAL(deleteActor(ActorPtr)),      sql,    SLOT(drop(ActorPtr)));
     connect(this,               SIGNAL(dropActor(ActorPtr)),        sql,    SLOT(drop(ActorPtr)));
     connect(ui->profileWidget,  SIGNAL(apv_to_ct_updateBio(QString)),   curl,               SLOT(apv_to_ct_getProfile(QString)));
@@ -304,10 +268,11 @@ void MainWindow::sdv_to_mw_requestBirthday(QString name){
 
 void MainWindow::apv_to_mw_deleteActor(QString name){
     qDebug("Main Window Removing Display Item for '%s'", qPrintable(name));
-    if (name == currentActor->getName()){
-        actorModel->removeRow(currentActorIndex.row());
+    QModelIndex idx = ui->actorTableView->findActorIndex_Exact(name);
+    if (idx.isValid()){
+        actorModel->removeRow(idx.row());
     } else {
-        qWarning("Error: Can't remove display item, since the item to be deleted isn't the current item, and it is not currently understood how to locate its index.");
+        qWarning("Error: Can't remove display item. Invalid Index Returned for '%s'", qPrintable(name));
     }
 }
 
@@ -414,9 +379,6 @@ void MainWindow::db_to_mw_receiveActors(ActorList list){
         actorMap.insert(name, a);
         actorModel->sort(SCENE_NAME_COLUMN, Qt::AscendingOrder);
     }
-    ui->actorTableView->resizeColumnsToContents();
-    ui->actorTableView->resizeRowsToContents();
-
     qDebug("Finished Adding %d actors!", list.size());
 }
 
@@ -427,54 +389,44 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
         sceneModel->appendRow(s->buildQStandardItem());
         sceneMap.insert(s->getID(), s);
     }
+    ui->actorTableView->resizeToContents();
     ui->sceneWidget->resizeSceneView();
     qDebug("Added %d Scenes!", list.size());
 }
 
-void MainWindow::actorSelectionChanged(QModelIndex current, QModelIndex /*previous*/){
-    if (current.isValid() && current.row() > -1){
-        QString name = actorProxyModel->data(actorProxyModel->index(current.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
-        if (actorMap.contains(name)){
-            this->currentActorIndex = current;
-            this->currentActor = ActorPtr(0);
-            this->currentActor = actorMap.value(name);
-            qDebug("'%s' Selected", qPrintable(name));
-            if (!ui->profileWidget->isHidden()){
-                ui->profileWidget->loadActorProfile(currentActor);
-            }
-        } else {
-            qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
-            QModelIndex index = findActorIndex(name);
-            actorModel->removeRow(index.row());
+void MainWindow::actorSelectionChanged(QString name){
+    if (actorMap.contains(name)){
+        this->currentActor = ActorPtr(0);
+        this->currentActor = actorMap.value(name);
+        qDebug("'%s' Selected", qPrintable(name));
+        if (!ui->profileWidget->isHidden()){
+            ui->profileWidget->loadActorProfile(currentActor);
         }
-    }
-    if (!this->sceneDetailView->isHidden()){
-        this->sceneDetailView->clearDisplay();
-        this->sceneDetailView->hide();
+        if (!this->sceneDetailView->isHidden()){
+            this->sceneDetailView->clearDisplay();
+            this->sceneDetailView->hide();
+        }
+    } else {
+        qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
+        QModelIndex index = ui->actorTableView->findActorIndex(name);
+        actorModel->removeRow(index.row());
     }
 }
 
 /** \brief Slot called when an item in the actor list is clicked
  *  \param  QModelIndex index: the index of the selected actor.
  */
-void MainWindow::actorTableView_clicked(const QModelIndex &index){
-    this->currentActorIndex = index;
-    if (index.row() > -1){
-        this->itemSelected = true;
-        // Get the name of the selected actor.
-        QString name = actorProxyModel->data(actorProxyModel->index(index.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
-        if (actorMap.contains(name)){
-            this->currentActor = actorMap.value(name);
-            ui->profileWidget->loadActorProfile(currentActor);
-        } else {
-            qCritical("Name not in map: %s", qPrintable(name));
-        }
+void MainWindow::actorTableView_clicked(QString name){
+    this->itemSelected = true;
+    // Get the name of the selected actor.
+    if (actorMap.contains(name)){
+        this->currentActor = actorMap.value(name);
+        ui->profileWidget->loadActorProfile(currentActor);
+    } else {
+        qCritical("Name not in map: %s", qPrintable(name));
     }
-}
-void MainWindow::actorTableViewRowsChanged(QModelIndex, int, int){
-    ui->lcd_actorCount->display(actorModel->rowCount());
-}
 
+}
 
 /** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
 ActorPtr MainWindow::getSelectedActor(){
@@ -501,53 +453,9 @@ void MainWindow::searchScenes(){
 
 void MainWindow::searchActors(){
     if (ui->le_searchActors){
-
-        QString name = ui->le_searchActors->text();
-        if (!name.isEmpty()){
-            this->prevSearchActor = name;
-            QModelIndex index = findActorIndex(name);
-            if (index.isValid()){
-                ui->actorTableView->selectRow(index.row());
-            } else {
-                qWarning("Invalid Row, %d", index.row());
-            }
-        } else {
-            qWarning("Can't search for empty name");
-        }
+        ui->actorTableView->selectActor(ui->le_searchActors->text());
     }
 }
-
-
-QModelIndex MainWindow::findActorIndex(const QString &name) const{
-    QString regex = QString("%1").arg(name);
-    QRegExp rx(regex, Qt::CaseInsensitive,QRegExp::RegExp);
-    return findActorIndex_base(rx, ACTOR_NAME_COLUMN);
-}
-
-QModelIndex MainWindow::findActorIndex_Exact(const QString &name) const{
-    QString regex = QString("^%1$").arg(name);
-    QRegExp rx(regex, Qt::CaseInsensitive,QRegExp::RegExp);
-    return findActorIndex_base(rx, ACTOR_NAME_COLUMN);
-}
-
-QModelIndex MainWindow::findActorIndex_base(const QRegExp &rx, const int column) const{
-    QAbstractItemModel *model = ui->actorTableView->model();
-    QSortFilterProxyModel proxy;
-    proxy.setSourceModel(model);
-    proxy.setFilterKeyColumn(column);
-    proxy.setFilterRegExp(rx);
-    QModelIndex matchingIndex = proxy.mapToSource(proxy.index(0,0));
-    if (!matchingIndex.isValid()){
-        QMessageBox box(QMessageBox::Critical, tr("Error Finding Actor"), QString("Error Locating %1").arg(rx.pattern()), QMessageBox::Abort);
-        box.exec();
-        matchingIndex = QModelIndex();
-    } else {
-        int row = matchingIndex.row();
-        qDebug("'%s' was found in row %d", qPrintable(rx.pattern()), row);
-    }
-    return matchingIndex;
-}
-
 
 void MainWindow::on_actionDeleteActor_triggered(){
     qDebug("Delete Actor Shortcut Detected");
@@ -560,13 +468,7 @@ void MainWindow::on_actionDeleteActor_triggered(){
 void MainWindow::removeActorItem(ActorPtr actor){
     if (!actor.isNull()){
         QString name = actor->getName();
-        QModelIndex idx = findActorIndex_Exact(name);
-        if (idx.isValid()){
-            qDebug("Removing '%s' from main window display", qPrintable(name));
-            actorProxyModel->removeRow(idx.row());
-        } else {
-            qWarning("Could not find %s in the display", qPrintable(name));
-        }
+        QModelIndex idx = ui->actorTableView->findActorIndex_Exact(name);
         if (actorMap.contains(name)){
             qDebug("Removing %s from actor map.", qPrintable(name));
             actorMap.remove(name);
@@ -706,8 +608,7 @@ void MainWindow::receiveActors(ActorList list){
             }
         }
         resetActorFilterSelectors();
-        ui->actorTableView->resizeColumnsToContents();
-        ui->actorTableView->resizeRowsToContents();
+        ui->actorTableView->resizeToContents();
         this->actorProxyModel->sort(ACTOR_NAME_COLUMN, Qt::AscendingOrder);
     }
     qDebug("Actor List updated.");
@@ -740,8 +641,7 @@ void MainWindow::receiveSingleActor(ActorPtr a){
         ActorList newList = { a };
         emit saveActors(newList);
     }
-    ui->actorTableView->resizeColumnsToContents();
-    ui->actorTableView->resizeRowsToContents();
+    ui->actorTableView->resizeToContents();
     this->actorModel->sort(SCENE_NAME_COLUMN);
 }
 

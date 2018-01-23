@@ -176,7 +176,7 @@ QRadioButton{
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
+    <item row="2" column="0">
      <layout class="QHBoxLayout" name="hbl_main_layout">
       <item>
        <layout class="QVBoxLayout" name="vbl_list_layout">
@@ -420,73 +420,7 @@ QRadioButton{
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QTableView" name="actorTableView">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="minimumSize">
-            <size>
-             <width>250</width>
-             <height>0</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <family>Futura</family>
-            </font>
-           </property>
-           <property name="statusTip">
-            <string>Actors</string>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="frameShape">
-            <enum>QFrame::NoFrame</enum>
-           </property>
-           <property name="frameShadow">
-            <enum>QFrame::Plain</enum>
-           </property>
-           <property name="editTriggers">
-            <set>QAbstractItemView::NoEditTriggers</set>
-           </property>
-           <property name="selectionMode">
-            <enum>QAbstractItemView::SingleSelection</enum>
-           </property>
-           <property name="selectionBehavior">
-            <enum>QAbstractItemView::SelectRows</enum>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>20</width>
-             <height>20</height>
-            </size>
-           </property>
-           <property name="showGrid">
-            <bool>false</bool>
-           </property>
-           <property name="gridStyle">
-            <enum>Qt::DotLine</enum>
-           </property>
-           <property name="sortingEnabled">
-            <bool>true</bool>
-           </property>
-           <property name="cornerButtonEnabled">
-            <bool>false</bool>
-           </property>
-           <attribute name="horizontalHeaderDefaultSectionSize">
-            <number>70</number>
-           </attribute>
-           <attribute name="verticalHeaderVisible">
-            <bool>false</bool>
-           </attribute>
-           <attribute name="verticalHeaderDefaultSectionSize">
-            <number>24</number>
-           </attribute>
-          </widget>
+          <widget class="ActorTableView" name="actorTableView" native="true"/>
           <widget class="SceneView" name="sceneWidget" native="true">
            <property name="maximumSize">
             <size>
@@ -504,7 +438,7 @@ QRadioButton{
       </item>
      </layout>
     </item>
-    <item row="4" column="0">
+    <item row="5" column="0">
      <widget class="QFrame" name="controlFrame">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
@@ -775,18 +709,29 @@ QRadioButton{
        <attribute name="title">
         <string>Tab 2</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="0">
-         <widget class="QLabel" name="label">
-          <property name="text">
-           <string>Filter By Company:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="1">
-         <widget class="QComboBox" name="cb_companyFilter"/>
-        </item>
-       </layout>
+       <widget class="QLabel" name="label">
+        <property name="geometry">
+         <rect>
+          <x>9</x>
+          <y>9</y>
+          <width>114</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Filter By Company:</string>
+        </property>
+       </widget>
+       <widget class="QComboBox" name="cb_companyFilter">
+        <property name="geometry">
+         <rect>
+          <x>129</x>
+          <y>9</y>
+          <width>79</width>
+          <height>24</height>
+         </rect>
+        </property>
+       </widget>
       </widget>
      </widget>
     </item>
@@ -1089,7 +1034,7 @@ QRadioButton{
      <normaloff>:/Icons/female_silhouette_download.png</normaloff>:/Icons/female_silhouette_download.png</iconset>
    </property>
    <property name="text">
-    <string>Load Actors</string>
+    <string>Load</string>
    </property>
    <property name="toolTip">
     <string>Load Actors from Database</string>
@@ -1119,6 +1064,9 @@ QRadioButton{
    <property name="text">
     <string>Refresh Display</string>
    </property>
+   <property name="iconText">
+    <string>Refresh</string>
+   </property>
    <property name="toolTip">
     <string>Refresh Display Items</string>
    </property>
@@ -1137,6 +1085,9 @@ QRadioButton{
    <property name="text">
     <string>Update Bios</string>
    </property>
+   <property name="iconText">
+    <string>Update</string>
+   </property>
    <property name="toolTip">
     <string>Update Bios</string>
    </property>
@@ -1150,7 +1101,7 @@ QRadioButton{
      <normaloff>:/Icons/flat_save_icon.png</normaloff>:/Icons/flat_save_icon.png</iconset>
    </property>
    <property name="text">
-    <string>Save Actors</string>
+    <string>Save</string>
    </property>
    <property name="toolTip">
     <string>Save Actors</string>
@@ -1174,7 +1125,7 @@ QRadioButton{
     <string>cleanDatabase</string>
    </property>
    <property name="iconText">
-    <string>Purge Scenes</string>
+    <string>Purge</string>
    </property>
    <property name="statusTip">
     <string>Clean Database entries</string>
@@ -1192,7 +1143,7 @@ QRadioButton{
      <normaloff>:/Icons/female_silhouette_add.png</normaloff>:/Icons/female_silhouette_add.png</iconset>
    </property>
    <property name="text">
-    <string>Add Actor</string>
+    <string>Add</string>
    </property>
    <property name="toolTip">
     <string>Add New Actor By Name</string>
@@ -1222,6 +1173,9 @@ QRadioButton{
    <property name="text">
     <string>DeleteActor</string>
    </property>
+   <property name="iconText">
+    <string>Delete</string>
+   </property>
    <property name="toolTip">
     <string>Delete Actor</string>
    </property>
@@ -1244,6 +1198,9 @@ QRadioButton{
    </property>
    <property name="text">
     <string>ShowItemDetails</string>
+   </property>
+   <property name="iconText">
+    <string>Details</string>
    </property>
    <property name="toolTip">
     <string>Show Details</string>
@@ -1280,6 +1237,12 @@ QRadioButton{
    <class>ActorProfileView</class>
    <extends>QWidget</extends>
    <header location="global">actorprofileview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ActorTableView</class>
+   <extends>QWidget</extends>
+   <header>ActorTableView.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

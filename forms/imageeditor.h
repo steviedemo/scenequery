@@ -18,13 +18,12 @@ private slots:
     void save();
     void cancel();
     void selectImage();
-
 private:
     QSharedPointer<ImageCropper> m_imageCropper;
     QSharedPointer<QLabel> m_croppedImage;
     QPixmap pm_croppedImage;
     QPushButton *pb_save, *pb_crop, *pb_close;
-    QString sourceFile, saveFile;
+    QString sourceFile, saveFile, actorName;
     int maxHeight;
     bool preInitError;
 signals:

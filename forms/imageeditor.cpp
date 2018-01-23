@@ -1,6 +1,8 @@
 #include "imageeditor.h"
 #include "imagecropper.h"
 #include <QPixmap>
+#include "genericfunctions.h"
+#include "filenames.h"
 #include <QBuffer>
 #include <QFileInfo>
 #include <QLabel>
@@ -9,6 +11,7 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QCheckBox>
 #include <QSharedPointer>
 ImageEditor::ImageEditor(QString file, QString target, QWidget *parent) :
     QWidget(parent), sourceFile(file), saveFile(target)
@@ -17,24 +20,34 @@ ImageEditor::ImageEditor(QString file, QString target, QWidget *parent) :
         maxHeight = 600;
         // Set up the cropper
         m_imageCropper = QSharedPointer<ImageCropper>(new ImageCropper());
-        m_imageCropper->resize( 600, 600 );
+        //m_imageCropper->resize( 600, 600 );
+        QImage image(sourceFile);
+        QSize imageSize = getScaledSize(image, maxHeight);
+        m_imageCropper->setFixedSize(imageSize);
         m_imageCropper->setImage(QPixmap(sourceFile));
         m_imageCropper->setBackgroundColor( Qt::lightGray );
         m_imageCropper->setCroppingRectBorderColor( Qt::magenta);
+        m_imageCropper->setProportionFixed(true);
         // Set up the Cropped Image frame
         m_croppedImage = QSharedPointer<QLabel>(new QLabel());
         m_croppedImage->setPixmap(QPixmap(sourceFile).scaledToHeight(maxHeight));
-        m_croppedImage->setMaximumHeight(maxHeight);
+
+//        m_croppedImage->setMaximumHeight(maxHeight);
         m_croppedImage->setScaledContents(true);
+        m_croppedImage->setFixedSize(imageSize);
         // Set up the buttons
         this->pb_crop = new QPushButton("Crop", this);
-        this->pb_save = new QPushButton("Save", this);
-        QPushButton* selectButton = new QPushButton("Select Image", this);
-        QPushButton* cancelButton = new QPushButton("Cancel", this);
         connect(pb_crop,        SIGNAL(clicked()), this, SLOT(crop()));
-        connect(selectButton,   SIGNAL(pressed()), this, SLOT(selectImage()));
-        connect(cancelButton,   SIGNAL(pressed()), this, SLOT(cancel()));
+        this->pb_save = new QPushButton("Save", this);
         connect(pb_save,     SIGNAL(pressed()), this, SLOT(save()));
+        QPushButton* selectButton = new QPushButton("Select Image", this);
+        connect(selectButton,   SIGNAL(pressed()), this, SLOT(selectImage()));
+        QPushButton* cancelButton = new QPushButton("Cancel", this);
+        connect(cancelButton,   SIGNAL(pressed()), this, SLOT(cancel()));
+        QCheckBox* fixedProportions = new QCheckBox("Fixed Proportions", this);
+        fixedProportions->setChecked(true);
+        connect(fixedProportions, SIGNAL(toggled(bool)), m_imageCropper.data(), SLOT(setProportionFixed(bool)));
+
         // Set up image Layout
         QHBoxLayout *imageLayout = new QHBoxLayout();
         imageLayout->addWidget(m_imageCropper.data());
@@ -43,6 +56,7 @@ ImageEditor::ImageEditor(QString file, QString target, QWidget *parent) :
         QHBoxLayout *buttonLayout = new QHBoxLayout();
         buttonLayout->addWidget(cancelButton);
         buttonLayout->addWidget(selectButton);
+        buttonLayout->addWidget(fixedProportions);
         buttonLayout->insertStretch(2);
         buttonLayout->addWidget(pb_crop);
         buttonLayout->addWidget(pb_save);
@@ -64,9 +78,14 @@ ImageEditor::~ImageEditor(){
 
 void ImageEditor::crop(){
     this->pm_croppedImage = QPixmap(m_imageCropper->cropImage());
-    m_croppedImage->setPixmap(pm_croppedImage.scaledToHeight(maxHeight));
-    m_croppedImage->setScaledContents(true);
+    const QImage image = pm_croppedImage.toImage();
+    QSize scaledSize = getScaledSize(image, maxHeight);
+    QPixmap scaledImage = pm_croppedImage.scaled(scaledSize);
+    m_croppedImage->setPixmap(scaledImage);
+    m_croppedImage->setFixedSize(scaledSize);
+//    m_croppedImage->setScaledContents(true);
     pb_save->setEnabled(true);
+    save();
 }
 
 void ImageEditor::save(){
@@ -74,6 +93,7 @@ void ImageEditor::save(){
         QFile file(saveFile);
         file.open(QIODevice::WriteOnly);
         pm_croppedImage.save(&file, "JPG");
+        writeHeadshotThumbnail(saveFile);
         emit saved();
         QMessageBox box(QMessageBox::NoIcon, tr("File Saved"), "Cropped Image successfully saved!", QMessageBox::Close | QMessageBox::Retry, this);
         box.setWindowModality(Qt::WindowModal);

@@ -72,10 +72,9 @@ private slots:
     void removeActorItem(ActorPtr);
     void showCurrentActorProfile();
     /// Window Events
-    void actorTableViewRowsChanged(QModelIndex, int, int);
-    void actorSelectionChanged(QModelIndex , QModelIndex);
+    void actorSelectionChanged(QString);
     void on_actionAdd_Actor_triggered();
-    void actorTableView_clicked(const QModelIndex &index);
+    void actorTableView_clicked(QString);
 
     /// Buttons
     void on_actionScan_Directory_triggered();
@@ -116,9 +115,6 @@ private:
     void connectViews       (void);
     void startThreads       (void);
     ActorPtr getSelectedActor(void);
-    QModelIndex findActorIndex(const QString &name) const;
-    QModelIndex findActorIndex_Exact(const QString &name) const;
-    QModelIndex findActorIndex_base(const QRegExp &rx, const int column) const;
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
@@ -170,7 +166,6 @@ signals:
     void updateBios         (ActorList);
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
-    void actorSelectionChanged(QString);
     void startVideoPlayback (void);
     /// Filtering
     void cb_companyFilterChanged(QString);
