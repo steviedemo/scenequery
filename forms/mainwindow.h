@@ -5,6 +5,7 @@
 #include "FileScanner.h"
 #include "SceneList.h"
 #include "Actor.h"
+#include "MiniThreads.h"
 #include "Scene.h"
 #include "SQL.h"
 #include "profiledialog.h"
@@ -49,8 +50,6 @@ private slots:
     void searchScenes();
 
     void apv_to_mw_receiveSceneListRequest(QString actorName);
-    void apv_to_mw_receiveActorRequest(QString name);
-    void apv_to_mw_deleteActor(QString name);
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
@@ -85,7 +84,6 @@ private slots:
 
     void on_actionParse_Scene_triggered();
 
-    void on_actionSave_Scenes_triggered();
     void on_actionCreate_Bio_triggered();
     void receiveTestBio             (ActorPtr);
     void on_actionUpdate_Bios_triggered();
@@ -136,6 +134,7 @@ private:
     QString prevSearchActor, prevSearchScene;
     RowList rows;
     /// Threads
+    FileRenamer *updater;
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     SplashScreen *splashScreen;

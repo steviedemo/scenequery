@@ -55,6 +55,7 @@ public slots:
     void            saveChanges         (ScenePtr);
     void            updateActor         (ActorPtr);
     void            drop                (ActorPtr);
+    void            dropActor           (QString name);
     void            loadActors          ();
     void            loadScenes          ();
     void            store               (ActorList actors);

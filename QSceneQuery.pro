@@ -97,7 +97,8 @@ SOURCES += \
     src/SceneParser.cpp \
     src/SQL.cpp \
     PSQL/src/Query.cpp \
-    forms/SplashScreen.cpp
+    forms/SplashScreen.cpp \
+    src/MiniThreads.cpp
 
 HEADERS  += \
     src/config.h \
@@ -134,7 +135,8 @@ HEADERS  += \
     src/SceneParser.h \
     src/SQL.h \
     PSQL/src/Query.h \
-    forms/SplashScreen.h
+    forms/SplashScreen.h \
+    src/MiniThreads.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

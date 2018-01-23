@@ -305,9 +305,7 @@ void SQL::fs_to_db_checkNames(QStringList nameList){
     emit db_to_ct_buildActors(newNames);
 }
 
-
-void SQL::drop(ActorPtr a){
-    QString name = QString("%1").arg(a->getName());
+void SQL::dropActor(QString name){
     name.replace('\'', "\'\'");
     QString statement = QString("delete from actors where name='%1'").arg(name);
     qDebug("%s", qPrintable(statement));
@@ -317,6 +315,9 @@ void SQL::drop(ActorPtr a){
     } else {
         qDebug("Deleted '%s' from the Actor Database", qPrintable(name));
     }
+}
+void SQL::drop(ActorPtr a){
+    dropActor(a->getName());
 }
 
 /*------------------------------------------------------------------

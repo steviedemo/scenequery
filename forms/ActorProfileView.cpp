@@ -78,7 +78,7 @@ void ActorProfileView::on_tb_saveNameEdit_clicked(){
                 qDebug("'%s' is already in the database. Removing '%s' from the database.", qPrintable(newName),qPrintable(oldName));
                 QString q = QString("DELETE FROM actors WHERE name = %1").arg(Query::sqlSafe(oldName));
                 sql.setQuery(q.toStdString());
-                emit apv_to_mw_requestActor(newName);
+                emit requestActor(newName);
             }
 
             foreach(ScenePtr s, updateList){

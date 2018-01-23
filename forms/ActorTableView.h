@@ -17,6 +17,7 @@ public:
     void setHorizontalHeaders(QStringList);
     int countRows();
     QStringList namesDisplayed();
+    QString selectedName() const;
     void resizeToContents();
     QModelIndex currentIndex();
     QModelIndex findActorIndex(const QString &name) const;

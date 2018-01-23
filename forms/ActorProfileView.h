@@ -69,7 +69,7 @@ signals:
     void renameFile(ScenePtr s);
     void apv_to_ct_updateBio(QString name);
     void apv_to_mw_requestScenes(QString name);
-    void apv_to_mw_requestActor(QString name);
+    void requestActor(QString name);
     void apv_to_mw_sendNewActor(ActorPtr);
     void apv_to_mw_deleteActor(QString name);
 };
