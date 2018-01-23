@@ -10,3 +10,6 @@
 [submodule "libpqxx"]
 	path = libpqxx
 	url = https://github.com/jtv/libpqxx.git
+[submodule "libqxt"]
+	path = libqxt
+	url = https://github.com/mnutt/libqxt.git
