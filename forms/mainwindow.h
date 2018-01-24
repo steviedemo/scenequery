@@ -30,7 +30,7 @@
 #include <QTableView>
 #include <QSettings>
 
-enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
+//enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
 class MainWindow;
 }
@@ -122,22 +122,18 @@ private:
     Ui::MainWindow *ui;
     DataManager vault;
     QModelIndex currentActorIndex;
-    QMap<QString, ActorPtr> actorMap;
-    QHash<int, ScenePtr> sceneMap;
-    ActorList actorList, updateList;
-    ActorPtr currentActor, updatedActor;
+    //QMap<QString, ActorPtr> actorMap;
+    //QHash<int, ScenePtr> sceneMap;
+    ActorPtr currentActor;//, updatedActor;
     QFileDialog *fileDialog;
     QProgressDialog *progressDialog;
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
     ActorProxyModel *actorProxyModel;
-    QItemSelectionModel *actorSelectionModel;
     QStandardItem *actorParent, *sceneParent;
-    QStringList names, actorHeaders, sceneHeaders;
-    SceneList sceneList, sceneUpdateList;
+    SceneList sceneUpdateList;
     bool videoOpen;
     QString prevSearchActor, prevSearchScene;
-    RowList rows;
     /// Threads
     FileRenamer *updater;
     SceneDetailView *sceneDetailView;
@@ -152,10 +148,8 @@ private:
     SearchPathDialog *searchPathDialog;
     QThread     *sqlThread, *curlThread, *curlTestThread;
     bool itemSelected;
-    Display currentDisplay;
     int index;
     QMutex mx;
-    QSettings *settings;
 
 signals:
     void closing();

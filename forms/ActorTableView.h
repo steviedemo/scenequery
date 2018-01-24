@@ -26,9 +26,9 @@ public:
 public slots:
     void resizeView();
     void filterChanged(QString);
-    void filterChangedName(const QString &name);
-    void filterChangedHair(QString);
-    void filterChangedEthnicity(QString);
+    void filterChangedName(const QString name="");
+    void filterChangedHair(QString filter="");
+    void filterChangedEthnicity(QString filter="");
     void filterChangedSceneCount(ActorProxyModel::NumberFilterType, int);
     void selectActor(const QString &name);
     void removeActor(QString name);

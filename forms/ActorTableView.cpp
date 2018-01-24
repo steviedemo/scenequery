@@ -160,7 +160,7 @@ void ActorTableView::setSourceModel(QAbstractItemModel *model){
 
 void ActorTableView::addActor(ActorPtr /*a*/, const QModelIndex &/*parent*/){}
 void ActorTableView::filterChanged(QString){}
-void ActorTableView::filterChangedName(const QString &name){
+void ActorTableView::filterChangedName(const QString name){
     this->nameFilter = name;
     proxyModel->setFilterName(name);
 }

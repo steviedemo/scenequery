@@ -26,10 +26,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     this->runMode = Release;//Debug;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
-    actorList = {};
-    sceneList = {};
-    updateList = {};
-    this->currentDisplay = DISPLAY_ACTORS;
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
     qRegisterMetaType<QStringList>("QStringList");
@@ -48,7 +44,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->videoOpen = false;
     QCoreApplication::setOrganizationName("SQ");
     QCoreApplication::setApplicationName("Scene Query");
-    this->settings = new QSettings("Demedash", "SceneQuery", this);
 
     ui->setupUi(this);
     this->sql  = new SQL();
@@ -91,9 +86,6 @@ MainWindow::~MainWindow(){
         sqlThread->wait();
         delete sqlThread;
     }
-    delete settings;
-    actorList.clear();
-    sceneList.clear();
 }
 
 /** \brief Set up the main display */
@@ -101,22 +93,24 @@ void MainWindow::setupViews(){
     ui->tabWidget_filters->hide();
     /// Set up Actor Table View
 
-    this->actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
+    QStringList actorHeaders, sceneHeaders;
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
     this->actorModel->setSortRole(Qt::DecorationRole);
     this->actorParent = actorModel->invisibleRootItem();
-    this->actorProxyModel = new ActorProxyModel(this);
     actorModel->setHorizontalHeaderLabels(actorHeaders);
-    this->actorProxyModel->setSourceModel(actorModel);
-    ui->actorTableView->setSourceModel(actorProxyModel);
+    ui->actorTableView->setSourceModel(actorModel);
+    //this->actorProxyModel = new ActorProxyModel(this);
+    //this->actorProxyModel->setSourceModel(actorModel);
+    //ui->actorTableView->setSourceModel(actorProxyModel);
 
     /// Set up the Scene Table View
-    this->sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
+    sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
     this->sceneModel = new QStandardItemModel();
-    this->sceneProxyModel = new SceneProxyModel(this);
+    //this->sceneProxyModel = new SceneProxyModel(this);
+    //sceneProxyModel->setSourceModel(sceneModel);
     this->sceneParent = sceneModel->invisibleRootItem();
     sceneModel->setHorizontalHeaderLabels(sceneHeaders);
-    sceneProxyModel->setSourceModel(sceneModel);
     ui->sceneWidget->setSourceModel(sceneModel);
 
     /// Set Up Scene Detail View
@@ -172,16 +166,15 @@ void MainWindow::connectViews(){
     connect(ui->actionUpdate_Bios,      SIGNAL(triggered()),                    &vault,             SLOT(updateBios()));
 
     connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   ui->sceneWidget,    SLOT(companyFilterChanged(QString)));
-    connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->sceneWidget,    SLOT(clearSearchFilter()));
+    connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->sceneWidget,    SLOT(filenameFilterChanged()));
     connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->le_searchScenes,SLOT(clear()));
     connect(ui->tb_clearSearchActors,   SIGNAL(pressed()),                      ui->le_searchActors,SLOT(clear()));
-    connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterEthnicity(QString)));
-    connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   actorProxyModel,    SLOT(setFilterHairColor(QString)));
+    connect(ui->tb_clearSearchActors,   SIGNAL(clicked()),                      ui->actorTableView, SLOT(filterChangedName()));
+    connect(ui->cb_ethnicity,           SIGNAL(currentIndexChanged(QString)),   ui->actorTableView, SLOT(filterChangedEthnicity(QString)));
+    connect(ui->cb_hairColor,           SIGNAL(currentIndexChanged(QString)),   ui->actorTableView, SLOT(filterChangedHair(QString)));
     connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
-    connect(this,                       SIGNAL(purgeScenes()),                  sql,                SLOT(purgeScenes()));
-    connect(this,                       SIGNAL(saveActorChanges(ActorPtr)),     sql,                SLOT(updateActor(ActorPtr)));
-    connect(this,                       SIGNAL(saveActors(ActorList)),          sql,                SLOT(store(ActorList)));
-    connect(this,                       SIGNAL(saveScenes(SceneList)),          sql,                SLOT(store(SceneList)));
+    //connect(this,                       SIGNAL(purgeScenes()),                  sql,                SLOT(purgeScenes()));
+    //connect(this,                       SIGNAL(saveActorChanges(ActorPtr)),     sql,                SLOT(updateActor(ActorPtr)));
     connect(ui->actionLoad_Actors,      SIGNAL(triggered()),                    sql,                SLOT(loadActors()));
     connect(ui->pb_refreshActors,       SIGNAL(pressed()),                      sql,                SLOT(loadActors()));
     connect(ui->pb_refreshScenes,       SIGNAL(pressed()),                      sql,                SLOT(loadScenes()));

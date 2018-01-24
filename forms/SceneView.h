@@ -19,15 +19,15 @@ public slots:
     void receiveSceneCountRequest();
 
     void resizeSceneView();
-    void companyFilterChanged(QString);
-    void tagFilterChanged(QString);
+    void companyFilterChanged(QString="");
+    void tagFilterChanged(QString="");
     void qualityFilterChanged(int);
     void updateSceneItem(int id);
     void searchByFilename(const QString &);
     void clearSearchFilter();
     void searchByID(const int &);
-    void actorFilterChanged(QString name);
-    void filenameFilterChanged(QString word);
+    void actorFilterChanged(QString name="");
+    void filenameFilterChanged(QString word="");
     void actorFilterChanged(ActorPtr);
 
 private slots:
