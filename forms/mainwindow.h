@@ -3,6 +3,7 @@
 #include "definitions.h"
 #include "config.h"
 #include "curlTool.h"
+#include "DataManager.h"
 #include "FileScanner.h"
 #include "SceneList.h"
 #include "Actor.h"
@@ -79,7 +80,11 @@ private slots:
 
     /// Buttons
 
+    void scanPaths(QStringList paths);
     void scan_directory_chosen(QString);
+    void on_actionAdd_Scan_Folder_triggered();
+    void on_actionScan_All_Folders_triggered();
+
     void on_pb_saveScenes_clicked();
     void on_pb_saveActors_clicked();
     void on_tb_clearActorFilters_clicked();
@@ -95,16 +100,11 @@ private slots:
     void on_actionAdd_Actor_triggered();
     void on_actionParse_Scene_triggered();
     void on_actionCreate_Bio_triggered();
-    void on_actionUpdate_Bios_triggered();
-    void on_actionRefresh_Display_triggered();
     void on_actionWipe_Scenes_Table_triggered();
     void on_actionWipe_Actor_Table_triggered();
     void on_actionDeleteActor_triggered();
     void on_actionItemDetails_triggered();
-    void on_actionScan_All_Folders_triggered();
-    void scanPaths(QStringList paths);
 
-    void on_actionAdd_Scan_Folder_triggered();
 
 private:
     RunMode runMode;
@@ -120,6 +120,7 @@ private:
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
+    DataManager vault;
     QModelIndex currentActorIndex;
     QMap<QString, ActorPtr> actorMap;
     QHash<int, ScenePtr> sceneMap;
@@ -167,7 +168,6 @@ signals:
     void deleteActor        (QString);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
-    void updateBios         (ActorList);
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
     void startVideoPlayback (void);
