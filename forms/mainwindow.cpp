@@ -851,12 +851,40 @@ void MainWindow::renameFile(ScenePtr scene){
         QMessageBox box(QMessageBox::Question, tr("File Renamer"), text, QMessageBox::Save | QMessageBox::Cancel, this, Qt::WindowStaysOnTopHint);
         box.resize(QSize(600,400));
         if (box.exec() == QMessageBox::Save){
+#ifdef RENAMER_THREAD
             this->updater = new FileRenamer(scene, newName, this);
             connect(updater, SIGNAL(error(QString)),            this,       SLOT(showError(QString)));
             connect(updater, SIGNAL(saveToDatabase(ScenePtr)),  sql,        SLOT(saveChanges(ScenePtr)));
             connect(updater, SIGNAL(done(ScenePtr)),            this,       SLOT(updateSceneDisplay(ScenePtr)));
             connect(updater, SIGNAL(finished()),                updater,    SLOT(deleteLater()));
             updater->start();
+#else
+            QPair<QString,QString> fileInfo = scene->getFile();
+            QString fullpath = scene->getFullpath();
+            QString newPath = QString("%1/%2").arg(scene->getFolder()).arg(newName);
+            QString oldName = scene->getFilename();
+            QPair<QString,QString> newFileInfo;
+            newFileInfo.first = fileInfo.first;
+            newFileInfo.second = newName;
+            scene->setFile(newFileInfo);
+            QFile file(fullpath);
+            bool saved = false;
+            if (fullpath == newPath){
+                saved = true;
+            } else {
+                saved = file.rename(fullpath, newPath);
+            }
+            if (!saved){
+                qWarning("Unable to rename:\n'%s' ------>\n'%s'\n", qPrintable(fullpath), qPrintable(newPath));
+                QMessageBox::warning(this, tr("Renaming Error"), QString("Error Renaming\n%1\n---->\n%2").arg(oldName).arg(newName), QMessageBox::Cancel);
+            } else {
+                qDebug("File Renamed");
+                emit saveChangesToDB(scene);
+                qDebug("Database Updated");
+                scene->updateQStandardItem();
+                qDebug("Display Updated");
+            }
+#endif
         }
     }
 }
