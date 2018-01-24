@@ -29,7 +29,9 @@ private:
     QVariant profilePhoto;
     bool favourite;
     void setup();
+public slots:
 
+    void updateQStandardItem();
 public:
     enum Role{
         SortRole=Qt::UserRole
@@ -44,7 +46,6 @@ public:
     void fromRecord(pqxx::result::const_iterator record);
     int  entrySize();
     QList<QStandardItem *> buildQStandardItem();
-    void updateQStandardItem();
     QList<QStandardItem *> getQStandardItem();
     QStandardItem *getNameItem();
     bool updateBio();

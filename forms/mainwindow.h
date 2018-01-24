@@ -89,7 +89,7 @@ private slots:
     void selectNewProfilePhoto      (void);
     void playVideo                  (int sceneID);
     void videoFinished              (void);
-
+    void updateSceneDisplay(ScenePtr);
 
     void on_actionScan_Directory_triggered();
     void on_actionAdd_Actor_triggered();
@@ -104,6 +104,8 @@ private slots:
     void on_actionScan_All_Folders_triggered();
     void scanPaths(QStringList paths);
 
+    void on_actionAdd_Scan_Folder_triggered();
+
 private:
     RunMode runMode;
     QString newName;
@@ -112,6 +114,8 @@ private:
     void setupViews         (void);
     void connectViews       (void);
     void startThreads       (void);
+    QString getCurrentName (QAbstractItemModel *);
+    QModelIndex getCurrentIndex(QAbstractItemModel *);
     ActorPtr getSelectedActor(void);
     /// View
     QIcon appIcon;

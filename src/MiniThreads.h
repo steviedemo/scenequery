@@ -16,6 +16,7 @@ private:
 signals:
     void saveToDatabase(ScenePtr);
     void error(QString);
+    void done(ScenePtr);
 };
 
 #endif // MINITHREADS_H

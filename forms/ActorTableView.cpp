@@ -75,12 +75,16 @@ void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex){
 
 void ActorTableView::rowClicked(QModelIndex /*idx*/){
     itemClicked = true;
+    if (!prevIdx.isValid()){
+        emit actorClicked(selectedName());
+    }
 }
 void ActorTableView::removeActor(ActorPtr a){
     removeActor(a->getName());
 }
 
 void ActorTableView::removeActor(QString name){
+    qDebug("ActorTableView Removing %s from display...", qPrintable(name));
     QModelIndex index = findActorIndex_Exact(name);
     if (index.isValid()){
         proxyModel->removeRow(index.row());

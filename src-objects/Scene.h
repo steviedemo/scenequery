@@ -16,7 +16,7 @@
 bool operator==(const Scene &s1, const Scene &s2);
 bool operator ==(const ScenePtr &scene1, const ScenePtr &scene2);
 //bool operator !=(const ScenePtr &scene1, const ScenePtr &scene2);
-class Scene : public Entry
+class Scene : public Entry, public QObject
 {
 
 private:
@@ -36,6 +36,9 @@ private:
     QStandardItem *itemQuality, *itemLength, *itemSize, *itemFeaturedActors, *itemPath, *itemID;
     QList<QStandardItem *>displayRow;
     bool displayBuilt;
+public slots:
+
+    void    updateQStandardItem();
 public:    
     QString dateString;
     Scene   (void);
@@ -54,7 +57,6 @@ public:
     void    fromRecord(pqxx::result::const_iterator record);
     int     entrySize();
     QList<QStandardItem *> buildQStandardItem();
-    void    updateQStandardItem();
     QList<QStandardItem *> getQStandardItem();
     ItemList getItemList();
 

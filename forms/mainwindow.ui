@@ -926,6 +926,7 @@ QRadioButton{
     </property>
     <addaction name="actionScan_Directory"/>
     <addaction name="actionSave_Scenes"/>
+    <addaction name="actionAdd_Scan_Folder"/>
     <addaction name="actionWipe_Actor_Table"/>
     <addaction name="actionWipe_Scenes_Table"/>
    </widget>
@@ -1222,6 +1223,15 @@ QRadioButton{
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+N</string>
+   </property>
+  </action>
+  <action name="actionAdd_Scan_Folder">
+   <property name="icon">
+    <iconset resource="../resources/icons.qrc">
+     <normaloff>:/Icons/add_folder_icon.png</normaloff>:/Icons/add_folder_icon.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add Scan Folder</string>
    </property>
   </action>
  </widget>

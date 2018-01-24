@@ -30,6 +30,7 @@ SearchPathDialog::SearchPathDialog(QWidget *parent):
     this->setStyleSheet("QLabel { border: 1px solid white; background: rgb(52,52,52); border-radius: 4px; } \
                          QDialog { background: rgb(90,90,90); }");
     QLabel *emptyLabel = new QLabel("");
+    labels << emptyLabel;
     this->addButton = new QToolButton();
     addButton->setIcon(QIcon(":/Icons/add_icon.png"));
     addButton->setIconSize(QSize(30, 30));
@@ -51,14 +52,18 @@ SearchPathDialog::SearchPathDialog(QWidget *parent):
 }
 
 void SearchPathDialog::showFileDialog(){
+    QString file = QFileDialog::getExistingDirectory();
+/*
     this->fileDialog = new QFileDialog(this, QString("Select Path to use"));
     connect(fileDialog, SIGNAL(fileSelected(QString)), SLOT(addItem(QString)));
     connect(fileDialog, SIGNAL(accepted()), this, SLOT(fileDialogClosed()));
     connect(fileDialog, SIGNAL(rejected()), this, SLOT(fileDialogClosed()));
     this->fileDialog->show();
+    */
+    addItem(file);
 }
 void SearchPathDialog::addItem(QString path){
-    fileDialog->hide();
+//    fileDialog->hide();
     QFileInfo file(path);
     if (!file.isDir()){
         qWarning("Can't add a non-directory to the scanner list");

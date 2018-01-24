@@ -178,6 +178,7 @@ void MainWindow::connectViews(){
     connect(sql,                        SIGNAL(sendResult(ActorList)),          this,               SLOT(receiveActors(ActorList)));
     connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
     connect(sql,                        SIGNAL(sendPurgeList(QVector<int>)),    this,               SLOT(purgeSceneItems(QVector<int>)));
+
 }
 
 
@@ -240,7 +241,7 @@ void MainWindow::startThreads(){
     connect(ui->profileWidget,          SIGNAL(saveToDatabase(ActorPtr)),       sql,                SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(updateFromWeb(ActorPtr)),        curl,               SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(downloadPhoto(ActorPtr)),        curl,               SLOT(downloadPhoto(ActorPtr)));
-  //connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          sql,                SLOT(drop(ActorPtr)));
+    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          sql,                SLOT(drop(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(apv_to_ct_updateBio(QString)),   curl,               SLOT(apv_to_ct_getProfile(QString)));
     connect(curl,                       SIGNAL(ct_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
 
@@ -493,10 +494,29 @@ void MainWindow::on_actionDeleteActor_triggered(){
         emit deleteActor(currentActor->getName());
     }
 }
+QModelIndex MainWindow::getCurrentIndex(QAbstractItemModel *model){
+    QModelIndex x = QModelIndex();
+    x = ui->actorTableView->currentIndex();
+    return x;
+}
+
+QString MainWindow::getCurrentName(QAbstractItemModel *model){
+    QString name("");
+    QModelIndex x = ui->actorTableView->currentIndex();
+    if(x.isValid()){
+        QModelIndex nameIndex = model->index(x.row(), ACTOR_NAME_COLUMN);
+        if (nameIndex.isValid()){
+            name = nameIndex.data().toString();
+        }
+    }
+    return name;
+}
+
 
 void MainWindow::removeActorItem(ActorPtr actor){
     if (!actor.isNull()){
         QString name = actor->getName();
+        ui->actorTableView->removeActor(name);
         if (actorMap.contains(name)){
             qDebug("Removing %s from actor map.", qPrintable(name));
             actorMap.remove(name);
@@ -834,10 +854,15 @@ void MainWindow::renameFile(ScenePtr scene){
             this->updater = new FileRenamer(scene, newName, this);
             connect(updater, SIGNAL(error(QString)),            this,       SLOT(showError(QString)));
             connect(updater, SIGNAL(saveToDatabase(ScenePtr)),  sql,        SLOT(saveChanges(ScenePtr)));
+            connect(updater, SIGNAL(done(ScenePtr)),            this,       SLOT(updateSceneDisplay(ScenePtr)));
             connect(updater, SIGNAL(finished()),                updater,    SLOT(deleteLater()));
             updater->start();
         }
     }
+}
+
+void MainWindow::updateSceneDisplay(ScenePtr s){
+    s->updateQStandardItem();
 }
 
 void MainWindow::playVideo(int sceneID){
@@ -897,3 +922,8 @@ void MainWindow::on_actionItemDetails_triggered(){
    ui->profileWidget->loadActorProfile(currentActor);
 }
 
+
+void MainWindow::on_actionAdd_Scan_Folder_triggered(){
+    SearchPathDialog dialog(this);
+    dialog.exec();
+}

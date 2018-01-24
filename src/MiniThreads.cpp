@@ -24,8 +24,9 @@ void FileRenamer::run(){
             emit error(QString("Error Renaming\n%1\n---->\n%2").arg(oldName).arg(newName));
         } else {
             emit saveToDatabase(scene);
-            scene->updateQStandardItem();
+            emit done(scene);
         }
+
    } else {
         qWarning("Error: File Renamer passed a null scene pointer");
     }

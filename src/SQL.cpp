@@ -354,8 +354,8 @@ void SQL::purgeScenes(void){
         }
         emit closeProgress();
         index = 0;
-        emit startProgress(QString("Removing %1 Scenes From the Database").arg(purgeList.size()), purgeList.size());
         if (purgeList.size() > 0){
+            emit startProgress(QString("Removing %1 Scenes From the Database").arg(purgeList.size()), purgeList.size());
             qDebug("Deleting %d scenes from the database", purgeList.size());
             for(int i = 0; i < purgeList.size(); ++i){
                 int curr = purgeList.at(i);
