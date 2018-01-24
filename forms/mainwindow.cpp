@@ -366,7 +366,6 @@ void MainWindow::scan_directory_chosen(QString root_directory){
 }
 
 void MainWindow::startScanner(const QStringList &folders){
-
     this->scanner = new FileScanner(folders);
     connect(scanner,SIGNAL(fs_to_db_checkNames(QStringList)),   sql,            SLOT(fs_to_db_checkNames(QStringList)));
     connect(scanner,SIGNAL(fs_to_db_storeScenes(SceneList)),    sql,            SLOT(fs_to_db_storeScenes(SceneList)));
@@ -388,7 +387,7 @@ void MainWindow::db_to_mw_receiveActors(ActorList list){
     foreach(ActorPtr a, list){
         actorModel->appendRow(a->buildQStandardItem());
         vault.add(a);
-        actorModel->sort(SCENE_NAME_COLUMN, Qt::AscendingOrder);
+        actorModel->sort(ACTOR_NAME_COLUMN, Qt::AscendingOrder);
     }
     qDebug("Finished Adding %d actors!", list.size());
 }
@@ -518,8 +517,6 @@ void MainWindow::removeActorItem(ActorPtr actor){
         vault.remove(actor);
     }
 }
-
-
 
 /** \brief Show an error Dialog with the provided Text. */
 void MainWindow::showError(QString message){
