@@ -1,4 +1,5 @@
 #include "config.h"
+#include "definitions.h"
 #include <QFile>
 #include <QDir>
 #include <QFileInfo>
@@ -15,7 +16,7 @@
 #include <QLabel>
 SearchPathDialog::SearchPathDialog(QWidget *parent):
     QDialog(parent){
-    this->paths = settings.getList("Search Paths");
+    this->paths = settings.getList(KEY_SEARCH_PATHS);
     QGridLayout *layout = new QGridLayout();
     int row = 0;
     foreach(QString path, paths){
@@ -65,7 +66,7 @@ void SearchPathDialog::addItem(QString path){
     }
 }
 void SearchPathDialog::save(){
-    settings.setList("Search Paths", paths);
+    settings.setList(KEY_SEARCH_PATHS, paths);
     settings.save();
     this->close();
 }

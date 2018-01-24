@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "config.h"
 #include "filenames.h"
 #include "ui_mainwindow.h"
 #include "SceneParser.h"
@@ -156,6 +157,7 @@ void MainWindow::connectViews(){
     connect(sceneDetailView,            SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
 
     connect(ui->le_searchActors,        &QLineEdit::returnPressed,              [=]{    ui->actorTableView->filterChangedName(ui->le_searchActors->text()); });
+    connect(ui->le_searchScenes,        &QLineEdit::returnPressed,              [=]{    ui->sceneWidget->filenameFilterChanged(ui->le_searchScenes->text());});
     connect(ui->tb_seachActors,         SIGNAL(pressed()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(pressed()),                      this,               SLOT(searchScenes()));
     connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   ui->sceneWidget,    SLOT(companyFilterChanged(QString)));
@@ -326,9 +328,20 @@ void MainWindow::on_actionScan_Directory_triggered(){
 }
 
 void MainWindow::on_actionScan_All_Folders_triggered(){
+    Settings settings;
+    QStringList folders = settings.getList(KEY_SEARCH_PATHS);
+    if (folders.isEmpty()){
+        SearchPathDialog dialog(this);
+        dialog.show();
+    }
 #warning make this a user-created list in the future
-    qDebug("Scanning All Folders");
-    startScanner(QStringList() << "/Volumes/16TB_MyBook/" << "/Volumes/4TB_Seagate/" << "/Volumes/8TB_White/");
+    folders = settings.getList(KEY_SEARCH_PATHS);
+    if (!folders.isEmpty()){
+        qDebug("Scanning All Folders");
+        startScanner(QStringList() << "/Volumes/16TB_MyBook/" << "/Volumes/4TB_Seagate/" << "/Volumes/8TB_White/");
+    } else {
+        qWarning("Error: No Folders are set up to be scanned!");
+    }
 }
 
 void MainWindow::scan_directory_chosen(QString root_directory){

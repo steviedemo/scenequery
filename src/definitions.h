@@ -35,6 +35,8 @@
 #define LOAD_SCENE_PROGRESS  3
 #define COUNT_SCENE_PROGRESS 4
 
+#define KEY_SEARCH_PATHS    "Search Paths"
+
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 typedef QSharedPointer<class Scene>         ScenePtr;
