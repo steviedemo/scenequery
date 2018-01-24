@@ -325,10 +325,9 @@ void SQL::drop(ActorPtr a){
  *------------------------------------------------------------------*/
 void SQL::purgeScenes(void){
     int removals = 0;
-
-    QVector<QPair<QString, QString>> deleteList = {};
+    QVector<int>purgeList = {};
     sqlConnection *sql = new sqlConnection();
-    if (sql->execute("SELECT filepath, filename FROM scenes")){
+    if (sql->execute("SELECT id, filepath, filename FROM scenes")){
         int index = 0;
         pqxx::result r = sql->getResult();
         int fileCount = (int)r.size();
@@ -342,10 +341,7 @@ void SQL::purgeScenes(void){
                         QString absolutePath = QString("%1/%2").arg(path).arg(name);
                         QFile file(absolutePath);
                         if (!file.exists()){
-                            QPair<QString,QString> currentFile;
-                            currentFile.first = path;
-                            currentFile.second = name;
-                            deleteList.push_back(currentFile);
+                            purgeList.push_back(entry["id"].as<int>());
                             qDebug("Adding '%s' to list of files to remove from the database", qPrintable(absolutePath));
                         }
                     }
@@ -358,29 +354,29 @@ void SQL::purgeScenes(void){
         }
         emit closeProgress();
         index = 0;
-        emit startProgress(QString("Removing %1 Scenes From the Database").arg(deleteList.size()), deleteList.size());
-        if (deleteList.size() > 0){
-            qDebug("Deleting %d scenes from the database", deleteList.size());
-            for(int i = 0; i < deleteList.size(); ++i){
-                QPair<QString,QString> curr = deleteList.at(i);
+        emit startProgress(QString("Removing %1 Scenes From the Database").arg(purgeList.size()), purgeList.size());
+        if (purgeList.size() > 0){
+            qDebug("Deleting %d scenes from the database", purgeList.size());
+            for(int i = 0; i < purgeList.size(); ++i){
+                int curr = purgeList.at(i);
                 try{
-                    QString statement = QString("DELETE FROM scenes WHERE filepath = %1 AND filename = %2").arg(Query::sqlSafe(curr.first)).arg(Query::sqlSafe(curr.second));
+                    QString statement = QString("DELETE FROM scenes WHERE id='%1'").arg(curr);
                     if (sql->execute(statement.toStdString())){
-                        qDebug("%s Successfully removed", qPrintable(curr.second));
+                        qDebug("Scene With ID %d Successfully removed", curr);
                         ++removals;
                     }
                 } catch (std::exception &e){
-                    qWarning("Exception Caught removing %s/%s from the database: %s", qPrintable(curr.first), qPrintable(curr.second), e.what());
+                    qWarning("Exception Caught removing Scene with ID of '%d' from the database: %s", curr, e.what());
                 }
-                ++index;
-                emit updateProgress(index);
+                emit updateProgress(i);
             }
-            qDebug("%d/%d Entries Successfully removed from the Scene Database", removals, deleteList.size());
+            qDebug("%d/%d Entries Successfully removed from the Scene Database", removals, purgeList.size());
         }
         emit closeProgress();
-        emit updateStatus(QString("%1/%2 Scenes were Successfully Removed from the Database").arg(removals).arg(deleteList.size()));
+        emit updateStatus(QString("%1/%2 Scenes were Successfully Removed from the Database").arg(removals).arg(purgeList.size()));
     }
     delete sql;
+    emit sendPurgeList(purgeList);
 }
 
 

@@ -4,13 +4,15 @@
 #include <QFileDialog>
 #include <QToolButton>
 #include <QString>
+#include <QGridLayout>
 #include <QStringList>
+#include <QLabel>
 #include <QMap>
 #define DATA_FOLDER         ".scenequery"
 #define HEADSHOT_FOLDER     "headshots"
 #define THUMBNAIL_FOLDER    "thumbnails"
 #define SETTINGS_FOLDER     "settings"
-bool    makeDirectories();
+bool    checkForDataDirectories();
 QString findDataLocation();
 QString findHeadshotLocation();
 QString findThumbnailLocation();
@@ -42,6 +44,8 @@ private slots:
     void save();
     void cancel();
 private:
+    QGridLayout *layout;
+    QVector<QLabel *>labels;
     QFileDialog *fileDialog;
     QStringList paths;
     QToolButton *addButton;

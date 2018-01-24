@@ -5,6 +5,7 @@
 #include "definitions.h"
 class FileRenamer : public QThread
 {
+    Q_OBJECT
 public:
     explicit FileRenamer(ScenePtr s, QString newName, QObject *parent = 0):
         QThread(parent), newName(newName), scene(s){}

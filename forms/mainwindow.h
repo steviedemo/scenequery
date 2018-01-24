@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 #include "definitions.h"
+#include "config.h"
 #include "curlTool.h"
 #include "FileScanner.h"
 #include "SceneList.h"
@@ -67,43 +68,41 @@ private slots:
     void updateProgressDialog(int);
     void updateProgressDialog(QString);
     void closeProgressDialog();
-
+    void purgeSceneItems(QVector<int>);
     void renameFile(ScenePtr);
     void removeActorItem(ActorPtr);
     void showCurrentActorProfile();
+
     /// Window Events
     void actorSelectionChanged(QString);
-    void on_actionAdd_Actor_triggered();
     void actorTableView_clicked(QString);
 
     /// Buttons
-    void on_actionScan_Directory_triggered();
 
     void scan_directory_chosen(QString);
     void on_pb_saveScenes_clicked();
     void on_pb_saveActors_clicked();
+    void on_tb_clearActorFilters_clicked();
 
-    void on_actionParse_Scene_triggered();
 
-    void on_actionCreate_Bio_triggered();
     void receiveTestBio             (ActorPtr);
-    void on_actionUpdate_Bios_triggered();
-    void on_actionRefresh_Display_triggered();
     void selectNewProfilePhoto      (void);
     void playVideo                  (int sceneID);
     void videoFinished              (void);
 
-    void on_tb_clearActorFilters_clicked();
 
+    void on_actionScan_Directory_triggered();
+    void on_actionAdd_Actor_triggered();
+    void on_actionParse_Scene_triggered();
+    void on_actionCreate_Bio_triggered();
+    void on_actionUpdate_Bios_triggered();
+    void on_actionRefresh_Display_triggered();
     void on_actionWipe_Scenes_Table_triggered();
-
     void on_actionWipe_Actor_Table_triggered();
-
     void on_actionDeleteActor_triggered();
-
     void on_actionItemDetails_triggered();
-
     void on_actionScan_All_Folders_triggered();
+    void scanPaths(QStringList paths);
 
 private:
     RunMode runMode;
@@ -145,6 +144,7 @@ private:
     FileScanner *scanner;
     curlTool    *curl;
     SQL         *sql;
+    SearchPathDialog *searchPathDialog;
     QThread     *sqlThread, *curlThread, *curlTestThread;
     bool itemSelected;
     Display currentDisplay;

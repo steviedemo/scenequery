@@ -17,12 +17,18 @@
 SearchPathDialog::SearchPathDialog(QWidget *parent):
     QDialog(parent){
     this->paths = settings.getList(KEY_SEARCH_PATHS);
-    QGridLayout *layout = new QGridLayout();
+    this->layout = new QGridLayout();
+    this->labels = {};
     int row = 0;
     foreach(QString path, paths){
         QLabel *label = new QLabel(path);
+        labels << label;
         layout->addWidget(label, row, 0);
     }
+    this->setWindowTitle("Add a Path to the Default Scanning List");
+    this->setMinimumWidth(750);
+    this->setStyleSheet("QLabel { border: 1px solid white; background: rgb(52,52,52); border-radius: 4px; } \
+                         QDialog { background: rgb(90,90,90); }");
     QLabel *emptyLabel = new QLabel("");
     this->addButton = new QToolButton();
     addButton->setIcon(QIcon(":/Icons/add_icon.png"));
@@ -34,7 +40,7 @@ SearchPathDialog::SearchPathDialog(QWidget *parent):
     QPushButton *save = new QPushButton("Save");
     QPushButton *cancel = new QPushButton("Cancel");
     QSpacerItem *spacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
-    buttonLayout->addWidget(spacer);
+    buttonLayout->addSpacerItem(spacer);
     buttonLayout->addWidget(cancel);
     buttonLayout->addWidget(save);
     mainLayout->addLayout(layout);
@@ -62,6 +68,12 @@ void SearchPathDialog::addItem(QString path){
         qDebug("'%s' is already in the scan list", qPrintable(path));
     } else {
         this->paths << path;
+        labels.last()->setText(path);
+        QLabel * label = new QLabel();
+        layout->removeWidget(addButton);
+        layout->addWidget(label, labels.size(), 0);
+        layout->addWidget(addButton, labels.size(), 1);
+        labels << label;
         qDebug("Successfully added '%s' to the list of search paths!", qPrintable(path));
     }
 }
@@ -91,6 +103,8 @@ Settings::Settings(QString file){
     read(file);
 }
 bool Settings::read(QString file){
+    bool success = false;
+    int linesRead = 0, pairsSaved = 0;
     this->path = file;
     if (!QFileInfo(path).exists()){
         QFile file(path);
@@ -98,14 +112,14 @@ bool Settings::read(QString file){
             qWarning("Error Creating Settings file in '%s'", qPrintable(path));
         } else {
             QTextStream out(&file);
-            out << " " << end;
+            out << " " << endl;
         }
     } else {
         QFile file(path);
         if (!file.open(QFile::Text | QFile::ReadOnly)){
             qWarning("Error Opening Settings File '%s'!", qPrintable(path));
         } else {
-            int linesRead = 0, pairsSaved = 0;
+            success = true;
             QTextStream in(&file);
             QRegularExpression rx("^\\s*(.+)?\\s*=\\s*(.+)?\\s*");
             QRegularExpressionMatch match;
@@ -123,6 +137,7 @@ bool Settings::read(QString file){
             qDebug("Opened Settings file, read %d lines, got %d Key-Value pairs", linesRead, pairsSaved);
         }
     }
+    return success;
 }
 
 QString Settings::get(const QString &key) const{
@@ -136,7 +151,7 @@ QString Settings::get(const QString &key) const{
 }
 
 QStringList Settings::getList(const QString &key) const{
-    QStringList values("");
+    QStringList values;
     if (configMap.contains(key)){
         QString value = configMap.value(key);
         values = value.split(',', QString::SkipEmptyParts);
@@ -193,7 +208,7 @@ QString findSettingsFile(){
     return QString("%1/%2/%2.txt").arg(findDataLocation()).arg(SETTINGS_FOLDER);
 }
 
-bool makeDirectories(){
+bool checkForDataDirectories(){
     bool error = false;
     QString dataPath = findDataLocation();
     QString headshotPath = findHeadshotLocation();

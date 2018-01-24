@@ -105,6 +105,7 @@ void SceneView::receiveSceneCountRequest(){
 }
 
 void SceneView::setSourceModel(QAbstractItemModel *model){
+    this->sourceModel = model;
     proxyModel->setSourceModel(model);
 }
 

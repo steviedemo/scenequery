@@ -62,6 +62,7 @@ signals:
     void saveToDatabase (ActorPtr a);
     void deleteCurrent  ();
     void deleteActor    (ActorPtr a);
+    void deleteActor(QString name);
     void downloadPhoto  (ActorPtr a);
     void hidden();
     void chooseNewPhoto();
@@ -71,7 +72,6 @@ signals:
     void apv_to_mw_requestScenes(QString name);
     void requestActor(QString name);
     void apv_to_mw_sendNewActor(ActorPtr);
-    void apv_to_mw_deleteActor(QString name);
 };
 
 #endif // ACTORPROFILEVIEW_H

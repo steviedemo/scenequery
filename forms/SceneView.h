@@ -50,6 +50,7 @@ private:
     int newRow, currentFileSelection;
     bool initComplete;
     QString nameFilter, fileFilter;
+    QAbstractItemModel *sourceModel;
 signals:
     void displayChanged(int);
     void sendSceneCount(int);

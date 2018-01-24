@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<int>("int");
     qRegisterMetaType<QString>("QString");
     qRegisterMetaType<QStringList>("QStringList");
+    qRegisterMetaType<QVector<int>>("QVector<int>");
     qRegisterMetaType<QHash<int, ScenePtr>>("QHash<int, ScenePtr>");
     qRegisterMetaType<QSharedPointer<Scene>>("QSharedPointer<Scene>");
     qRegisterMetaType<QSharedPointer<Actor>>("QSharedPointer<Actor>");
@@ -51,10 +52,6 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     this->settings = new QSettings("Demedash", "SceneQuery", this);
 
     ui->setupUi(this);
-
-    setupViews();
-    connectViews();
-    /// Create Thread Objects
     this->sql  = new SQL();
     this->sqlThread = new QThread();
     sql->moveToThread(sqlThread);
@@ -62,6 +59,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(sql,                SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sql,                SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
     sqlThread->start();
+
+    setupViews();
+    connectViews();
+    /// Create Thread Objects
 
     this->splashScreen = new SplashScreen(this);
     connect(splashScreen, SIGNAL(done(ActorList,SceneList,RowList,RowList)), this, SLOT(initDone(ActorList,SceneList,RowList,RowList)));
@@ -131,7 +132,7 @@ void MainWindow::setupViews(){
 }
 
 void MainWindow::connectViews(){
-    ui->tb_seachActors->
+
     /// Make Relevant connections between widgets
     connect(ui->profileWidget,          SIGNAL(hidden()),                       ui->sceneWidget,    SLOT(clearActorFilterOnly()));
     connect(ui->sceneWidget,            SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,SLOT(display(int)));
@@ -176,14 +177,13 @@ void MainWindow::connectViews(){
     connect(ui->pb_refreshScenes,       SIGNAL(pressed()),                      sql,                SLOT(loadScenes()));
     connect(sql,                        SIGNAL(sendResult(ActorList)),          this,               SLOT(receiveActors(ActorList)));
     connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
-
-
+    connect(sql,                        SIGNAL(sendPurgeList(QVector<int>)),    this,               SLOT(purgeSceneItems(QVector<int>)));
 }
 
 
 void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows, RowList sceneRows){
     splashScreen->close();
-    splashScreen->deleteLater();
+    delete splashScreen;
     qDebug("Main Window Received %d actors, %d scenes, %d actor rows & %d scene rows", \
            actors.size(), scenes.size(), actorRows.size(), sceneRows.size());
     foreach(ActorPtr a, actors)                     { actorMap.insert(a->getName(), a); }
@@ -332,13 +332,18 @@ void MainWindow::on_actionScan_All_Folders_triggered(){
     QStringList folders = settings.getList(KEY_SEARCH_PATHS);
     if (folders.isEmpty()){
         SearchPathDialog dialog(this);
-        dialog.show();
+        dialog.exec();
     }
 #warning make this a user-created list in the future
     folders = settings.getList(KEY_SEARCH_PATHS);
+    scanPaths(folders);
+}
+
+void MainWindow::scanPaths(QStringList folders){
     if (!folders.isEmpty()){
         qDebug("Scanning All Folders");
-        startScanner(QStringList() << "/Volumes/16TB_MyBook/" << "/Volumes/4TB_Seagate/" << "/Volumes/8TB_White/");
+        startScanner(folders);
+        //startScanner(QStringList() << "/Volumes/16TB_MyBook/" << "/Volumes/4TB_Seagate/" << "/Volumes/8TB_White/");
     } else {
         qWarning("Error: No Folders are set up to be scanned!");
     }
@@ -371,7 +376,7 @@ void MainWindow::startScanner(const QStringList &folders){
     connect(scanner,SIGNAL(updateStatus(QString)),              ui->statusLabel,SLOT(setText(QString)));
     connect(scanner,SIGNAL(showError(QString)),                 this,           SLOT(showError(QString)));
     connect(scanner,SIGNAL(finished()),                         scanner,        SLOT(deleteLater()));
-    connect(scanner,SIGNAL(finished()),                         this,           SIGNAL(purgeScenes()));
+    connect(scanner,SIGNAL(finished()),                         sql,            SLOT(purgeScenes()));
     scanner->start();
 
 }
@@ -444,6 +449,25 @@ ActorPtr MainWindow::getSelectedActor(){
         qWarning("Error Retrieving Selected Actor");
     }
     return a;
+}
+
+void MainWindow::purgeSceneItems(QVector<int>ids){
+    qDebug("Looking for %d Scenes in the GUI Display list...", ids.size());
+    QVector<QModelIndex> removals = {};
+    for (int r = 0; r < sceneModel->rowCount(); ++r){
+        QModelIndex curr = sceneModel->index(r, SCENE_ID_COLUMN);
+        if (curr.isValid()){
+            int id = curr.data().toInt();
+            if (ids.contains(id)){
+                removals << curr;
+            }
+        }
+    }
+    qDebug("Found %d/%d scenes in the Display List", removals.size(), ids.size());
+    foreach(QModelIndex idx, removals){
+        sceneModel->removeRow(idx.row());
+    }
+    qDebug("Scenes removed");
 }
 
 void MainWindow::searchScenes(){
@@ -644,8 +668,6 @@ void MainWindow::receiveSingleActor(ActorPtr a){
  *  \param SceneList s: The List of Scenes scanned in.
  *  \param QStringList newNames:    List of names of actors appearing in the scenes scanned in.
  */
-
-
 void MainWindow::on_pb_saveScenes_clicked(){
     if (!sceneMap.isEmpty()){
         this->sceneList = fromHashMap(sceneMap);
@@ -810,9 +832,9 @@ void MainWindow::renameFile(ScenePtr scene){
         box.resize(QSize(600,400));
         if (box.exec() == QMessageBox::Save){
             this->updater = new FileRenamer(scene, newName, this);
-            connect(updater, SIGNAL(error(QString)), this, SLOT(showError(QString)));
-            connect(updater, SIGNAL(saveToDatabase(ScenePtr)), sql, SLOT(saveChanges(ScenePtr)));
-            connect(updater, SIGNAL(finished()), updater, SLOT(deleteLater()));
+            connect(updater, SIGNAL(error(QString)),            this,       SLOT(showError(QString)));
+            connect(updater, SIGNAL(saveToDatabase(ScenePtr)),  sql,        SLOT(saveChanges(ScenePtr)));
+            connect(updater, SIGNAL(finished()),                updater,    SLOT(deleteLater()));
             updater->start();
         }
     }

@@ -96,6 +96,7 @@ signals:
     void updateProgress(int);
     void closeProgress(QString);
     void closeProgress();
+    void sendPurgeList(QVector<int>);
 
     void sendResult(bool);
     void sendResult(ActorList);

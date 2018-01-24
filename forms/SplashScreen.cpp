@@ -1,4 +1,5 @@
 #include "SplashScreen.h"
+#include "config.h"
 #include "ui_SplashScreen.h"
 #include "Actor.h"
 #include "Scene.h"
@@ -11,6 +12,7 @@ SplashScreen::SplashScreen(QWidget *parent) :
     scenesBuilt(false), actorsBuilt(false), scenesLoaded(false), actorsLoaded(false)
 {
     ui->setupUi(this);
+    checkForDataDirectories();
     progressList << ui->pb_loadActors << ui->pb_loadScenes << ui->pb_buildActors << ui->pb_buildScenes;
     foreach(QProgressBar *pb, progressList){
         pb->setMinimum(0);
@@ -102,6 +104,7 @@ void SplashScreen::stepComplete(int progress){
     qDebug("\nIndex %d Finished\n", progress);
     progressList[progress]->setValue(progressList.at(progress)->maximum());
     if (actorsLoaded && scenesLoaded && actorsBuilt && scenesBuilt){
+        ml.unlock();
         qDebug("Initialization Finished");
         emit done(actors, scenes, actorRows, sceneRows);
     }
