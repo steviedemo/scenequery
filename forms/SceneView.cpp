@@ -131,18 +131,19 @@ void SceneView::resizeSceneView(){
 }
 
 void SceneView::clearFilter(){
-    actorFilterChanged("");
+    proxyModel->clearFilters();
 }
 void SceneView::clearActorFilterOnly(){
     this->nameFilter = "";
-    proxyModel->setFilterActor("");
+    proxyModel->setFilterActor(".*");
 }
 
 void SceneView::searchByFilename(const QString &searchTerm){
     this->filenameFilterChanged(searchTerm);
 }
 void SceneView::clearSearchFilter(){
-    this->filenameFilterChanged("");
+    this->filenameFilterChanged(".*");
+
 }
 
 void SceneView::searchByID(const int &id){

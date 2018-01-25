@@ -17,10 +17,14 @@ public:
     bool        contains(const QString &name)   const    {  return actorMap.contains(name);    }
     ActorPtr    getActor(const QString)         const;
     ScenePtr    getScene(const int id)          const;
-    bool        add(const ScenePtr s,     bool saveToDB=true);
-    bool        add(const ActorPtr a,     bool saveToDB=true);
-    void        add(const SceneList list, bool saveToDB=true);
-    void        add(const ActorList list, bool saveToDB=true);
+    bool        add(const ScenePtr s);
+    bool        add(const ActorPtr a);
+    void        add(const SceneList list);
+    void        add(const ActorList list);
+    bool        update(const ActorPtr, bool saveToDB=true);
+    bool        update(const ScenePtr, bool saveToDB=true);
+    void        update(const SceneList list, bool saveToDB=true);
+    void        update(const ActorList list, bool saveToDB=true);
     void        remove(const ScenePtr s);
     void        remove(const ActorPtr a);
     void        remove(const QString &name);

@@ -13,10 +13,11 @@ void SceneProxyModel::clearFilters(){
     ratingOp        = NOT_SET;
     releasedOp      = NOT_SET;
     addedOp         = NOT_SET;
-    nameFilter      = "";
-    companyFilter   = "";
-    fileFilter      = "";
-    tagFilter       = "";
+    nameFilter      = ".*";
+    companyFilter   = ".*";
+    fileFilter      = ".*";
+    tagFilter       = ".*";
+    gradeFilter     = ".*";
     qualityFilter   = -1;
     idFilter        = -1;
     sizeFilter      = -1;
@@ -33,27 +34,36 @@ void SceneProxyModel::setFilter(QString text){
 }
 
 bool SceneProxyModel::filterMatchesAnything(const LogicalOperator &op) const {return (op == NOT_SET);}
-bool SceneProxyModel::filterMatchesAnything(const QString &s)          const {return (s.isEmpty() || s == ".*");}
+bool SceneProxyModel::filterMatchesAnything(const QString &s)          const {return (s.isEmpty() || s == ".*" || s == "No Selection");}
 
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
     return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();
 }
 
 bool SceneProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const{
-    return (
-            filterMatches_name      (source_row, source_parent) && \
-            filterMatches_filename  (source_row, source_parent) && \
-            filterMatches_duration  (source_row, source_parent) && \
-            filterMatches_company   (source_row, source_parent) && \
-            filterMatches_filesize  (source_row, source_parent) && \
-            filterMatches_quality   (source_row, source_parent) && \
-            filterMatches_rating    (source_row, source_parent) && \
-            filterMatches_release   (source_row, source_parent) \
-    );
+    QString filename = getCellData(source_row, SCENE_PATH_COLUMN, source_parent);
+    //qDebug("Checking '%s'", qPrintable(filename));
+    bool fileMatch = (fileFilter == ".*"         || filterMatches_filename  (source_row, source_parent));
+    //qDebug() << "	"<< (fileMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  fileFilter;
+    bool nameMatch = filterMatches_name      (source_row, source_parent);
+    //qDebug() << "	"<< (nameMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  nameFilter;
+    bool durationMatch = (!durationFilter.isValid()  || filterMatches_duration  (source_row, source_parent));
+    //qDebug() << "	"<< (durationMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  durationFilter.toString("h:mm:ss");
+    bool companyMatch = (companyFilter == ".*"      || filterMatches_company   (source_row, source_parent));
+    //qDebug() << "	"<< (companyMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  companyFilter;
+    bool sizeMatch = ((sizeFilter == -1)         || filterMatches_filesize  (source_row, source_parent));
+    //qDebug() << "	"<< (sizeMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  sizeFilter;
+    bool heightMatch = ((qualityFilter == -1)      || filterMatches_quality   (source_row, source_parent));
+    //qDebug() << "	"<< (heightMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  qualityFilter;
+    bool ratingMatch = ((!ratingFilter.isValid())  || filterMatches_rating    (source_row, source_parent));
+    //qDebug() << "	"<< (ratingMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  ratingFilter.grade();
+    bool releaseMatch = (!releasedFilter.isValid()  || filterMatches_release   (source_row, source_parent));
+    //qDebug() << "	"<< (releaseMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  releasedFilter.toString("yyyy/MM/dd") << endl;
+    return (fileMatch && nameMatch && durationMatch && companyMatch && sizeMatch && heightMatch && ratingMatch && releaseMatch);
 }
 
 bool SceneProxyModel::filterMatches_filename(int row, const QModelIndex &index) const{
-    bool match = false;
+    bool match = true;
     if (fileFilter == ".*" || fileFilter.isEmpty()){
         match = true;
     } else {
@@ -94,7 +104,7 @@ bool SceneProxyModel::filterMatches_quality(int row, const QModelIndex &index) c
 }
 bool SceneProxyModel::filterMatches_rating(int row, const QModelIndex &index) const{
     bool match = true;
-    if (!filterMatchesAnything(ratingOp)){
+    if (!filterMatchesAnything(ratingOp) && !ratingFilter.isEmpty()){
         match = false;
         QString r = getCellData(row, SCENE_RATING_COLUMN, index);
         if (!r.isEmpty()){
@@ -131,7 +141,7 @@ bool SceneProxyModel::filterMatches_filesize(int row, const QModelIndex &index) 
 
 bool SceneProxyModel::filterMatches_duration(int row, const QModelIndex &index) const{
     bool match = true;
-    if (!filterMatchesAnything(durationOp) && (durationFilter.isValid())){
+    if (!filterMatchesAnything(durationOp) && durationFilter.isValid()){
         match = false;
         QString s = getCellData(row, SCENE_LENGTH_COLUMN, index);
         if (!s.isEmpty()){

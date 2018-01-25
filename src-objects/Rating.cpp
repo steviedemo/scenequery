@@ -7,10 +7,12 @@
 #define C_VALUE 1
 const int PaintingScaleFactor = 20;
 const QRegularExpression regex("[ABCR][\\+\\-]*");
-//Rating::Rating(int i) {
-//    this->starRating = i;
-//    this->gradeRating = StarsToGrade(i);
-//}
+
+Rating::Rating(){
+    this->gradeRating = "";
+    this->starRating = 0;
+}
+
 Rating::Rating(QString s) {
     QRegularExpressionMatch m = regex.match(s);
     if (m.hasMatch()){
@@ -22,26 +24,72 @@ Rating::Rating(QString s) {
         this->gradeRating = "R";
     }
     this->starRating = GradeToStars(gradeRating);
+#ifdef GRAPHIC_RATING
     setupView();
+#endif
 }
-/*
-Rating::Rating(const Rating &other){
-    this->gradeRating = other.gradeRating;
-    this->starRating = other.starRating;
+bool Rating::operator ==(Rating other) const{   return (this->starRating == other.stars());    }
+bool Rating::operator < (Rating other) const{   return (this->starRating <  other.stars());    }
+bool Rating::operator > (Rating other) const{   return (this->starRating >  other.stars());    }
+bool Rating::operator >=(Rating other) const{   return (this->starRating >= other.stars());    }
+bool Rating::operator <=(Rating other) const{   return (this->starRating <= other.stars());    }
+bool Rating::operator !=(Rating other) const{   return (this->starRating != other.stars());    }
+
+
+QString Rating::sqlSafe() const{
+    return QString("'%1'").arg(this->gradeRating);
+}
+
+void Rating::fromStars(int i){
+    this->starRating = i;
+    this->gradeRating = StarsToGrade(i);
+#ifdef GRAPHIC_RATING
     setupView();
+#endif
 }
-*/
-/*
-Rating Rating::operator =(const Rating &other){
-    this->starRating = other.starRating;
-    this->gradeRating = other.gradeRating;
+void Rating::fromString(QString s){
+    this->gradeRating = s;
+    this->starRating = GradeToStars(s);
+#ifdef GRAPHIC_RATING
     setupView();
-    return *this;
+#endif
 }
-*/
-//Rating::Rating(const std::string s){
-//    fromString(QString::fromStdString(s));
-//}
+
+int Rating::GradeToStars(QString s){
+    int d = 0;
+    if (s.contains("R"))        {   return 0;       }
+    else if (s.contains('A'))   {   d = A_VALUE;    }
+    else if (s.contains('B'))   {   d = B_VALUE;    }
+    else if (s.contains('C'))   {   d = C_VALUE;    }
+    foreach (QChar c, s){
+        if (c == '-'){
+            d -= 1;
+        } else if (c == '+') {
+            d += 1;
+        }
+    }
+    return d;
+}
+
+QString Rating::StarsToGrade(int i){
+    QString s("");
+    switch (i){
+        case 10:s = "A+++"; break;
+        case 9: s = "A++";  break;
+        case 8: s = "A+";   break;
+        case 7: s = "A";    break;
+        case 6: s = "A-";   break;
+        case 5: s = "B+";   break;
+        case 4: s = "B";    break;
+        case 3: s = "B-";   break;
+        case 2: s = "C+";   break;
+        case 1: s = "C";    break;
+        default:s = "R";    break;
+    }
+    return s;
+}
+
+#ifdef GRAPHIC_RATING
 void Rating::setupView(){
     this->starPolygon << QPointF(1.0, 0.5);
     for (int i = 0; i < MAX_STAR_RATING; ++i){
@@ -76,81 +124,5 @@ void Rating::paint(QPainter *painter, const QRect &rect, const QPalette &palette
     }
     painter->restore();
 }
-
-bool Rating::operator ==(Rating other) const{   return (this->starRating == other.stars());    }
-bool Rating::operator < (Rating other) const{   return (this->starRating <  other.stars());    }
-bool Rating::operator > (Rating other) const{   return (this->starRating >  other.stars());    }
-bool Rating::operator >=(Rating other) const{   return (this->starRating >= other.stars());    }
-bool Rating::operator <=(Rating other) const{   return (this->starRating <= other.stars());    }
-bool Rating::operator !=(Rating other) const{   return (this->starRating != other.stars());    }
-
-bool Rating::isEmpty() const{
-    return this->gradeRating.isEmpty();
-}
-
-QString Rating::sqlSafe() const{
-    return QString("'%1'").arg(this->gradeRating);
-}
-QString Rating::grade() const{
-    return this->gradeRating;
-}
-int Rating::stars() const{
-    return this->starRating;
-}
-void Rating::fromStars(int i){
-    this->starRating = i;
-    this->gradeRating = StarsToGrade(i);
-    setupView();
-}
-void Rating::fromString(QString s){
-    this->gradeRating = s;
-    this->starRating = GradeToStars(s);
-    setupView();
-}
-
-int Rating::GradeToStars(QString s){
-    int d = 0;
-    if (s.contains("R"))        {   return 0;       }
-    else if (s.contains('A'))   {   d = A_VALUE;    }
-    else if (s.contains('B'))   {   d = B_VALUE;    }
-    else if (s.contains('C'))   {   d = C_VALUE;    }
-    foreach (QChar c, s){
-        if (c == '-'){
-            d -= 1;
-        } else if (c == '+') {
-            d += 1;
-        }
-    }
-    return d;
-}
-
-QString Rating::StarsToGrade(int i){
-    QString s("");
-    switch (i){
-        case 10:s = "A+++"; break;
-        case 9: s = "A++";  break;
-        case 8: s = "A+";   break;
-        case 7: s = "A";    break;
-        case 6: s = "A-";   break;
-        case 5: s = "B+";   break;
-        case 4: s = "B";    break;
-        case 3: s = "B-";   break;
-        case 2: s = "C+";   break;
-        case 1: s = "C";    break;
-        default:s = "R";    break;
-    }
-    /*
-    if (d >= 10)       {   s = "A+++"; }
-    else if (d == 9)  {   s = "A++";  }
-    else if (d == 8)  {   s = "A+";   }
-    else if (d == 3.5)  {   s = "A";    }
-    else if (d == 3.0)  {   s = "A-";   }
-    else if (d == 2.5)  {   s = "B+";   }
-    else if (d == 2.0)  {   s = "B";    }
-    else if (d == 1.5)  {   s = "B-";   }
-    else if (d == 1.0)  {   s = "C+";   }
-    else if (d == 0.5)  {   s = "C";    }
-    */
-    return s;
-}
+#endif
 

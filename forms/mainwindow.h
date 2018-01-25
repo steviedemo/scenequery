@@ -3,9 +3,9 @@
 #include "definitions.h"
 #include "config.h"
 #include "curlTool.h"
-#include "DataManager.h"
 #include "FileScanner.h"
 #include "SceneList.h"
+#include "DataManager.h"
 #include "Actor.h"
 #include "MiniThreads.h"
 #include "Scene.h"
@@ -30,7 +30,7 @@
 #include <QTableView>
 #include <QSettings>
 
-//enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
+enum Display { DISPLAY_SCENES, DISPLAY_ACTORS, DISPLAY_PHOTOS };
 namespace Ui {
 class MainWindow;
 }
@@ -80,13 +80,7 @@ private slots:
 
     /// Buttons
 
-    void scanPaths(QStringList paths);
     void scan_directory_chosen(QString);
-    void on_actionAdd_Scan_Folder_triggered();
-    void on_actionScan_All_Folders_triggered();
-
-    void on_pb_saveScenes_clicked();
-    void on_pb_saveActors_clicked();
     void on_tb_clearActorFilters_clicked();
 
 
@@ -104,7 +98,10 @@ private slots:
     void on_actionWipe_Actor_Table_triggered();
     void on_actionDeleteActor_triggered();
     void on_actionItemDetails_triggered();
+    void on_actionScan_All_Folders_triggered();
+    void scanPaths(QStringList paths);
 
+    void on_actionAdd_Scan_Folder_triggered();
 
 private:
     RunMode runMode;
@@ -122,18 +119,22 @@ private:
     Ui::MainWindow *ui;
     DataManager vault;
     QModelIndex currentActorIndex;
-    //QMap<QString, ActorPtr> actorMap;
-    //QHash<int, ScenePtr> sceneMap;
-    ActorPtr currentActor;//, updatedActor;
+    QMap<QString, ActorPtr> actorMap;
+    QHash<int, ScenePtr> sceneMap;
+    ActorList actorList, updateList;
+    ActorPtr currentActor, updatedActor;
     QFileDialog *fileDialog;
     QProgressDialog *progressDialog;
     QStandardItemModel *sceneModel, *actorModel;
     SceneProxyModel *sceneProxyModel;
     ActorProxyModel *actorProxyModel;
+    QItemSelectionModel *actorSelectionModel;
     QStandardItem *actorParent, *sceneParent;
-    SceneList sceneUpdateList;
+    QStringList names, actorHeaders, sceneHeaders;
+    SceneList sceneList, sceneUpdateList;
     bool videoOpen;
     QString prevSearchActor, prevSearchScene;
+    RowList rows;
     /// Threads
     FileRenamer *updater;
     SceneDetailView *sceneDetailView;
@@ -148,8 +149,10 @@ private:
     SearchPathDialog *searchPathDialog;
     QThread     *sqlThread, *curlThread, *curlTestThread;
     bool itemSelected;
+    Display currentDisplay;
     int index;
     QMutex mx;
+    QSettings *settings;
 
 signals:
     void closing();
@@ -162,6 +165,7 @@ signals:
     void deleteActor        (QString);
     void saveActors         (ActorList);
     void saveActorChanges   (ActorPtr);
+    void updateBios         (ActorList);
     void loadActorProfile   (ActorPtr);
     void updateSingleBio    (ActorPtr);
     void startVideoPlayback (void);

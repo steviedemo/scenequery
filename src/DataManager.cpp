@@ -10,7 +10,38 @@ DataManager::DataManager(QObject *parent):
 
 DataManager::~DataManager(){}
 
-bool DataManager::add(const ActorPtr a, bool saveToDB){
+bool DataManager::add(const ActorPtr a){
+    bool dataValid = false;
+    if (!a.isNull()){
+        const QString name = a->getName();
+        if (!name.isEmpty()){
+            dataValid = true;
+            if (!actorMap.contains(name)){
+                actorMap.insert(name, a);
+            }
+        }
+    } else {
+        qWarning("Not inserting empty actor into map.");
+    }
+    return dataValid;
+}
+bool DataManager::add(const ScenePtr s){
+    bool dataValid = true;
+    if(!s.isNull()){
+        const int id = s->getID();
+        if (id > 0){
+            dataValid = true;
+            if (!sceneMap.contains(id)){
+                sceneMap.insert(id, s);
+            }
+        }
+    } else {
+        qWarning("Not inserting empty Scene into map");
+    }
+    return dataValid;
+}
+
+bool DataManager::update(const ActorPtr a, bool saveToDB){
     bool dataValid = false;
     if (!a.isNull()){
         const QString name = a->getName();
@@ -37,7 +68,7 @@ bool DataManager::add(const ActorPtr a, bool saveToDB){
     return dataValid;
 }
 
-bool DataManager::add(const ScenePtr s, bool saveToDB){
+bool DataManager::update(const ScenePtr s, bool saveToDB){
     bool dataValid = true;
     if (!s.isNull()){
         const int id = s->getID();
@@ -53,12 +84,16 @@ bool DataManager::add(const ScenePtr s, bool saveToDB){
     }
     return dataValid;
 }
-void DataManager::add(const ActorList list, bool saveToDB){
-    foreach(ActorPtr a, list){  add(a, saveToDB); }
+void DataManager::update(const ActorList list, bool saveToDB){
+    foreach(ActorPtr a, list){  update(a, saveToDB); }
 }
-void DataManager::add(const SceneList list, bool saveToDB){
-    foreach(ScenePtr s, list){  add(s, saveToDB); }
+void DataManager::add(const ActorList list){
+    foreach(ActorPtr a, list){ add(a);  }
 }
+void DataManager::update(const SceneList list, bool saveToDB){
+    foreach(ScenePtr s, list){  update(s, saveToDB); }
+}
+void DataManager::add(const SceneList list){    foreach(ScenePtr s, list){  add(s); }   }
 
 ActorPtr DataManager::getActor(const QString name) const{
     if (actorMap.contains(name)){

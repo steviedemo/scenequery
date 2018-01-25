@@ -13,22 +13,22 @@ class SceneProxyModel : public QSortFilterProxyModel
 public:
     SceneProxyModel(QObject *parent = 0);
     void    clearFilters        (void);
-    void    setFilterActor      (const QString &name)                               {   this->nameFilter = name;        }
-    void    setFilterCompany    (const QString &company)                            {   this->companyFilter = company;  }
-    void    setFilterTag        (const QString &tag)                                {   this->tagFilter = tag;          }
-    void    setFilterFilename   (const QString &searchTerm)                         {   this->fileFilter = searchTerm;  }
-    void    setFilterID         (const int &id)                                     {   this->idFilter = id;            }
-    void    setFilterQuality    (const int &quality,    const LogicalOperator &op=NOT_SET) {   this->qualityOp = op;   this->qualityFilter = quality;}
-    void    setFilterDuration   (const QTime &time,     const LogicalOperator &op=NOT_SET) {   this->durationOp = op;  this->durationFilter = time;}
-    void    setFilterRating     (const Rating &rating,  const LogicalOperator &op=NOT_SET) {   this->ratingOp = op;    this->ratingFilter = rating;}
-    void    setFilterSize       (const qint64 &size,    const LogicalOperator &op=NOT_SET) {   this->sizeOp = op;      this->sizeFilter = size;    }
-    void    setFilterRelease    (const QDate &date,     const LogicalOperator &op=NOT_SET) {   this->releasedOp= op;   this->releasedFilter = date;}
-    void    setFilterAdded      (const QDate &date,     const LogicalOperator &op=NOT_SET) {   this->addedOp = op;     this->addedFilter = date;   }
-    QString filterActor()                           const                           {   return nameFilter;                          }
-    QString filterCompany()                         const                           {   return companyFilter;                       }
-    QString filterTag()                             const                           {   return tagFilter;                           }
-    int     filterID()                              const                           {   return idFilter;                            }
-    QString filterFilename()                        const                           {   return fileFilter;                          }
+    void    setFilterActor      (const QString name=".*")                           {   this->nameFilter = name;        setFilter(name);         }
+    void    setFilterCompany    (const QString company=".*")                        {   this->companyFilter = company;  setFilter(company);      }
+    void    setFilterTag        (const QString tag=".*")                            {   this->tagFilter = tag;          setFilter(tag);          }
+    void    setFilterFilename   (const QString searchTerm=".*")                     {   this->fileFilter = searchTerm;  setFilter(searchTerm);   }
+    void    setFilterID         (const int id       = -1)                           {   this->idFilter = id;            }
+    void    setFilterQuality    (const int quality  = -1,       const LogicalOperator op=NOT_SET) {   this->qualityOp = op;   this->qualityFilter = quality;}
+    void    setFilterDuration   (const QTime time   = QTime(),  const LogicalOperator op=NOT_SET) {   this->durationOp = op;  this->durationFilter = time;  }
+    void    setFilterRating     (const Rating rating= Rating(), const LogicalOperator op=NOT_SET) {   this->ratingOp = op;    this->ratingFilter = rating;  }
+    void    setFilterSize       (const qint64 size  = -1,       const LogicalOperator op=NOT_SET) {   this->sizeOp = op;      this->sizeFilter = size;      }
+    void    setFilterRelease    (const QDate date   = QDate(),  const LogicalOperator op=NOT_SET) {   this->releasedOp= op;   this->releasedFilter = date;  }
+    void    setFilterAdded      (const QDate date   = QDate(),  const LogicalOperator op=NOT_SET) {   this->addedOp = op;     this->addedFilter = date;     }
+    QString filterActor()                           const                           {   return this->nameFilter;                          }
+    QString filterCompany()                         const                           {   return this->companyFilter;                       }
+    QString filterTag()                             const                           {   return this->tagFilter;                           }
+    int     filterID()                              const                           {   return this->idFilter;                            }
+    QString filterFilename()                        const                           {   return this->fileFilter;                          }
     QPair<LogicalOperator, int>    filterQuality()  const                           {   return QPair<LogicalOperator, int>      (qualityOp,  qualityFilter);    }
     QPair<LogicalOperator, QTime>  filterDuration() const                           {   return QPair<LogicalOperator, QTime>    (durationOp, durationFilter);   }
     QPair<LogicalOperator, Rating> filterRating()   const                           {   return QPair<LogicalOperator, Rating>   (ratingOp,   ratingFilter);     }
@@ -58,6 +58,7 @@ private:
     QTime durationFilter;
     QDate addedFilter, releasedFilter;
     Rating ratingFilter;
+    QString gradeFilter;
     int qualityFilter, idFilter;
 };
 

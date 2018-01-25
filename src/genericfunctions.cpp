@@ -31,7 +31,7 @@ QString toString(const LogicalOperator &op){
     return p;
 }
 LogicalOperator fromString(const QString &p){
-    QString op = NOT_SET;
+    LogicalOperator op = NOT_SET;
     if (p == "EQUAL"){
         return EQUAL;
     } else if (p == "LESSER_THAN"){
@@ -45,7 +45,7 @@ LogicalOperator fromString(const QString &p){
     } else if (p == "NOT_EQUAL"){
         return NOT_EQUAL;
     } else {
-        qWarning("Unrecognized String attempting to be converted into a logical operator (%s)", qPrintable(s));
+        qWarning("Unrecognized String attempting to be converted into a logical operator (%s)", qPrintable(p));
     }
     return op;
 }

@@ -79,7 +79,8 @@ bool FilterSet::save(const QString &filepath){
         out << writeLine(FILTER_RELEASE, releasedFilter.toString("yyyy-MM-dd"));
         out << writeLine(FILTER_ADDED, addedFilter.toString("yyyy-MM-dd"));
         out << writeLine(FILTER_RATING, ratingFilter.grade());
-        success = file.close();
+        file.close();
+        success = true;
         qDebug("Filters saved to '%s'", qPrintable(filepath));
     }
     return success;

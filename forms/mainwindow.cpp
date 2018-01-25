@@ -240,7 +240,7 @@ void MainWindow::startThreads(){
     /// Set up curl thread communications with main thread
     connect(&vault,                     SIGNAL(updateBiosFromWeb(ActorList)),   curl,               SLOT(updateBios(ActorList)));
     connect(this,                       SIGNAL(updateBios(ActorList)),          curl,               SLOT(updateBios(ActorList)));
-    connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr a)),this,               SLOT(receiveSingleActor(ActorPtr)));
+    connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr)),  this,               SLOT(receiveSingleActor(ActorPtr)));
     connect(curl,                       SIGNAL(updateFinished(ActorList)),      this,               SLOT(receiveActors(ActorList)));
     /// Set up the SQL Thread for communications with the main thread
 
