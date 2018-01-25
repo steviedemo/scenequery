@@ -36,8 +36,9 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
         connect(castList.at(i), SIGNAL(linkActivated(QString)), this, SLOT(actorLinkClicked(QString)));
     }
     connect(ui->tb_add_actor, SIGNAL(pressed()), this, SLOT(addActor()));
-    connect(ui->pb_play, SIGNAL(pressed()), this, SLOT(playCurrentVideo()));
-    connect(ui->pb_hide, SIGNAL(pressed()), this, SLOT(hide()));
+    connect(ui->pb_play, &QPushButton::pressed, [=]{    emit playVideo(this->currentSceneID);   });
+    connect(ui->pb_hide, SIGNAL(pressed()),      this, SLOT(hide()));
+    connect(ui->pb_reparse,  SIGNAL(clicked()),  this, SLOT(rescanScene()));
     QStringList ratingValues = getRatingList();
     foreach(QString rating, ratingValues){
         ui->ratingComboBox->addItem(rating, rating);
@@ -47,6 +48,12 @@ SceneDetailView::SceneDetailView(QWidget *parent) :
 
 SceneDetailView::~SceneDetailView(){
     delete ui;
+}
+
+void SceneDetailView::sceneSelectionChanged(ScenePtr s){
+    if (!this->isHidden()){
+        loadScene(s);
+    }
 }
 
 void SceneDetailView::loadScene(ScenePtr s){
@@ -83,7 +90,6 @@ void SceneDetailView::loadScene(ScenePtr s){
         ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
         ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
         ui->filenameLineEdit->setText(s->getFullpath());
-
         ui->tagsTextEdit->setPlainText(s->tagString());
     } catch (std::bad_alloc &e){
         qWarning("Bad Alloc Exception Caught while Setting fields: %s", e.what());
@@ -105,17 +111,23 @@ void SceneDetailView::loadScene(ScenePtr s){
         }
         QStringList cast = s->getActors();
         if (!cast.isEmpty()){
-            for (int i = 0; i < cast.size() && i < ageList.size(); ++i){
-                QString name = cast.at(i);
+            for (int i = 0; i < ageList.size(); ++i){
+                castList.at(i)->clear();
                 ageList.at(i)->clear();
-                if (!name.isEmpty()){
-                    castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
-                    if (!released.isNull() && released.isValid()){
-                        emit requestActorBirthday(cast.at(i));
+                ageLabelList.at(i)->clear();
+                if (i < cast.size()){
+                    QString name = cast.at(i);
+                    if (!name.isEmpty()){
+                        castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
+                        if (!released.isNull() && released.isValid() && vault->contains(name)){
+                            QDate birthday = vault->getActor(name)->getBirthday();
+                            if (!birthday.isNull() && birthday.isValid()){
+                                int age = (birthday.daysTo(released)/365);
+                                ageList.at(i)->setText(QString::number(age));
+                                ageLabelList.at(i)->setText("Age:");
+                            }
+                        }
                     }
-                } else {
-                    castList.at(i)->clear();
-                    ageLabelList.at(i)->clear();
                 }
             }
         }
@@ -130,11 +142,6 @@ void SceneDetailView::loadScene(ScenePtr s){
    this->show();
 }
 
-void SceneDetailView::on_pb_reparse_clicked()
-{
-    this->rescanScene();
-}
-
 void SceneDetailView::rescanScene(){
     if (!current.isNull()){
         qDebug("Reparsing Scene...");
@@ -144,10 +151,6 @@ void SceneDetailView::rescanScene(){
     } else {
         qWarning("Unable to re-parse Null Scene");
     }
-}
-
-void SceneDetailView::playCurrentVideo(){
-    emit playVideo(currentSceneID);
 }
 
 void SceneDetailView::addActor(){
@@ -166,16 +169,16 @@ void SceneDetailView::addActor(){
     }
 }
 
-void SceneDetailView::receiveActorBirthday(QString name, QDate date){
-    bool found = false;
-    for(int i = 0; i < 4 && !found; ++i){
-        if (castList.at(i)->text().contains(name, Qt::CaseInsensitive)){
-            found = true;
-            int age = (date.daysTo(QDate::fromString(ui->releasedLineEdit->text(), "MMMM d, yyyy"))/365);
-            ageList.at(i)->setText(QString("Age: %1").arg(age));
-        }
-    }
-}
+//void SceneDetailView::receiveActorBirthday(QString name, QDate date){
+//    bool found = false;
+//    for(int i = 0; i < 4 && !found; ++i){
+//        if (castList.at(i)->text().contains(name, Qt::CaseInsensitive)){
+//            found = true;
+//            int age = (date.daysTo(QDate::fromString(ui->releasedLineEdit->text(), "MMMM d, yyyy"))/365);
+//            ageList.at(i)->setText(QString("Age: %1").arg(age));
+//        }
+//    }
+//}
 
 void SceneDetailView::clearDisplay(){
     for(int i = 0; i < 4; ++i){
@@ -196,6 +199,9 @@ void SceneDetailView::clearDisplay(){
 void SceneDetailView::actorLinkClicked(QString name){
     if (!name.isEmpty()){
         emit showActor(name);
+        if (vault->contains(name)){
+            emit showActor(vault->getActor(name));
+        }
     }
 }
 

@@ -11,7 +11,7 @@ ActorTableView::ActorTableView(QWidget *parent):
     QStringList actorHeaders, sceneHeaders;
     actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
-    this->actorModel->setSortRol(Qt::DecorationRole);
+    this->actorModel->setSortRole(Qt::DecorationRole);
     this->actorParent = actorModel->invisibleRootItem();
     this->actorModel->setHorizontalHeaderLabels(actorHeaders);
     proxyModel->setSourceModel(actorModel);
@@ -55,16 +55,23 @@ void ActorTableView::addNewActors(const ActorList &list){
     qDebug("%s adding actors to display", __FILE__);
     emit progressBegin(QString("Adding %1 actors to the view").arg(list.size()), list.size());
     int index = 0;
+    bool firstAdd = this->actorModel->hasChildren();
     foreach(ActorPtr a, list){
         if (!a.isNull()){
-            this->actorModel->appendRow(a->buildQStandardItem());
-            vault->add(a);
+            int matchingRows = actorModel->findItems(a->getName(),Qt::MatchExactly, ACTOR_NAME_COLUMN).size();
+            if (firstAdd || (matchingRows == 0)){
+                actorModel->appendRow(a->buildQStandardItem());
+                vault->add(a);
+            } else if (!firstAdd){
+                vault->update(a);
+            }
         } else {
             qWarning("%s::%s element %d of actor list is null!", __FILE__, __FUNCTION__, index);
         }
         emit progressUpdate(++index);
     }
     emit progressEnd("Finished Adding actors to display");
+    table->sortByColumn(ACTOR_NAME_COLUMN);
 }
 
 void ActorTableView::addNewActor(const ActorPtr a){
@@ -97,6 +104,7 @@ void ActorTableView::rowCountChanged(QModelIndex, int, int){
 void ActorTableView::resizeToContents(){
     table->resizeColumnsToContents();
     table->resizeRowsToContents();
+    table->sortByColumn(ACTOR_NAME_COLUMN);
 }
 
 QString ActorTableView::selectedName() const{
@@ -207,7 +215,12 @@ void ActorTableView::setSourceModel(QAbstractItemModel *model){
     proxyModel->setSourceModel(model);
 }
 
-void ActorTableView::addActor(ActorPtr /*a*/, const QModelIndex &/*parent*/){}
+void ActorTableView::addActor(ActorPtr a){
+    if (!a.isNull() && actorModel->findItems(a->getName(), Qt::MatchExactly, ACTOR_NAME_COLUMN).isEmpty()){
+        actorModel->appendRow(a->buildQStandardItem());
+        vault->add(a, true);
+    }
+}
 void ActorTableView::filterChanged(QString){}
 void ActorTableView::filterChangedName(const QString name){
     this->nameFilter = name;

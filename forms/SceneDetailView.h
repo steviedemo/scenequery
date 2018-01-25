@@ -10,6 +10,7 @@
 #include <QToolButton>
 #include <QMediaPlayer>
 #include <QList>
+#include "DataManager.h"
 #include <QVBoxLayout>
 #include <QVideoWidget>
 #include "definitions.h"
@@ -25,19 +26,16 @@ public:
     explicit SceneDetailView(QWidget *parent = 0);
     ~SceneDetailView();
 public slots:
-    void receiveActorBirthday(QString, QDate);
+    //void receiveActorBirthday(QString, QDate);
     void clearDisplay(void);
     void loadScene(ScenePtr);
+    void setDataContainers(QSharedPointer<DataManager> vault) { this->vault = vault;    }
+    void sceneSelectionChanged(ScenePtr);
 private slots:
     void rescanScene();
     void addActor(void);
     void actorLinkClicked(QString);
-    void playCurrentVideo();
     void on_pb_save_clicked();
-
-
-    void on_pb_reparse_clicked();
-
 private:
     Ui::SceneDetailView *ui;
     void enableLineEdits(bool readOnly);
@@ -46,9 +44,11 @@ private:
     int currentSceneID;
     QList<QLabel *> castList, ageList, ageLabelList;
     QList<QLineEdit *>dataFields;
+    QSharedPointer<DataManager> vault;
 
 signals:
     void showActor(QString);
+    void showActor(ActorPtr);
     void saveChanges(ScenePtr);
     void requestActorBirthday(QString name);
     void playVideo(int sceneID);

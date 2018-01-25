@@ -11,19 +11,15 @@ DataManager::DataManager(QObject *parent):
 DataManager::~DataManager(){}
 
 bool DataManager::contains(const int ID) const{
-    mx.lock();
     bool hasID = sceneMap.contains(ID);
-    mx.unlock();
     return hasID;
 }
 bool DataManager::contains(const QString &name) const{
-    mx.lock();
     bool hasName = actorMap.contains(name);
-    mx.unlock();
     return hasName;
 }
 
-bool DataManager::add(const ActorPtr a){
+bool DataManager::add(const ActorPtr a, bool saveToDB){
     bool dataValid = false;
     if (!a.isNull()){
         const QString name = a->getName();
@@ -32,6 +28,9 @@ bool DataManager::add(const ActorPtr a){
             mx.lock();
             if (!actorMap.contains(name)){
                 actorMap.insert(name, a);
+                if (saveToDB){
+                    emit save(a);
+                }
             }
             mx.unlock();
         }
@@ -40,7 +39,7 @@ bool DataManager::add(const ActorPtr a){
     }
     return dataValid;
 }
-bool DataManager::add(const ScenePtr s){
+bool DataManager::add(const ScenePtr s, bool saveToDB){
     bool dataValid = true;
     if(!s.isNull()){
         const int id = s->getID();
@@ -49,6 +48,9 @@ bool DataManager::add(const ScenePtr s){
             mx.lock();
             if (!sceneMap.contains(id)){
                 sceneMap.insert(id, s);
+                if (saveToDB){
+                    emit save(s);
+                }
             }
             mx.unlock();
         }
@@ -109,14 +111,18 @@ void DataManager::update(const ActorList list, bool saveToDB){
     foreach(ActorPtr a, list){  update(a, saveToDB); }
 }
 void DataManager::add(const ActorList list){
-    foreach(ActorPtr a, list){ add(a);  }
+    bool saveToDatabase = (!actorMap.isEmpty());    /// Don't save to the database if we're doing the initial load from the database
+    foreach(ActorPtr a, list){ add(a, saveToDatabase);  }
 }
 void DataManager::update(const SceneList list, bool saveToDB){
     foreach(ScenePtr s, list){  update(s, saveToDB); }
 }
-void DataManager::add(const SceneList list){    foreach(ScenePtr s, list){  add(s); }   }
+void DataManager::add(const SceneList list){
+    bool saveToDatabase = (!sceneMap.isEmpty());
+    foreach(ScenePtr s, list){  add(s, saveToDatabase); }
+}
 
-ActorPtr DataManager::getActor(const QString name) const{
+ActorPtr DataManager::getActor(const QString name){
     ActorPtr a = ActorPtr(0);
     mx.lock();
     if (actorMap.contains(name)){
@@ -127,7 +133,7 @@ ActorPtr DataManager::getActor(const QString name) const{
     mx.unlock();
     return a;
 }
-ScenePtr DataManager::getScene(const int id) const{
+ScenePtr DataManager::getScene(const int id) {
     ScenePtr s = ScenePtr(0);
     mx.lock();
     if (sceneMap.contains(id)){
@@ -179,7 +185,7 @@ void DataManager::remove(const ScenePtr s){
     }
 }
 
-QDate DataManager::getBirthday(const QString &name) const{
+QDate DataManager::getBirthday(const QString &name) {
     QDate birthdate;
     mx.lock();
     if (actorMap.contains(name)){
@@ -189,7 +195,7 @@ QDate DataManager::getBirthday(const QString &name) const{
     return birthdate;
 }
 
-int DataManager::getAge(const QString &name, const QDate &date) const{
+int DataManager::getAge(const QString &name, const QDate &date){
     int age = -1;
     if (!date.isNull() && date.isValid()){
         QDate birthday = getBirthday(name);

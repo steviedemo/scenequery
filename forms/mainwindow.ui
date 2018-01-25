@@ -250,7 +250,7 @@ QRadioButton{
            </widget>
           </item>
           <item>
-           <widget class="QToolButton" name="tb_seachActors">
+           <widget class="QToolButton" name="tb_searchActors">
             <property name="text">
              <string>...</string>
             </property>
@@ -421,7 +421,7 @@ QRadioButton{
            <enum>Qt::Horizontal</enum>
           </property>
           <widget class="ActorTableView" name="actorTableView" native="true"/>
-          <widget class="SceneView" name="sceneWidget" native="true">
+          <widget class="SceneTableView" name="sceneTableView" native="true">
            <property name="maximumSize">
             <size>
              <width>16777215</width>
@@ -745,7 +745,7 @@ QRadioButton{
      <x>0</x>
      <y>0</y>
      <width>1361</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1238,9 +1238,9 @@ QRadioButton{
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>SceneView</class>
+   <class>SceneTableView</class>
    <extends>QWidget</extends>
-   <header location="global">SceneView.h</header>
+   <header location="global">SceneTableView.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

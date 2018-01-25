@@ -48,7 +48,7 @@ void ActorProfileView::on_tb_editName_clicked(){
     ui->nameLineEdit->setText(current->getName());
 }
 
-void ActorProfileView::mw_to_apv_receiveScenes(SceneList list){
+void ActorProfileView::setActorsScenes(SceneList list){
     this->updateList = list;
     qDebug("Actor Profile View Received %d scenes for %s", list.size(), qPrintable(current->getName()));
 }
@@ -175,6 +175,20 @@ void ActorProfileView::reloadProfilePhoto(){
     }
 }
 
+void ActorProfileView::loadActorProfile(QString name){
+    if (!name.isEmpty()){
+        if (vault->contains(name) && !vault->getActor(name).isNull()){
+            ActorPtr a = vault->getActor(name);
+            outputDetails(a);
+            emit profileChanged(a);
+            this->show();
+        } else {
+            qWarning("Name '%s' not in map", qPrintable(name));
+        }
+    } else {
+        qWarning("Can't load profile for an empty name");
+    }
+}
 void ActorProfileView::loadActorProfile(ActorPtr a){
     emit profileChanged(a);
     outputDetails(a);

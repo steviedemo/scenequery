@@ -85,7 +85,6 @@ SOURCES += \
     forms/RatingDelegate.cpp \
     forms/RatingEditor.cpp \
     forms/SceneProxyModel.cpp \
-    forms/SceneView.cpp \
     forms/ActorProfileView.cpp \
     src/VideoPlayer.cpp \
     forms/imageeditor.cpp \
@@ -100,7 +99,8 @@ SOURCES += \
     forms/SplashScreen.cpp \
     src/MiniThreads.cpp \
     src/DataManager.cpp \
-    src-objects/FilterSet.cpp
+    src-objects/FilterSet.cpp \
+    forms/SceneTableView.cpp
 
 HEADERS  += \
     src/config.h \
@@ -125,7 +125,6 @@ HEADERS  += \
     forms/RatingDelegate.h \
     forms/RatingEditor.h \
     forms/SceneProxyModel.h \
-    forms/SceneView.h \
     forms/ActorProfileView.h \
     src/VideoPlayer.h \
     forms/imageeditor.h \
@@ -141,7 +140,8 @@ HEADERS  += \
     src/MiniThreads.h \
     src/DataManager.h \
     src-objects/FilterSet.h \
-    src/Exception.h
+    src/Exception.h \
+    forms/SceneTableView.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

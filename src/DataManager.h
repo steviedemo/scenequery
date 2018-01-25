@@ -17,10 +17,10 @@ public:
     ~DataManager();
     bool        contains(const int ID)          const;
     bool        contains(const QString &name)   const;
-    ActorPtr    getActor(const QString)         const;
-    ScenePtr    getScene(const int id)          const;
-    bool        add(const ScenePtr s);
-    bool        add(const ActorPtr a);
+    ActorPtr    getActor(const QString);
+    ScenePtr    getScene(const int id);
+    bool        add(const ScenePtr s, bool saveToDatabase=false);
+    bool        add(const ActorPtr a, bool saveToDatabase=false);
     void        add(const SceneList list);
     void        add(const ActorList list);
     bool        update(const ActorPtr, bool saveToDB=true);
@@ -33,8 +33,8 @@ public:
     void        remove(const int id);
     bool        actorMapEmpty(void) const { return actorMap.isEmpty();  }
     bool        sceneMapEmpty(void) const { return sceneMap.isEmpty();  }
-    QDate       getBirthday(const QString &name) const;
-    int         getAge(const QString &name, const QDate &date) const;
+    QDate       getBirthday(const QString &name);
+    int         getAge(const QString &name, const QDate &date);
 public slots:
     void saveAllScenes();
     void saveAllActors();

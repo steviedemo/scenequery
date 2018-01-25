@@ -1,12 +1,19 @@
-#include "SceneView.h"
+#include "SceneTableView.h"
 #include "Scene.h"
 #include "Actor.h"
+#include <QWidget>
 #include <QTableView>
 #include <QModelIndex>
-SceneView::SceneView(QWidget *parent):
-    parent(parent),
-    newRow(0){
+#include <QStringList>
+
+
+SceneTableView::SceneTableView(QWidget *parent):parent(parent){
+    headers << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
+    this->sceneModel = new QStandardItemModel();
+    this->sceneModel->setHorizontalHeaderLabels(headers);
+    this->sceneParent = sceneModel->invisibleRootItem();
     this->proxyModel = new SceneProxyModel(this);
+    this->proxyModel->setSourceModel(sceneModel);
     this->table = new QTableView;
     proxyModel->setFilterRole(Qt::DisplayRole);
     table->setModel(proxyModel);
@@ -19,7 +26,6 @@ SceneView::SceneView(QWidget *parent):
     table->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
     table->setFont(QFont("Futura", 13));
     table->setStatusTip("Scenes");
-
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionBehavior(QAbstractItemView::SelectRows);
     table->setSelectionMode(QAbstractItemView::SingleSelection);
@@ -40,12 +46,12 @@ SceneView::SceneView(QWidget *parent):
     this->initComplete = true;
 }
 
-void SceneView::rowCountChanged(QModelIndex, int, int){
+void SceneTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
 
 }
 
-QModelIndex SceneView::findSceneIndex(const QRegExp &rx, const int column){
+QModelIndex SceneTableView::findSceneIndex(const QRegExp &rx, const int column){
     QAbstractItemModel *model = this->table->model();
     QSortFilterProxyModel proxy;
     proxy.setSourceModel(model);
@@ -59,32 +65,40 @@ QModelIndex SceneView::findSceneIndex(const QRegExp &rx, const int column){
     return index;
 }
 
-void SceneView::updateSceneDisplay(int id){
+void SceneTableView::updateSceneDisplay(int id){
 #warning Placeholder for updating Scene Display Row
-    qDebug("Placeholder Function in SceneView for updating scene Display item");
+    qDebug("Placeholder Function in SceneTableView for updating scene Display item");
 }
 
-void SceneView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
+void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
     qDebug("Selection Changed");
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
     if (id > 0){
         if (currentFileSelection != id){
             this->currentFileSelection = id;
-            emit sceneSelectionChanged(id);
+            ScenePtr s = vault->getScene(id);
+            if (!s.isNull()){
+                emit sceneSelectionChanged(s);
+            }
         }
     }
 }
 
-void SceneView::sceneClicked(QModelIndex modelIndex){
+void SceneTableView::sceneClicked(QModelIndex modelIndex){
     qDebug("Clicked");
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
     if (id > 0){
         this->currentFileSelection = id;
-        emit sceneItemClicked(id);
+        if (vault->contains(id)){
+            ScenePtr s = vault->getScene(id);
+            if (!s.isNull()){
+                emit loadSceneDetails(s);
+            }
+        }
     }
 }
 
-void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
+void SceneTableView::rowDoubleClicked(const QModelIndex &modelIndex){
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
     if (id > 0){
         this->currentFileSelection = id;
@@ -92,26 +106,30 @@ void SceneView::rowDoubleClicked(const QModelIndex &modelIndex){
     }
 }
 
-int SceneView::countRows(){
+int SceneTableView::countRows(){
     return proxyModel->rowCount();
 }
 
-void SceneView::updateSceneItem(int id){
-
+void SceneTableView::updateSceneItem(int id){
+    if (vault.contains(id)){
+        ScenePtr s = vault->getScene(id);
+        qDebug("Updating %s's Display Item", qPrintable(s->getFilename()));
+        s->updateQStandardItem();
+    }
 }
 
-void SceneView::receiveSceneCountRequest(){
+void SceneTableView::receiveSceneCountRequest(){
     emit sendSceneCount(proxyModel->rowCount());
 }
 
-void SceneView::setSourceModel(QAbstractItemModel *model){
+void SceneTableView::setSourceModel(QAbstractItemModel *model){
     this->sourceModel = model;
     proxyModel->setSourceModel(model);
 }
 
-QVector<int> SceneView::getIDs(){
+QVector<int> SceneTableView::getIDs(){
     QVector<int> ids = {};
-    qDebug("SceneView receievd Request for a list of the show scenes' IDs");
+    qDebug("SceneTableView receievd Request for a list of the show scenes' IDs");
     for(int i = 0; i < proxyModel->rowCount(); ++i){
         QModelIndex index = proxyModel->index(i, SCENE_ID_COLUMN);
         int id = proxyModel->data(index, Qt::DisplayRole).toInt();
@@ -121,84 +139,71 @@ QVector<int> SceneView::getIDs(){
     return ids;
 }
 
-void SceneView::receiveRequestForShownSceneIDs(){
-    emit sendSceneIDs(getIDs());
-}
-
-void SceneView::resizeSceneView(){
+void SceneTableView::resizeSceneView(){
     this->table->resizeColumnsToContents();
     this->table->resizeRowsToContents();
 }
 
-void SceneView::clearFilter(){
-    proxyModel->clearFilters();
-}
-void SceneView::clearActorFilterOnly(){
-    this->nameFilter = "";
-    proxyModel->setFilterActor(".*");
-}
-
-void SceneView::searchByFilename(const QString &searchTerm){
-    this->filenameFilterChanged(searchTerm);
-}
-void SceneView::clearSearchFilter(){
-    this->filenameFilterChanged(".*");
-
-}
-
-void SceneView::searchByID(const int &id){
+void SceneTableView::searchByID(const int &id){
     proxyModel->setFilterID(id);
 }
-void SceneView::actorFilterChanged(ActorPtr a){
+void SceneTableView::actorFilterChanged(ActorPtr a){
     if (!a.isNull()){
         actorFilterChanged(a->getName());
     }
-}
-void SceneView::actorFilterChanged(QString name){
+}/*
+void SceneTableView::actorFilterChanged(QString name){
     filenameFilterChanged("");
     this->nameFilter = name;
     proxyModel->setFilterRegExp(name);
     proxyModel->setFilterActor(name);
     table->resizeColumnsToContents();
-}
+}*/
 
-void SceneView::companyFilterChanged(QString company){
-    proxyModel->setFilterRegExp(company);
-    proxyModel->setFilterCompany(company);
-}
+//void SceneTableView::filenameFilterChanged(QString word){
+//    this->fileFilter = word;
+//    proxyModel->setFilterRegExp(".*"+word+".*");
+//    proxyModel->setFilterFilename(word);
+//}
 
-void SceneView::tagFilterChanged(QString tag){
-    proxyModel->setFilterRegExp(tag);
-    proxyModel->setFilterTag(tag);
-}
-
-void SceneView::qualityFilterChanged(int resolution){
-    proxyModel->setFilterRegExp(QString::number(resolution));
-    proxyModel->setFilterQuality(resolution);
-}
-
-void SceneView::filenameFilterChanged(QString word){
-    this->fileFilter = word;
-    proxyModel->setFilterRegExp(".*"+word+".*");
-    proxyModel->setFilterFilename(word);
-}
-
-void SceneView::addData(int column, QString data){
+void SceneTableView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);
 }
 
-void SceneView::addScene(ScenePtr s, const QModelIndex &/*parent*/){
+void SceneTableView::addNewScene(ScenePtr s){
     if (!s.isNull()){
-//        Scene::RowData data = s->getRowData();
-//        newRow = proxyModel->rowCount();
-//        proxyModel->insertRow(newRow, parent);
-//        addData(SCENE_NAME_COLUMN, data.mainActor);
-//        addData(SCENE_TITLE_COLUMN, data.title);
-//        addData(SCENE_COMPANY_COLUMN, data.company);
-//        addData(SCENE_QUALITY_COLUMN, data.quality);
-//        addData(SCENE_FEATURED_COLUMN, data.featured);
-//        addData(SCENE_DATE_COLUMN, data.date);
-//        addData(SCENE_LENGTH_COLUMN, data.length);
-//        addData(SCENE_RATING_COLUMN, data.rating);
+        if (!vault->contains(s)){
+            sceneModel->appendRow(s->buildQStandardItem());
+            vault->add(s);
+        }
     }
+}
+
+void SceneTableView::purgeSceneItems(QVector<int> ids){
+    qDebug("Looking for %d Scenes in the GUI Display list...", ids.size());
+    QVector<QModelIndex> removals = {};
+    for (int r = 0; r < sceneModel->rowCount(); ++r){
+        QModelIndex curr = sceneModel->index(r, SCENE_ID_COLUMN);
+        if (curr.isValid()){
+            int id = curr.data().toInt();
+            if (ids.contains(id)){
+                removals << curr;
+            }
+        }
+    }
+    qDebug("Found %d/%d scenes in the Display List", removals.size(), ids.size());
+    foreach(QModelIndex idx, removals){
+        sceneModel->removeRow(idx.row());
+    }
+    qDebug("Scenes removed");
+}
+
+void SceneTableView::addNewScenes(SceneList list){
+    emit progressBegin(QString("Adding %1 Items to the Scene Table").arg(list.size()));
+    int index = 0;
+    foreach(ScenePtr s, list){
+        addScene(s);
+        emit progressUpdate(++index);
+    }
+    emit progressEnd(QString("Added %1 items to the Scene Table").arg(list.size()));
 }

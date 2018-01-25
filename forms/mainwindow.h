@@ -14,7 +14,7 @@
 #include "ActorProxyModel.h"
 #include "SceneDetailView.h"
 #include "SceneProxyModel.h"
-#include "SceneView.h"
+#include "SceneTableView.h"
 #include "SplashScreen.h"
 #include "VideoPlayer.h"
 #include <QHash>
@@ -57,7 +57,8 @@ private slots:
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
     void sdv_to_mw_showActor(QString);
-    void sdv_to_mw_requestBirthday(QString);
+
+    //void sdv_to_mw_requestBirthday(QString);
     void sw_to_mw_selectionChanged(int id);
     void sw_to_mw_itemClicked(int id);
     /// Progress & Status Updates
@@ -69,7 +70,6 @@ private slots:
     void updateProgressDialog(int);
     void updateProgressDialog(QString);
     void closeProgressDialog();
-    void purgeSceneItems(QVector<int>);
     void renameFile(ScenePtr);
     void removeActorItem(ActorPtr);
     void showCurrentActorProfile();
@@ -158,7 +158,6 @@ signals:
     void closing();
     void startInitialization();
     void skipInitialization(ActorList, SceneList);
-
     void scanFolder         (QString);
     void saveScenes         (SceneList);
     void saveChangesToDB    (ScenePtr);

@@ -23,7 +23,8 @@ public:
     void setData(QSharedPointer<DataManager> vault){ this->vault = vault;   }
 public slots:
     void loadActorProfile(ActorPtr a);
-    void mw_to_apv_receiveScenes(SceneList);
+    void loadActorProfile(QString name);
+    void setActorsScenes(SceneList);
 private slots:
     void reloadProfilePhoto();
     void on_selectNewPhoto_clicked();

@@ -15,7 +15,6 @@ public:
     ActorTableView(QWidget *parent =0);
     void setSourceModel(QAbstractItemModel *model);
     void setDataContainers(QSharedPointer<DataManager> vault){  this->vault = vault;    }
-    void addActor(ActorPtr, const QModelIndex &parent = QModelIndex());
     void setHorizontalHeaders(QStringList);
     int countRows();
     QStringList namesDisplayed();
@@ -27,6 +26,7 @@ public:
     QModelIndex findActorIndex_base(const QRegExp &name, const int column) const;
     void addNewItems(const QVector<QList<QStandardItem *>> rows);
 public slots:
+    void addActor(ActorPtr);
     void addNewActors(const ActorList &list);
     void addNewActor(const ActorPtr a);
     void resizeView();
