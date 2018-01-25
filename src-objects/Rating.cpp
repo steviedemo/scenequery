@@ -24,19 +24,21 @@ Rating::Rating(QString s) {
     this->starRating = GradeToStars(gradeRating);
     setupView();
 }
-
+/*
 Rating::Rating(const Rating &other){
     this->gradeRating = other.gradeRating;
     this->starRating = other.starRating;
     setupView();
 }
-
+*/
+/*
 Rating Rating::operator =(const Rating &other){
     this->starRating = other.starRating;
     this->gradeRating = other.gradeRating;
     setupView();
     return *this;
 }
+*/
 //Rating::Rating(const std::string s){
 //    fromString(QString::fromStdString(s));
 //}

@@ -8,8 +8,47 @@
 #include <QDate>
 #include "Actor.h"
 #include "SceneList.h"
+#include "Rating.h"
 #define AVG(a,b)    ( ((((a)^(b)) & 0xfefefefeUL) >> 1) + ((a)&(b)) )
-
+QString toString(const LogicalOperator &op){
+    QString p = "";
+    if (op == EQUAL){
+        p = "EQUAL";
+    } else if (op == LESSER_THAN){
+        p = "LESSER_THAN";
+    } else if (op == LESSER_OR_EQUAL){
+        p = "LESSER_OR_EQUAL";
+    } else if (op == GREATER_THAN){
+        p = "GREATER_THAN";
+    } else if (op == GREATER_OR_EQUAL) {
+        p = "GREATER_OR_EQUAL";
+    } else if (op == NOT_EQUAL){
+        return "NOT_EQUAL";
+    } else if (op == NOT_SET){
+        p = "NOT_SET";
+        qWarning("Operator not set when comparing two items");
+    }
+    return p;
+}
+LogicalOperator fromString(const QString &p){
+    QString op = NOT_SET;
+    if (p == "EQUAL"){
+        return EQUAL;
+    } else if (p == "LESSER_THAN"){
+        return LESSER_THAN;
+    } else if (p == "LESSER_OR_EQUAL"){
+        return LESSER_OR_EQUAL;
+    } else if (p == "GREATER_THAN"){
+        return GREATER_THAN;
+    } else if (p == "GREATER_OR_EQUAL") {
+        return GREATER_OR_EQUAL;
+    } else if (p == "NOT_EQUAL"){
+        return NOT_EQUAL;
+    } else {
+        qWarning("Unrecognized String attempting to be converted into a logical operator (%s)", qPrintable(s));
+    }
+    return op;
+}
 bool nonzero(double d){
     return d > 0;
 }

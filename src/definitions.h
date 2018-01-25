@@ -34,9 +34,29 @@
 #define LOAD_ACTOR_PROGRESS  2
 #define LOAD_SCENE_PROGRESS  3
 #define COUNT_SCENE_PROGRESS 4
+#define MINIMUM_BIO_SIZE 11
+
 
 #define KEY_SEARCH_PATHS    "Search Paths"
 
+#define FILTER_DURATION     "DURATION"
+#define FILTER_DURATION_OP  "DURATION_OP"
+#define FILTER_QUALITY      "QUALITY"
+#define FILTER_QUALITY_OP   "QUALITY_OP"
+#define FILTER_RATING       "RATING"
+#define FILTER_RATING_OP    "RATING_OP"
+#define FILTER_RELEASE      "RELEASE"
+#define FILTER_RELEASE_OP   "RELEASE_OP"
+#define FILTER_ADDED        "ADDED"
+#define FILTER_ADDED_OP     "ADDED_OP"
+#define FILTER_SIZE         "SIZE"
+#define FILTER_SIZE_OP      "SIZE_OP"
+#define FILTER_COMPANY      "COMPANY"
+#define FILTER_SERIES       "SERIES"
+#define FILTER_ACTOR        "ACTOR"
+#define FILTER_WORD         "WORD"
+#define FILTER_TAG          "TAG"
+enum LogicalOperator { LESSER_THAN, LESSER_OR_EQUAL, GREATER_THAN, GREATER_OR_EQUAL, EQUAL, NOT_EQUAL, NOT_SET};
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
 typedef QSharedPointer<class Scene>         ScenePtr;

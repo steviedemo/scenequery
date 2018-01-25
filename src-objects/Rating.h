@@ -14,8 +14,8 @@ public:
     enum EditMode{ Editable, ReadOnly };
     //Rating();
     Rating(QString s="");
-    Rating(const Rating &other);
-    Rating operator=(const Rating &other);
+    //Rating(const Rating &other);
+    //Rating operator=(const Rating &other);
     /// View Item Functions
     void    setupView();
     void    paint(QPainter *painter, const QRect &rect, const QPalette &palette, EditMode mode) const;

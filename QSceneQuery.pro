@@ -99,7 +99,8 @@ SOURCES += \
     src/SQL.cpp \
     forms/SplashScreen.cpp \
     src/MiniThreads.cpp \
-    src/DataManager.cpp
+    src/DataManager.cpp \
+    src-objects/FilterSet.cpp
 
 HEADERS  += \
     src/config.h \
@@ -138,7 +139,8 @@ HEADERS  += \
     src/SQL.h \
     forms/SplashScreen.h \
     src/MiniThreads.h \
-    src/DataManager.h
+    src/DataManager.h \
+    src-objects/FilterSet.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

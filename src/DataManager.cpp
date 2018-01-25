@@ -4,8 +4,8 @@ DataManager::DataManager(QObject *parent):
     QObject(parent){
     this->sceneUpdateList = {};
     this->actorUpdateList = {};
-    this->actorMap = QMap<QString, ActorPtr>();
-    this->sceneMap = QMap<int, ScenePtr>();
+    this->actorMap = QHash<QString, ActorPtr>();
+    this->sceneMap = QHash<int, ScenePtr>();
 }
 
 DataManager::~DataManager(){}
@@ -54,10 +54,10 @@ bool DataManager::add(const ScenePtr s, bool saveToDB){
     return dataValid;
 }
 void DataManager::add(const ActorList list, bool saveToDB){
-    foreach(ActorPtr a, list){  add(a); }
+    foreach(ActorPtr a, list){  add(a, saveToDB); }
 }
-void DataManager::add(const SceneList list){
-    foreach(ScenePtr s, list){  add(s); }
+void DataManager::add(const SceneList list, bool saveToDB){
+    foreach(ScenePtr s, list){  add(s, saveToDB); }
 }
 
 ActorPtr DataManager::getActor(const QString name) const{

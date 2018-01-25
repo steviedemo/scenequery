@@ -1,40 +1,64 @@
 #ifndef SCENEPROXYMODEL_H
 #define SCENEPROXYMODEL_H
 #include <QDate>
+#include <QTime>
+#include <QPair>
 #include <QSortFilterProxyModel>
 #include "definitions.h"
+#include "FilterSet.h"
+#include "Rating.h"
 class SceneProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 public:
     SceneProxyModel(QObject *parent = 0);
-    void removeFilters(void);
-    QString filterActor() const { return nameFilter; }
-    void setFilterActor(const QString &name);
-    QString filterCompany() const { return companyFilter;   }
-    void setFilterCompany(const QString &company);
-    QString filterTag() const { return tagFilter; }
-    void setFilterTag(const QString &tag);
-    int filterQuality() const { return qualityFilter;   }
-    void setFilterQuality(const int &quality);
-    void setFilterFilename(const QString &);
-    void setFilterID(const int &id);
+    void    clearFilters        (void);
+    void    setFilterActor      (const QString &name)                               {   this->nameFilter = name;        }
+    void    setFilterCompany    (const QString &company)                            {   this->companyFilter = company;  }
+    void    setFilterTag        (const QString &tag)                                {   this->tagFilter = tag;          }
+    void    setFilterFilename   (const QString &searchTerm)                         {   this->fileFilter = searchTerm;  }
+    void    setFilterID         (const int &id)                                     {   this->idFilter = id;            }
+    void    setFilterQuality    (const int &quality,    const LogicalOperator &op=NOT_SET) {   this->qualityOp = op;   this->qualityFilter = quality;}
+    void    setFilterDuration   (const QTime &time,     const LogicalOperator &op=NOT_SET) {   this->durationOp = op;  this->durationFilter = time;}
+    void    setFilterRating     (const Rating &rating,  const LogicalOperator &op=NOT_SET) {   this->ratingOp = op;    this->ratingFilter = rating;}
+    void    setFilterSize       (const qint64 &size,    const LogicalOperator &op=NOT_SET) {   this->sizeOp = op;      this->sizeFilter = size;    }
+    void    setFilterRelease    (const QDate &date,     const LogicalOperator &op=NOT_SET) {   this->releasedOp= op;   this->releasedFilter = date;}
+    void    setFilterAdded      (const QDate &date,     const LogicalOperator &op=NOT_SET) {   this->addedOp = op;     this->addedFilter = date;   }
+    QString filterActor()                           const                           {   return nameFilter;                          }
+    QString filterCompany()                         const                           {   return companyFilter;                       }
+    QString filterTag()                             const                           {   return tagFilter;                           }
+    int     filterID()                              const                           {   return idFilter;                            }
+    QString filterFilename()                        const                           {   return fileFilter;                          }
+    QPair<LogicalOperator, int>    filterQuality()  const                           {   return QPair<LogicalOperator, int>      (qualityOp,  qualityFilter);    }
+    QPair<LogicalOperator, QTime>  filterDuration() const                           {   return QPair<LogicalOperator, QTime>    (durationOp, durationFilter);   }
+    QPair<LogicalOperator, Rating> filterRating()   const                           {   return QPair<LogicalOperator, Rating>   (ratingOp,   ratingFilter);     }
+    QPair<LogicalOperator, qint64> filterSize()     const                           {   return QPair<LogicalOperator, qint64>   (sizeOp,     sizeFilter);       }
+    QPair<LogicalOperator, QDate>  filterReleased() const                           {   return QPair<LogicalOperator, QDate>    (releasedOp, releasedFilter);   }
+    QPair<LogicalOperator, QDate>  filterAdded()    const                           {   return QPair<LogicalOperator, QDate>    (addedOp,    addedFilter);      }
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 private:
+    bool filterMatchesAnything(const QString &s) const;
+    bool filterMatchesAnything(const LogicalOperator &op) const;
     void setFilter(QString text);
-    enum FilterKey{ NAME, COMPANY, TAG, QUALITY, NONE};
     QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
-    void setDefaultValues();
-    bool filenameMatchesFilter(int row, const QModelIndex & index) const;
-    bool nameMatchesFilter(int row, const QModelIndex &index) const;
-    bool companyMatchesFilter(QString company) const;
-    bool tagMatchesFilter(QString tag) const;
-    bool qualityMatchesFilter(QString qualityString) const;
-    QString currentFilter;
+    bool filterMatches_filename (int row, const QModelIndex & index) const;
+    bool filterMatches_name     (int row, const QModelIndex &index) const;
+    bool filterMatches_company  (int row, const QModelIndex &index) const;
+    bool filterMatches_tag      (int row, const QModelIndex &index) const;
+    bool filterMatches_quality  (int row, const QModelIndex &index) const;
+    bool filterMatches_duration (int row, const QModelIndex &index) const;
+    bool filterMatches_filesize (int row, const QModelIndex &index) const;
+    bool filterMatches_rating   (int row, const QModelIndex &index) const;
+    bool filterMatches_added    (int row, const QModelIndex &index) const;
+    bool filterMatches_release  (int row, const QModelIndex &index) const;
+    LogicalOperator durationOp, qualityOp, sizeOp, ratingOp, releasedOp, addedOp;
     QString nameFilter, companyFilter, tagFilter, fileFilter;
+    qint64 sizeFilter;
+    QTime durationFilter;
+    QDate addedFilter, releasedFilter;
+    Rating ratingFilter;
     int qualityFilter, idFilter;
-    FilterKey key;
 };
 
 #endif // SCENEPROXYMODEL_H

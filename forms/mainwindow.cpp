@@ -17,7 +17,6 @@
 #include <QFileDialog>
 #include <QRegExp>
 #include <QSplitter>
-#define MINIMUM_BIO_SIZE 11
 #define COMBO_BOX_DEFAULT "No Selection"
 #define LOAD_ACTORS
 #define LOAD_SCENES
@@ -241,7 +240,7 @@ void MainWindow::startThreads(){
     /// Set up curl thread communications with main thread
     connect(&vault,                     SIGNAL(updateBiosFromWeb(ActorList)),   curl,               SLOT(updateBios(ActorList)));
     connect(this,                       SIGNAL(updateBios(ActorList)),          curl,               SLOT(updateBios(ActorList)));
-    connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr a)),this,               [=] { ActorList temp = { a }; receiveActors(temp);});
+    connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr a)),this,               SLOT(receiveSingleActor(ActorPtr)));
     connect(curl,                       SIGNAL(updateFinished(ActorList)),      this,               SLOT(receiveActors(ActorList)));
     /// Set up the SQL Thread for communications with the main thread
 
@@ -490,7 +489,7 @@ void MainWindow::on_actionDeleteActor_triggered(){
         emit deleteActor(currentActor->getName());
     }
 }
-QModelIndex MainWindow::getCurrentIndex(QAbstractItemModel *model){
+QModelIndex MainWindow::getCurrentIndex(QAbstractItemModel */*model*/){
     QModelIndex x = QModelIndex();
     x = ui->actorTableView->currentIndex();
     return x;
