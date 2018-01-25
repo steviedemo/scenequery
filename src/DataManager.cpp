@@ -10,15 +10,30 @@ DataManager::DataManager(QObject *parent):
 
 DataManager::~DataManager(){}
 
+bool DataManager::contains(const int ID) const{
+    mx.lock();
+    bool hasID = sceneMap.contains(ID);
+    mx.unlock();
+    return hasID;
+}
+bool DataManager::contains(const QString &name) const{
+    mx.lock();
+    bool hasName = actorMap.contains(name);
+    mx.unlock();
+    return hasName;
+}
+
 bool DataManager::add(const ActorPtr a){
     bool dataValid = false;
     if (!a.isNull()){
         const QString name = a->getName();
         if (!name.isEmpty()){
             dataValid = true;
+            mx.lock();
             if (!actorMap.contains(name)){
                 actorMap.insert(name, a);
             }
+            mx.unlock();
         }
     } else {
         qWarning("Not inserting empty actor into map.");
@@ -31,9 +46,11 @@ bool DataManager::add(const ScenePtr s){
         const int id = s->getID();
         if (id > 0){
             dataValid = true;
+            mx.lock();
             if (!sceneMap.contains(id)){
                 sceneMap.insert(id, s);
             }
+            mx.unlock();
         }
     } else {
         qWarning("Not inserting empty Scene into map");
@@ -47,6 +64,7 @@ bool DataManager::update(const ActorPtr a, bool saveToDB){
         const QString name = a->getName();
         if (!name.isEmpty()){
             dataValid = true;
+            mx.lock();
             if (!actorMap.contains(name)){
                 actorMap.insert(name, a);
             } else {
@@ -58,6 +76,7 @@ bool DataManager::update(const ActorPtr a, bool saveToDB){
                     qDebug("Display Item Updated");
                 }
             }
+            mx.unlock();
             if (saveToDB){
                 emit save(a);
             }
@@ -73,12 +92,14 @@ bool DataManager::update(const ScenePtr s, bool saveToDB){
     if (!s.isNull()){
         const int id = s->getID();
         if (id > 0){
+            mx.lock();
             if (!sceneMap.contains(id)){
                 sceneMap.insert(id, s);
                 if (saveToDB){
                     emit save(s);
                 }
             }
+            mx.unlock();
             dataValid = true;
         }
     }
@@ -96,34 +117,44 @@ void DataManager::update(const SceneList list, bool saveToDB){
 void DataManager::add(const SceneList list){    foreach(ScenePtr s, list){  add(s); }   }
 
 ActorPtr DataManager::getActor(const QString name) const{
+    ActorPtr a = ActorPtr(0);
+    mx.lock();
     if (actorMap.contains(name)){
-        return actorMap.value(name);
+        a = actorMap.value(name);
     } else {
       qWarning("%s is not in the actor map.", qPrintable(name));
-      return ActorPtr(0);
     }
+    mx.unlock();
+    return a;
 }
 ScenePtr DataManager::getScene(const int id) const{
+    ScenePtr s = ScenePtr(0);
+    mx.lock();
     if (sceneMap.contains(id)){
-        return sceneMap.value(id);
+        s = sceneMap.value(id);
     } else {
         qWarning("Scene with ID '%d' is not in the scene map", id);
-        return ScenePtr(0);
+        s = ScenePtr(0);
     }
+    mx.unlock();
+    return s;
 }
 void DataManager::remove(const QString &name){
     if (!name.isEmpty()){
+        mx.lock();
         if (actorMap.contains(name)){
             qDebug("Removing %s from the actor Map", qPrintable(name));
             actorMap.remove(name);
         } else {
             qWarning("Actor '%s' is not in the actor map", qPrintable(name));
         }
+        mx.unlock();
     } else {
         qWarning("Cannot remove actor with Empty Name from Actor Map");
     }
 }
 void DataManager::remove(const int id){
+    QMutexLocker ml(&mx);
     if (sceneMap.contains(id)){
         qDebug("Removing Scene with ID '%d' from Scene Map", id);
         sceneMap.remove(id);
@@ -150,9 +181,11 @@ void DataManager::remove(const ScenePtr s){
 
 QDate DataManager::getBirthday(const QString &name) const{
     QDate birthdate;
+    mx.lock();
     if (actorMap.contains(name)){
         birthdate = actorMap.value(name)->getBirthday();
     }
+    mx.unlock();
     return birthdate;
 }
 
@@ -168,6 +201,7 @@ int DataManager::getAge(const QString &name, const QDate &date) const{
 }
 
 void DataManager::saveAllActors(){
+    QMutexLocker ml(&mx);
     this->actorUpdateList.clear();
     QHashIterator<QString, ActorPtr> it(actorMap);
     while(it.hasNext()){
@@ -181,6 +215,7 @@ void DataManager::saveAllActors(){
 }
 
 void DataManager::saveAllScenes(){
+    QMutexLocker ml(&mx);
     this->sceneUpdateList.clear();
     QHashIterator<int, ScenePtr> it(sceneMap);
     while(it.hasNext()){
@@ -195,11 +230,14 @@ void DataManager::saveAllScenes(){
 
 void DataManager::updateActorDisplayItems(){
     int index = 0;
+
     emit progressBegin(QString("Updating %1 Actor Display Items").arg(actorMap.size()), actorMap.size());
     QHashIterator<QString, ActorPtr> it(actorMap);
     while(it.hasNext()){
         it.next();
+        mx.lock();
         actorMap[it.key()]->updateQStandardItem();
+        mx.unlock();
         emit progressUpdate(++index);
     }
     emit progressEnd(QString("%1 Actor Display Items updated").arg(actorMap.size()));
@@ -212,7 +250,9 @@ void DataManager::updateSceneDisplayItems(){
     QHashIterator<int, ScenePtr> it(sceneMap);
     while(it.hasNext()){
         it.next();
+        mx.lock();
         sceneMap[it.key()]->updateQStandardItem();
+        mx.unlock();
         emit progressUpdate(++index);
     }
     emit progressEnd(QString("%1 Actor Display Items updated").arg(sceneMap.size()));
@@ -220,12 +260,16 @@ void DataManager::updateSceneDisplayItems(){
 }
 
 void DataManager::updateBios(){
+    mx.lock();
     this->actorUpdateList.clear();
     QHashIterator<QString, ActorPtr> it(actorMap);
+    mx.unlock();
     while(it.hasNext()){
         it.next();
         if (it.value()->size() < MINIMUM_BIO_SIZE){
+            mx.lock();
             actorUpdateList << it.value();
+            mx.unlock();
         }
     }
     emit updateBiosFromWeb(actorUpdateList);

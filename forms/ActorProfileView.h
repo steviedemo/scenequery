@@ -4,6 +4,7 @@
 #include "definitions.h"
 #include "imageeditor.h"
 #include "SceneList.h"
+#include "DataManager.h"
 #include <QWidget>
 #include <QShortcut>
 #include <QLineEdit>
@@ -19,7 +20,7 @@ class ActorProfileView : public QWidget
 public:
     explicit ActorProfileView(QWidget *parent = 0);
     ~ActorProfileView();
-
+    void setData(QSharedPointer<DataManager> vault){ this->vault = vault;   }
 public slots:
     void loadActorProfile(ActorPtr a);
     void mw_to_apv_receiveScenes(SceneList);
@@ -56,6 +57,7 @@ private:
     QVector<QLineEdit *> lineEdits;
     QVector<QTextEdit *> textEdits;
     SceneList updateList;
+    QSharedPointer<DataManager> vault;
 signals:
     void profileChanged(ActorPtr a);
     void updateFromWeb  (ActorPtr a);

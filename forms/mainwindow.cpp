@@ -51,10 +51,10 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(sql,                SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sql,                SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sql,                SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
-    connect(&vault,             SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
-    connect(&vault,             SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
-    connect(&vault,             SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
-    connect(&vault,             SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
+    connect(vault.data(),             SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
+    connect(vault.data(),             SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
+    connect(vault.data(),             SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
+    connect(vault.data(),             SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
 
     sqlThread->start();
 
@@ -91,7 +91,7 @@ MainWindow::~MainWindow(){
 void MainWindow::setupViews(){
     ui->tabWidget_filters->hide();
     /// Set up Actor Table View
-
+/*
     QStringList actorHeaders, sceneHeaders;
     actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
     this->actorModel = new QStandardItemModel();
@@ -99,7 +99,8 @@ void MainWindow::setupViews(){
     this->actorParent = actorModel->invisibleRootItem();
     actorModel->setHorizontalHeaderLabels(actorHeaders);
     ui->actorTableView->setSourceModel(actorModel);
-    //this->actorProxyModel = new ActorProxyModel(this);
+  */
+  //this->actorProxyModel = new ActorProxyModel(this);
     //this->actorProxyModel->setSourceModel(actorModel);
     //ui->actorTableView->setSourceModel(actorProxyModel);
 
@@ -157,12 +158,12 @@ void MainWindow::connectViews(){
     connect(ui->tb_seachActors,         SIGNAL(pressed()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(pressed()),                      this,               SLOT(searchScenes()));
 
-    connect(ui->pb_saveActors,          &QPushButton::clicked,                  &vault,             &DataManager::saveAllActors);
-    connect(ui->actionSave_Actors,      SIGNAL(triggered()),                    &vault,             SLOT(saveAllActors()));
-    connect(ui->pb_saveScenes,          &QPushButton::clicked,                  &vault,             &DataManager::saveAllScenes);
-    connect(ui->actionSave_Scenes,      SIGNAL(triggered()),                    &vault,             SLOT(saveAllScenes()));
-    connect(ui->actionRefresh_Display,  SIGNAL(triggered()),                    &vault,             SLOT(updateActorDisplayItems()));
-    connect(ui->actionUpdate_Bios,      SIGNAL(triggered()),                    &vault,             SLOT(updateBios()));
+    connect(ui->pb_saveActors,          &QPushButton::clicked,                  vault.data(),             &DataManager::saveAllActors);
+    connect(ui->actionSave_Actors,      SIGNAL(triggered()),                    vault.data(),             SLOT(saveAllActors()));
+    connect(ui->pb_saveScenes,          &QPushButton::clicked,                  vault.data(),             &DataManager::saveAllScenes);
+    connect(ui->actionSave_Scenes,      SIGNAL(triggered()),                    vault.data(),             SLOT(saveAllScenes()));
+    connect(ui->actionRefresh_Display,  SIGNAL(triggered()),                    vault.data(),             SLOT(updateActorDisplayItems()));
+    connect(ui->actionUpdate_Bios,      SIGNAL(triggered()),                    vault.data(),             SLOT(updateBios()));
 
     connect(ui->cb_companyFilter,       SIGNAL(currentIndexChanged(QString)),   ui->sceneWidget,    SLOT(companyFilterChanged(QString)));
     connect(ui->tb_clearSearchScenes,   SIGNAL(pressed()),                      ui->sceneWidget,    SLOT(filenameFilterChanged()));
@@ -191,8 +192,8 @@ void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows,
            actors.size(), scenes.size(), actorRows.size(), sceneRows.size());
     //foreach(ActorPtr a, actors)                     { actorMap.insert(a->getName(), a); }
     //foreach(ScenePtr s, scenes)                     { sceneMap.insert(s->getID(),   s); }
-    vault.add(actors);
-    vault.add(scenes);
+    vault->add(actors);
+    vault->add(scenes);
     foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
     foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
     ui->statusLabel->setText("Initialization Complete");
@@ -224,13 +225,13 @@ void MainWindow::startThreads(){
     disconnect(sql,                     SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
     connect(curl,                       SIGNAL(startProgress(QString,int)),     this,               SLOT(startProgress(QString,int)));
     connect(sql,                        SIGNAL(startProgress(QString,int)),     this,               SLOT(startProgress(QString,int)));
-    connect(&vault,                     SIGNAL(progressBegin(QString,int)),     this,               SLOT(startProgress(QString,int)));
+    connect(vault.data(),                     SIGNAL(progressBegin(QString,int)),     this,               SLOT(startProgress(QString,int)));
     connect(curl,                       SIGNAL(updateProgress(int)),            ui->progressBar,    SLOT(setValue(int)));
     connect(sql,                        SIGNAL(updateProgress(int)),            ui->progressBar,    SLOT(setValue(int)));
-    connect(&vault,                     SIGNAL(progressUpdate(int)),            ui->progressBar,    SLOT(setValue(int)));
+    connect(vault.data(),                     SIGNAL(progressUpdate(int)),            ui->progressBar,    SLOT(setValue(int)));
     connect(curl,                       SIGNAL(closeProgress(QString)),         this,               SLOT(closeProgress(QString)));
     connect(sql,                        SIGNAL(closeProgress(QString)),         this,               SLOT(closeProgress(QString)));
-    connect(&vault,                     SIGNAL(progressEnd(QString)),           this,               SLOT(closeProgress(QString)));
+    connect(vault.data(),                     SIGNAL(progressEnd(QString)),           this,               SLOT(closeProgress(QString)));
     connect(sql,                        SIGNAL(updateStatus(QString)),          ui->statusLabel,    SLOT(setText(QString)));
     /// SHOW MESSAGE DIALOGS
     connect(sql,                        SIGNAL(showError(QString)),             this,               SLOT(showError(QString)));
@@ -238,7 +239,7 @@ void MainWindow::startThreads(){
     connect(sql,                        SIGNAL(showSuccess(QString)),           this,               SLOT(showSuccess(QString)));
 
     /// Set up curl thread communications with main thread
-    connect(&vault,                     SIGNAL(updateBiosFromWeb(ActorList)),   curl,               SLOT(updateBios(ActorList)));
+    connect(vault.data(),                     SIGNAL(updateBiosFromWeb(ActorList)),   curl,               SLOT(updateBios(ActorList)));
     connect(this,                       SIGNAL(updateBios(ActorList)),          curl,               SLOT(updateBios(ActorList)));
     connect(curl,                       SIGNAL(updateSingleProfile(ActorPtr)),  this,               SLOT(receiveSingleActor(ActorPtr)));
     connect(curl,                       SIGNAL(updateFinished(ActorList)),      this,               SLOT(receiveActors(ActorList)));
@@ -271,12 +272,12 @@ void MainWindow::startThreads(){
 }
 
 void MainWindow::sdv_to_mw_showActor(QString name){
-    if (this->vault.contains(name)){
-        ui->profileWidget->loadActorProfile(vault.getActor(name));
+    if (this->vault->contains(name)){
+        ui->profileWidget->loadActorProfile(vault->getActor(name));
     }
 }
 void MainWindow::sdv_to_mw_requestBirthday(QString name){
-    QDate birthday = vault.getBirthday(name);
+    QDate birthday = vault->getBirthday(name);
     if (birthday.isValid()){
         sceneDetailView->receiveActorBirthday(name, birthday);
     }
@@ -287,8 +288,8 @@ void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
         QVector<int> ids = ui->sceneWidget->getIDs();
         sceneUpdateList.clear();
         foreach(int id, ids){
-            if (vault.contains(id)){
-                sceneUpdateList << vault.getScene(id);
+            if (vault->contains(id)){
+                sceneUpdateList << vault->getScene(id);
             }
         }
         if (!sceneUpdateList.isEmpty()){
@@ -309,7 +310,7 @@ void MainWindow::sw_to_mw_selectionChanged(int id){
 }
 
 void MainWindow::sw_to_mw_itemClicked(int id){
-    ScenePtr s = vault.getScene(id);
+    ScenePtr s = vault->getScene(id);
     if (!s.isNull()){
         sceneDetailView->loadScene(s);
         qDebug("Showing Details of scene with id '%d'", id);
@@ -385,7 +386,7 @@ void MainWindow::db_to_mw_receiveActors(ActorList list){
     qDebug("Main Window Received %d Actors from the SQL Thread. Adding them to the Display list", list.size());
     foreach(ActorPtr a, list){
         actorModel->appendRow(a->buildQStandardItem());
-        vault.add(a);
+        vault->add(a);
         actorModel->sort(ACTOR_NAME_COLUMN, Qt::AscendingOrder);
     }
     qDebug("Finished Adding %d actors!", list.size());
@@ -396,7 +397,7 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
     foreach(ScenePtr s, list){
         //qDebug("Adding Scene with ID %d to List", s->getID());
         sceneModel->appendRow(s->buildQStandardItem());
-        vault.add(s);
+        vault->add(s);
     }
     ui->actorTableView->resizeToContents();
     ui->sceneWidget->resizeSceneView();
@@ -404,8 +405,8 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
 }
 
 void MainWindow::actorSelectionChanged(QString name){
-    if (vault.contains(name)){
-        ActorPtr a = vault.getActor(name);
+    if (vault->contains(name)){
+        ActorPtr a = vault->getActor(name);
         if (!a.isNull()){
             qDebug("'%s' Selected", qPrintable(name));
             this->currentActor = a;
@@ -429,7 +430,7 @@ void MainWindow::actorSelectionChanged(QString name){
 void MainWindow::actorTableView_clicked(QString name){
     this->itemSelected = true;
     // Get the name of the selected actor.
-    ActorPtr a = vault.getActor(name);
+    ActorPtr a = vault->getActor(name);
     if (!a.isNull()){
         ui->profileWidget->loadActorProfile(a);
     } else {
@@ -440,7 +441,7 @@ void MainWindow::actorTableView_clicked(QString name){
 
 /** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
 ActorPtr MainWindow::getSelectedActor(){
-    ActorPtr a = vault.getActor(ui->actorTableView->selectedName());
+    ActorPtr a = vault->getActor(ui->actorTableView->selectedName());
     if (!a.isNull()){
         this->currentActor = a;
     } else {
@@ -515,7 +516,7 @@ QString MainWindow::getCurrentName(QAbstractItemModel *model){
 void MainWindow::removeActorItem(ActorPtr actor){
     if (!actor.isNull()){
         ui->actorTableView->removeActor(actor->getName());
-        vault.remove(actor);
+        vault->remove(actor);
     }
 }
 
@@ -590,9 +591,9 @@ void MainWindow::closeProgressDialog(){
 /** \brief Slot to receive list of scenes. */
 void MainWindow::receiveScenes(SceneList list){
     foreach(ScenePtr s, list){
-        if (!vault.contains(s->getID())){
+        if (!vault->contains(s->getID())){
             sceneModel->appendRow(s->buildQStandardItem());
-            vault.add(s);
+            vault->add(s);
         }
     }
     QStringList companies = sql->getCompanyList();
@@ -617,7 +618,7 @@ void MainWindow::resetActorFilterSelectors(){
 void MainWindow::receiveActors(ActorList list){
     if (!list.isEmpty()){   // if the passed list has items in it, selectively add them to the main actor map.
         bool reloadCurrentProfile = (!ui->profileWidget->isHidden() && list.contains(currentActor));
-        vault.add(list);
+        vault->add(list);
         if (reloadCurrentProfile){
             ui->profileWidget->reloadProfile();
         }
@@ -738,10 +739,10 @@ void MainWindow::on_actionAdd_Actor_triggered(){
 
 void MainWindow::pd_to_mw_addActorToDisplay(ActorPtr a){
     if (!a.isNull()){
-        if (!vault.contains(a->getName())){
+        if (!vault->contains(a->getName())){
             qDebug("Adding %s to List", qPrintable(a->getName()));
             this->actorModel->appendRow(a->buildQStandardItem());
-            vault.add(a);
+            vault->add(a);
         }
     }
 }
@@ -827,7 +828,7 @@ void MainWindow::updateSceneDisplay(ScenePtr s){
 }
 
 void MainWindow::playVideo(int sceneID){
-    ScenePtr curr = vault.getScene(sceneID);
+    ScenePtr curr = vault->getScene(sceneID);
     if (!curr.isNull()){
         QString filepath = curr->getFullpath();
         if (!videoOpen){

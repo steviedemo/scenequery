@@ -40,6 +40,7 @@ ActorProfileView::~ActorProfileView(){
     delete ui;
 }
 
+
 void ActorProfileView::on_tb_editName_clicked(){
     ui->label_name->hide();
     ui->nameEditFrame->show();

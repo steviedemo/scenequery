@@ -4,9 +4,17 @@
 ActorTableView::ActorTableView(QWidget *parent):
     QWidget(parent),
     parent(parent){
+
     this->itemClicked = false;
     this->proxyModel = new ActorProxyModel(this);
     this->table = new QTableView;
+    QStringList actorHeaders, sceneHeaders;
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
+    this->actorModel = new QStandardItemModel();
+    this->actorModel->setSortRol(Qt::DecorationRole);
+    this->actorParent = actorModel->invisibleRootItem();
+    this->actorModel->setHorizontalHeaderLabels(actorHeaders);
+    proxyModel->setSourceModel(actorModel);
     proxyModel->setFilterRole(Qt::DisplayRole);
     table->setModel(proxyModel);
     table->setSortingEnabled(true);
@@ -42,6 +50,47 @@ ActorTableView::ActorTableView(QWidget *parent):
     connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
     connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
 }
+
+void ActorTableView::addNewActors(const ActorList &list){
+    qDebug("%s adding actors to display", __FILE__);
+    emit progressBegin(QString("Adding %1 actors to the view").arg(list.size()), list.size());
+    int index = 0;
+    foreach(ActorPtr a, list){
+        if (!a.isNull()){
+            this->actorModel->appendRow(a->buildQStandardItem());
+            vault->add(a);
+        } else {
+            qWarning("%s::%s element %d of actor list is null!", __FILE__, __FUNCTION__, index);
+        }
+        emit progressUpdate(++index);
+    }
+    emit progressEnd("Finished Adding actors to display");
+}
+
+void ActorTableView::addNewActor(const ActorPtr a){
+    if (!a.isNull()){
+        qDebug("Adding %s to the display...", qPrintable(a->getName()));
+        if (!vault->contains(a->getName())){
+            actorModel->appendRow(a->buildQStandardItem());
+            vault->add(a);
+            qDebug("%s Added to the vault and to the display", qPrintable(a->getName()));
+        }
+    } else {
+        qWarning("Error: %s::%s Attempting to add Null ActorPtr to display", __FILE__, __FUNCTION__);
+    }
+}
+
+void ActorTableView::addNewItems(const QVector<QList<QStandardItem *> > rows){
+    int index = 0;
+    qDebug("%s::%s adding %d rows to display", __FILE__, __FUNCTION__, rows.size());
+    emit progressBegin(QString("Adding %1 rows to the Actor Table").arg(rows.size()), rows.size());
+    foreach(QList<QStandardItem *> row, rows){
+        this->actorModel->appendRow(row);
+        emit progressUpdate(++index);
+    }
+    emit progressEnd(QString("Finished adding %1 Rows to the display").arg(rows.size()));
+}
+
 void ActorTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
 }

@@ -3,18 +3,20 @@
 #include <QDate>
 #include <QObject>
 #include <QMap>
+#include <QMutex>
 #include "definitions.h"
 #include "SceneList.h"
 #include "Actor.h"
 #include "Scene.h"
+#include <QException>
 class DataManager : public QObject
 {
     Q_OBJECT
 public:
     explicit DataManager(QObject *parent=0);
     ~DataManager();
-    bool        contains(const int ID)          const    {  return sceneMap.contains(ID);      }
-    bool        contains(const QString &name)   const    {  return actorMap.contains(name);    }
+    bool        contains(const int ID)          const;
+    bool        contains(const QString &name)   const;
     ActorPtr    getActor(const QString)         const;
     ScenePtr    getScene(const int id)          const;
     bool        add(const ScenePtr s);
@@ -44,6 +46,7 @@ private:
     QHash<QString, ActorPtr> actorMap;
     SceneList sceneUpdateList;
     ActorList actorUpdateList;
+    QMutex mx;
 signals:
     void save(ActorPtr);
     void save(ScenePtr);

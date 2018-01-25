@@ -140,7 +140,8 @@ HEADERS  += \
     forms/SplashScreen.h \
     src/MiniThreads.h \
     src/DataManager.h \
-    src-objects/FilterSet.h
+    src-objects/FilterSet.h \
+    src/Exception.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

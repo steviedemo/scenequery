@@ -117,7 +117,7 @@ private:
     /// View
     QIcon appIcon;
     Ui::MainWindow *ui;
-    DataManager vault;
+    QSharedPointer<DataManager> vault;
     QModelIndex currentActorIndex;
     QMap<QString, ActorPtr> actorMap;
     QHash<int, ScenePtr> sceneMap;
