@@ -404,20 +404,22 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
 }
 
 void MainWindow::actorSelectionChanged(QString name){
-    ActorPtr a = vault.getActor(name);
-    if (!a.isNull()){
-        qDebug("'%s' Selected", qPrintable(name));
-
-        if (!ui->profileWidget->isHidden()){
-            ui->profileWidget->loadActorProfile(currentActor);
+    if (vault.contains(name)){
+        ActorPtr a = vault.getActor(name);
+        if (!a.isNull()){
+            qDebug("'%s' Selected", qPrintable(name));
+            this->currentActor = a;
+            if (!ui->profileWidget->isHidden()){
+                ui->profileWidget->loadActorProfile(currentActor);
+            }
+            if (!this->sceneDetailView->isHidden()){
+                this->sceneDetailView->clearDisplay();
+                this->sceneDetailView->hide();
+            }
+        } else {
+            qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
+            ui->actorTableView->removeActor(name);
         }
-        if (!this->sceneDetailView->isHidden()){
-            this->sceneDetailView->clearDisplay();
-            this->sceneDetailView->hide();
-        }
-    } else {
-        qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
-        ui->actorTableView->removeActor(name);
     }
 }
 

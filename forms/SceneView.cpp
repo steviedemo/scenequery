@@ -150,7 +150,9 @@ void SceneView::searchByID(const int &id){
     proxyModel->setFilterID(id);
 }
 void SceneView::actorFilterChanged(ActorPtr a){
-    actorFilterChanged(a->getName());
+    if (!a.isNull()){
+        actorFilterChanged(a->getName());
+    }
 }
 void SceneView::actorFilterChanged(QString name){
     filenameFilterChanged("");
