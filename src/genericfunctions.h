@@ -26,6 +26,11 @@ bool compare(const LogicalOperator &op, const T &i, const T &j){
     }
     return p;
 }
+bool        filterMatchesTriState(const TriState &t, const QString &s) const;
+bool        filterMatchesAnything(const QString &s) const;
+bool        filterMatchesAnything(const LogicalOperator &op) const  {   return (op == NOT_SET); }
+bool        filterMatchesAnything(const TriState &op) const         {   return (op == NOT_SET); }
+bool        filterMatchesAnything(const int &i) const               {   return i > -1;          }
 QString     toString(const LogicalOperator &op);
 LogicalOperator fromString(const QString &s);
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters);

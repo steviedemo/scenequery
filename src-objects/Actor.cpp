@@ -153,12 +153,43 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
     this->itemSceneCount= new QStandardItem(QString::number(sceneCount));
     this->itemPhoto     = new QStandardItem();
     this->itemBioSize   = new QStandardItem();
+    this->itemAge       = new QStandardItem();
+    this->itemHeight    = new QStandardItem();
+    this->itemWeight    = new QStandardItem();
+    this->itemTattoos   = new QStandardItem();
+    this->itemPiercings = new QStandardItem();
+    QDate birthday = bio.getBirthday();
+    if (birthday.isValid()){
+        int years = birthday.daysTo(QDate::currentDate())/365;
+        itemAge->setText(QString::number(years));
+    }
+    if (bio.getHeight().isValid()){
+        Height h = bio.getHeight();
+        itemHeight->setText(QString("%1'%2''").arg(h.getFeet()).arg(h.getInches()));
+    }
+    if (bio.getWeight() > 0){
+        itemWeight->setText(QString("%1 lbs").arg(bio.getWeight()));
+    }
+    QString tatts = bio.getTattoos();
+    if (!tatts.isEmpty() && !tatts.contains("None")){
+        itemTattoos->setText("Yes");
+    } else {
+        itemTattoos->setText("No");
+    }
+    QString rings = bio.getPiercings();
+    if (!rings.isEmpty() && !rings.contains("None")){
+        itemPiercings->setText("Yes");
+    } else {
+        itemPiercings->setText("No");
+    }
+/*
     QString bioSize = QString("%1").arg(size(), 2, 10, QChar('0'));
     QString scenes = QString("%1").arg(sceneCount, 2, 10, QChar('0'));
     this->itemBioSize->setText(bioSize);
     this->itemSceneCount->setText(scenes);
     this->itemSceneCount->setTextAlignment(Qt::AlignLeft);
     this->itemSceneCount->setTextAlignment(Qt::AlignCenter);
+*/
     if (this->photoPath.isEmpty()){
         this->photoPath = getProfilePhoto(name);
     }
@@ -166,7 +197,7 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
     QImage scaledImage(getHeadshotThumbnail(name));
     this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
     //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
-    row << itemPhoto << itemName << itemHair << itemEthnicity << itemSceneCount << itemBioSize;
+    row << itemPhoto << itemName << itemHair << itemEthnicity << itemAge << itemHeight << itemWeight << itemTattoos << itemPiercings;
     this->displayItemCreated = true;
     return row;
 }

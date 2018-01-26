@@ -14,8 +14,14 @@
 #define ACTOR_NAME_COLUMN       1
 #define ACTOR_HAIR_COLUMN       2
 #define ACTOR_ETH_COLUMN        3
-#define ACTOR_SCENE_COLUMN      4
-#define ACTOR_BIO_SIZE_COLUMN   5
+//#define ACTOR_SCENE_COLUMN      4
+//#define ACTOR_BIO_SIZE_COLUMN   5
+#define ACTOR_AGE_COLUMN        4
+#define ACTOR_HEIGHT_COLUMN     5
+#define ACTOR_WEIGHT_COLUMN     6
+#define ACTOR_TATTOO_COLUMN     7
+#define ACTOR_PIERCING_COLUMN   8
+
 /// Scene List Headers
 #define SCENE_NAME_COLUMN       0
 #define SCENE_TITLE_COLUMN      1
@@ -56,6 +62,7 @@
 #define FILTER_ACTOR        "ACTOR"
 #define FILTER_WORD         "WORD"
 #define FILTER_TAG          "TAG"
+enum TriState        { ON, OFF, NOT_SET };
 enum LogicalOperator { LESSER_THAN, LESSER_OR_EQUAL, GREATER_THAN, GREATER_OR_EQUAL, EQUAL, NOT_EQUAL, NOT_SET};
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);

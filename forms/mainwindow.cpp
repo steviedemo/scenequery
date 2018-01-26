@@ -259,12 +259,6 @@ void MainWindow::sdv_to_mw_showActor(QString name){
         ui->profileWidget->loadActorProfile(vault->getActor(name));
     }
 }
-//void MainWindow::sdv_to_mw_requestBirthday(QString name){
-//    QDate birthday = vault->getBirthday(name);
-//    if (birthday.isValid()){
-//        sceneDetailView->receiveActorBirthday(name, birthday);
-//    }
-//}
 
 void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
     if(!actorName.isEmpty() && actorName == currentActor->getName()){

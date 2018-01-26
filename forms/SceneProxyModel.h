@@ -38,8 +38,6 @@ public:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 private:
-    bool filterMatchesAnything(const QString &s) const;
-    bool filterMatchesAnything(const LogicalOperator &op) const;
     void setFilter(QString text);
     QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
     bool filterMatches_filename (int row, const QModelIndex & index) const;

@@ -22,7 +22,8 @@ private:
     Biography bio;
     double dataUsage;
     QString photoPath;
-    QStandardItem *itemName, *itemAge, *itemPhoto, *itemHair, *itemEthnicity, *itemSceneCount, *itemBioSize;
+    QStandardItem *itemName, *itemAge, *itemPhoto, *itemHair, *itemEthnicity;
+    QStandardItem *itemSceneCount, *itemBioSize, *itemAge, *itemHeight, *itemWeight, *itemTattoos, *itemPiercings;
     int sceneCount;
     bool displayItemCreated, photoItemCreated;
     SceneList sceneList;

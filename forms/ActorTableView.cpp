@@ -8,8 +8,8 @@ ActorTableView::ActorTableView(QWidget *parent):
     this->itemClicked = false;
     this->proxyModel = new ActorProxyModel(this);
     this->table = new QTableView;
-    QStringList actorHeaders, sceneHeaders;
-    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
+    QStringList actorHeaders;
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Age" << "Height" << "Weight" << "Tattoos?" << "Piercings?";
     this->actorModel = new QStandardItemModel();
     this->actorModel->setSortRole(Qt::DecorationRole);
     this->actorParent = actorModel->invisibleRootItem();

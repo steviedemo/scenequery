@@ -49,6 +49,27 @@ LogicalOperator fromString(const QString &p){
     }
     return op;
 }
+bool filterMatchesAnything(const QString &s) const {
+    bool matchAnything =   (s.isEmpty() || \
+                           (s == ".*")  || \
+                           (s == ".*.*")|| \
+                           (s == ".*.*.*") || \
+                           (s == "No Selection"));
+    return matchAnything;
+}
+bool filterMatchesTriState(const TriState &t, const QString &s) const{
+    bool result = (!s.isEmpty() && (s != "None"));
+    bool filterMatches = false;
+    if (t == ON ){
+        filterMatches = result;
+    } else if (t == OFF){
+        filterMatches = (!result);
+    } else {
+        filterMatches = true;
+    }
+    return filterMatches;
+}
+
 bool nonzero(double d){
     return d > 0;
 }
