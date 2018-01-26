@@ -45,25 +45,29 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     QCoreApplication::setApplicationName("Scene Query");
 
     ui->setupUi(this);
-    this->sql  = new SQL();
+    this->sql       = new SQL();
     this->sqlThread = new QThread();
     sql->moveToThread(sqlThread);
     connect(sql,                SIGNAL(startProgress(QString,int)),     this,               SLOT(newProgressDialog(QString, int)));
     connect(sql,                SIGNAL(updateProgress(int)),            this,               SLOT(updateProgressDialog(int)));
     connect(sql,                SIGNAL(closeProgress()),                this,               SLOT(closeProgressDialog()));
-    connect(vault.data(),             SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
-    connect(vault.data(),             SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
-    connect(vault.data(),             SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
-    connect(vault.data(),             SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
-
+    connect(vault.data(),       SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
+    connect(vault.data(),       SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
+    connect(vault.data(),       SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
+    connect(vault.data(),       SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
     sqlThread->start();
 
+    /// Set up GUI Classes
     setupViews();
     connectViews();
-    /// Create Thread Objects
 
+    /// Open Splashscreen
     this->splashScreen = new SplashScreen(this);
-    connect(splashScreen, SIGNAL(done(ActorList,SceneList,RowList,RowList)), this, SLOT(initDone(ActorList,SceneList,RowList,RowList)));
+    connect(splashScreen, SIGNAL(sendActorRows(RowList)), ui->actorTableView,   SLOT(addRows(RowList)));
+    connect(splashScreen, SIGNAL(sendSceneRows(RowList)), ui->sceneTableView,   SLOT(addRows(RowList)));
+    connect(splashScreen, SIGNAL(sendActors(ActorMap)),   vault.data(),         SLOT(setMap(ActorMap)));
+    connect(splashScreen, SIGNAL(sendScenes(SceneMap)),   vault.data(),         SLOT(setMap(SceneMap)));
+    connect(splashScreen, SIGNAL(done()),                 this,                 SLOT(initDone()));
     qDebug("Opening Splashscreen...");
     splashScreen->show();
 
@@ -85,38 +89,23 @@ MainWindow::~MainWindow(){
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
-    ui->tabWidget_filters->hide();
-    /// Set up Actor Table View
-/*
-    QStringList actorHeaders, sceneHeaders;
-    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
-    this->actorModel = new QStandardItemModel();
-    this->actorModel->setSortRole(Qt::DecorationRole);
-    this->actorParent = actorModel->invisibleRootItem();
-    actorModel->setHorizontalHeaderLabels(actorHeaders);
-    ui->actorTableView->setSourceModel(actorModel);
-
-    /// Set up the Scene Table View
-    sceneHeaders << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
-    this->sceneModel = new QStandardItemModel();
-    //this->sceneProxyModel = new SceneProxyModel(this);
-    //sceneProxyModel->setSourceModel(sceneModel);
-    this->sceneParent = sceneModel->invisibleRootItem();
-    sceneModel->setHorizontalHeaderLabels(sceneHeaders);
-    ui->sceneTableView->setSourceModel(sceneModel);
-
-  */
-    ui->actorTableView->setDataContainers(this->vault);
-    ui->sceneTableView->setDataContainers(this->vault);
+    this->vault     = QSharedPointer<DataManager>(new DataManager());
     /// Set Up Scene Detail View
     this->sceneDetailView = new SceneDetailView(this);
-    this->sceneDetailView->setDataContainers(this->vault);
     ui->vbl_list_layout->addWidget(sceneDetailView);
+    // Hide detail widgets
     this->sceneDetailView->hide();
-    /// Set Up Profile Widget
-    ui->profileWidget->hide();
+    this->ui->tabWidget_filters->hide();
+    this->ui->profileWidget->hide();
+    /// Give all other GUI Classes Access to data.
+    this->sceneDetailView->setDataContainers(vault);
+    this->ui->actorTableView->setDataContainers(vault);
+    this->ui->sceneTableView->setDataContainers(vault);
+    this->ui->profileWidget->setData(vault);
+    /// Empty the progress bar.
     ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
+    /// Set up the Filters window
     QStringList numFilters;
     numFilters << "More Than" << "Less Than" << "Exactly";
     ui->cb_sceneCount->addItems(numFilters);
@@ -146,12 +135,10 @@ void MainWindow::connectViews(){
     connect(sceneDetailView,            SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
     connect(sceneDetailView,            SIGNAL(showActor(ActorPtr)),            ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
     connect(sceneDetailView,            SIGNAL(showActor(QString)),             ui->actorTableView, SLOT(selectActor(QString)));
-    //connect(sceneDetailView,            SIGNAL(requestActorBirthday(QString)),  this,               SLOT(sdv_to_mw_requestBirthday(QString)));
-
     connect(ui->tb_searchActors,        SIGNAL(clicked()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(clicked()),                      this,               SLOT(searchScenes()));
-    connect(ui->le_searchActors,        &QLineEdit::returnPressed,              ui->tb_searchActors,SIGNAL(clicked()));
-    connect(ui->le_searchScenes,        &QLineEdit::returnPressed,              ui->tb_searchScenes,SIGNAL(clicked()));
+    connect(ui->le_searchActors,        SIGNAL(returnPressed()),                this,               SLOT(searchActors()));
+    connect(ui->le_searchScenes,        SIGNAL(returnPressed()),                this,               SLOT(searchScenes()));
 
     connect(ui->pb_saveActors,          &QPushButton::clicked,                  vault.data(),       &DataManager::saveAllActors);
     connect(ui->actionSave_Actors,      SIGNAL(triggered()),                    vault.data(),       SLOT(saveAllActors()));
@@ -176,21 +163,21 @@ void MainWindow::connectViews(){
     connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
     connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
     connect(sql,                        SIGNAL(sendPurgeList(QVector<int>)),    ui->sceneTableView, SLOT(purgeSceneItems(QVector<int>)));
+    connect(ui->actorTableView,         SIGNAL(actorSelectionChanged(QString)), this,               SLOT(actorSelectionChanged(QString)));
 
 }
 
 
-void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows, RowList sceneRows){
+void MainWindow::initDone(){
     splashScreen->close();
     delete splashScreen;
-    qDebug("Main Window Received %d actors, %d scenes, %d actor rows & %d scene rows", \
-           actors.size(), scenes.size(), actorRows.size(), sceneRows.size());
+//    qDebug("Main Window Received %d actors, %d scenes, %d actor rows & %d scene rows", actorMap.size(), scenes.size(), actorRows.size(), sceneRows.size());
     //foreach(ActorPtr a, actors)                     { actorMap.insert(a->getName(), a); }
     //foreach(ScenePtr s, scenes)                     { sceneMap.insert(s->getID(),   s); }
-    vault->add(actors);
-    vault->add(scenes);
-    foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
-    foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
+    //vault->add(actors);
+    //vault->add(scenes);
+    //foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
+    //foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
     ui->statusLabel->setText("Initialization Complete");
     /// Set up Filter boxes
     QStringList companies = sql->getCompanyList();
@@ -202,9 +189,7 @@ void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows,
     QStringList ethnicities = sql->getDistinctValueList("actors", "ethnicity");
     ethnicities.prepend(COMBO_BOX_DEFAULT);
     ui->cb_ethnicity->addItems(ethnicities);
-    /// Set up Selection Model
-    connect(ui->actorTableView, SIGNAL(actorSelectionChanged(QString)), this, SLOT(actorSelectionChanged(QString)));
-    ui->statusLabel->setText(QString("%1 Actors & %2 Scenes Loaded!").arg(actors.size()).arg(scenes.size()));
+
     ui->actorTableView->resizeToContents();
     ui->sceneTableView->resizeSceneView();
     startThreads();

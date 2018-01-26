@@ -51,6 +51,13 @@ ActorTableView::ActorTableView(QWidget *parent):
     connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
 }
 
+void ActorTableView::addRows(RowList rows){
+    foreach(Row row, rows){
+        actorModel->appendRow(row);
+    }
+    actorModel->sort(ACTOR_NAME_COLUMN);
+}
+
 void ActorTableView::addNewActors(const ActorList &list){
     qDebug("%s adding actors to display", __FILE__);
     emit progressBegin(QString("Adding %1 actors to the view").arg(list.size()), list.size());

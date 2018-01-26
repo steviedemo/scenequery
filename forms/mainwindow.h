@@ -44,7 +44,7 @@ public:
 
 private slots:
     /// Receivers
-    void initDone(ActorList, SceneList, RowList, RowList);
+    void initDone(void);
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveSingleActor(ActorPtr);

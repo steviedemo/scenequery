@@ -11,12 +11,21 @@ DataManager::DataManager(QObject *parent):
 DataManager::~DataManager(){}
 
 bool DataManager::contains(const int ID) const{
-    bool hasID = sceneMap.contains(ID);
-    return hasID;
+    return sceneMap.contains(ID);
 }
 bool DataManager::contains(const QString &name) const{
-    bool hasName = actorMap.contains(name);
-    return hasName;
+    return actorMap.contains(name);
+}
+
+void DataManager::setMap(ActorMap actors){
+    QMutexLocker ml(&mx);
+    this->actorMap = actors;
+    emit statusUpdate(QString("Added %1 Actors").arg(actors.size()));
+}
+void DataManager::setMap(SceneMap scenes){
+    QMutexLocker ml(&mx);
+    this->sceneMap = scenes;
+    emit statusUpdate(QString("Added %1 Scenes").arg(scenes.size()));
 }
 
 bool DataManager::add(const ActorPtr a, bool saveToDB){
@@ -110,16 +119,15 @@ bool DataManager::update(const ScenePtr s, bool saveToDB){
 void DataManager::update(const ActorList list, bool saveToDB){
     foreach(ActorPtr a, list){  update(a, saveToDB); }
 }
-void DataManager::add(const ActorList list){
-    bool saveToDatabase = (!actorMap.isEmpty());    /// Don't save to the database if we're doing the initial load from the database
-    foreach(ActorPtr a, list){ add(a, saveToDatabase);  }
+void DataManager::add(const ActorList list, bool saveToDatabase){
+    /// Don't save to the database if we're doing the initial load from the database
+    foreach(ActorPtr a, list){ add(a, (!actorMap.isEmpty() && saveToDatabase));  }
 }
 void DataManager::update(const SceneList list, bool saveToDB){
     foreach(ScenePtr s, list){  update(s, saveToDB); }
 }
-void DataManager::add(const SceneList list){
-    bool saveToDatabase = (!sceneMap.isEmpty());
-    foreach(ScenePtr s, list){  add(s, saveToDatabase); }
+void DataManager::add(const SceneList list, bool saveToDatabase){
+    foreach(ScenePtr s, list){  add(s, saveToDatabase && !sceneMap.isEmpty()); }
 }
 
 ActorPtr DataManager::getActor(const QString name){

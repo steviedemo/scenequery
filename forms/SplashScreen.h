@@ -1,16 +1,15 @@
 #ifndef SPLASHSCREEN_H
 #define SPLASHSCREEN_H
-
 #include <QWidget>
 #include <QProgressBar>
 #include <QCloseEvent>
 #include <QShowEvent>
-#include "SQL.h"
+#include "DataManager.h"
 #include "definitions.h"
+#include "SQL.h"
 namespace Ui {
 class SplashScreen;
 }
-
 
 class miniSQL : public QThread {
     Q_OBJECT
@@ -21,8 +20,8 @@ public :
 private:
     enum Table{ ACTOR, SCENE };
     Table currentTable;
-    ActorList actorList;
-    SceneList sceneList;
+    ActorMap actorMap;
+    SceneMap sceneMap;
 signals:
     void startProgress(int);
     void startProgress(int ID, int max);
@@ -30,15 +29,17 @@ signals:
     void updateProgress(int ID, int value);
     void closeProgress(void);
     void closeProgress(int ID);
-    void done(ActorList);
-    void done(SceneList);
+    void done(ActorMap);
+    void done(SceneMap);
 };
 
 class DisplayMaker : public QThread{
     Q_OBJECT
 public:
-    explicit DisplayMaker(ActorList &list, QObject *parent = 0);
-    explicit DisplayMaker(SceneList &list, QObject *parent = 0);
+    explicit DisplayMaker(ActorMap &list, QObject *parent = 0):
+        QThread(parent), actorMap(list), listType("actors"){}
+    explicit DisplayMaker(SceneMap &list, QObject *parent = 0):
+        QThread(parent), sceneMap(list), listType("scenes"){}
     void run();
 protected:
     void makeActorRow(ActorPtr a);
@@ -46,8 +47,8 @@ protected:
 private:
     QMutex mx;
     int index;
-    ActorList actorList;
-    SceneList sceneList;
+    ActorMap actorMap;
+    SceneMap sceneMap;
     QString listType;
     RowList rows;
 signals:
@@ -86,10 +87,17 @@ private:
     SceneList scenes;
     bool scenesBuilt, actorsBuilt, scenesLoaded, actorsLoaded;
     QMutex mx;
-    QVector<QList<QStandardItem *>>actorRows, sceneRows;
+    RowList actorRows, sceneRows;
+    ActorMap actorMap;
+    SceneMap sceneMap;
+    QSharedPointer<DataManager>vault;
 signals:
     void completed(int);
-    void done(ActorList, SceneList, RowList, RowList);
+    void sendActorRows  (RowList);
+    void sendSceneRows  (RowList);
+    void sendActors     (ActorMap);
+    void sendScenes     (SceneMap);
+    void done           (void);
 };
 
 #endif // SPLASHSCREEN_H

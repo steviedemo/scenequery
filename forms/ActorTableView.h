@@ -26,6 +26,7 @@ public:
     QModelIndex findActorIndex_base(const QRegExp &name, const int column) const;
     void addNewItems(const QVector<QList<QStandardItem *>> rows);
 public slots:
+    void addRows(RowList rows);
     void addActor(ActorPtr);
     void addNewActors(const ActorList &list);
     void addNewActor(const ActorPtr a);

@@ -59,13 +59,14 @@
 enum LogicalOperator { LESSER_THAN, LESSER_OR_EQUAL, GREATER_THAN, GREATER_OR_EQUAL, EQUAL, NOT_EQUAL, NOT_SET};
 enum RunMode {  Debug, Release };
 //#define tr();    qDebug("%s::%s::%d", __FILE__, __FUNCTION__, __LINE__);
-typedef QSharedPointer<class Scene>         ScenePtr;
-typedef QSharedPointer<class Actor>         ActorPtr;
-typedef QSharedPointer<class QStandardItem> ItemPtr;
-typedef QVector<QList<QStandardItem *>>     RowList;
-using ItemList           = QList<QSharedPointer<class QStandardItem>>;
+typedef QSharedPointer<class Scene>             ScenePtr;
+typedef QSharedPointer<class Actor>             ActorPtr;
+typedef QSharedPointer<class QStandardItem>     ItemPtr;
+typedef QVector<QList<class QStandardItem *>>   RowList;
+typedef QList<class QStandardItem *>            Row;
 //using SceneList             = QVector<QSharedPointer<class Scene>>;
 using ActorList             = QVector<QSharedPointer<class Actor>>;
-using ActorMap              = QMap<QString, ActorPtr>;
+using ActorMap              = QHash<QString, ActorPtr>;
+using SceneMap              = QHash<int, ScenePtr>;
 using ActorIterator         = QMapIterator<QString, ActorPtr>;
 #endif // DEFINITIONS_H

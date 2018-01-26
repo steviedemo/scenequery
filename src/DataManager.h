@@ -19,31 +19,33 @@ public:
     bool        contains(const QString &name)   const;
     ActorPtr    getActor(const QString);
     ScenePtr    getScene(const int id);
-    bool        add(const ScenePtr s, bool saveToDatabase=false);
-    bool        add(const ActorPtr a, bool saveToDatabase=false);
-    void        add(const SceneList list);
-    void        add(const ActorList list);
-    bool        update(const ActorPtr, bool saveToDB=true);
-    bool        update(const ScenePtr, bool saveToDB=true);
-    void        update(const SceneList list, bool saveToDB=true);
-    void        update(const ActorList list, bool saveToDB=true);
-    void        remove(const ScenePtr s);
-    void        remove(const ActorPtr a);
-    void        remove(const QString &name);
-    void        remove(const int id);
+    void        add     (const SceneList,   bool saveToDatabase=false);
+    void        add     (const ActorList,   bool saveToDatabase=false);
+    bool        add     (const ScenePtr,    bool saveToDatabase=false);
+    bool        add     (const ActorPtr,    bool saveToDatabase=false);
+    bool        update  (const ActorPtr,    bool saveToDatabase=false);
+    bool        update  (const ScenePtr,    bool saveToDatabase=false);
+    void        update  (const SceneList,   bool saveToDatabase=false);
+    void        update  (const ActorList,   bool saveToDatabase=false);
+    void        remove  (const ScenePtr s);
+    void        remove  (const ActorPtr a);
+    void        remove  (const QString &name);
+    void        remove  (const int id);
     bool        actorMapEmpty(void) const { return actorMap.isEmpty();  }
     bool        sceneMapEmpty(void) const { return sceneMap.isEmpty();  }
     QDate       getBirthday(const QString &name);
     int         getAge(const QString &name, const QDate &date);
 public slots:
-    void saveAllScenes();
-    void saveAllActors();
-    void updateActorDisplayItems();
-    void updateSceneDisplayItems();
-    void updateBios(void);
+    void    saveAllScenes();
+    void    saveAllActors();
+    void    updateActorDisplayItems();
+    void    updateSceneDisplayItems();
+    void    updateBios(void);
+    void    setMap(ActorMap actors);
+    void    setMap(SceneMap scenes);
 private:
-    QHash<int, ScenePtr> sceneMap;
-    QHash<QString, ActorPtr> actorMap;
+    SceneMap sceneMap;
+    ActorMap actorMap;
     SceneList sceneUpdateList;
     ActorList actorUpdateList;
     QMutex mx;
@@ -55,6 +57,7 @@ signals:
     void progressBegin(QString, int);
     void progressUpdate(int);
     void progressEnd(QString);
+    void statusUpdate(QString);
     void updateBiosFromWeb(ActorList);
 };
 
