@@ -41,7 +41,6 @@ public slots:
     void removeActor(ActorPtr);
 private:
     QWidget *parent;
-    QStringList headers;
     QString ethnicityFilter, nameFilter, hairFilter, currentSelection;
     QStandardItem *actorParent;
     QStandardItemModel *actorModel;

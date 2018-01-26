@@ -100,7 +100,8 @@ SOURCES += \
     src/MiniThreads.cpp \
     src/DataManager.cpp \
     src-objects/FilterSet.cpp \
-    forms/SceneTableView.cpp
+    forms/SceneTableView.cpp \
+    forms/FilterWidget.cpp
 
 HEADERS  += \
     src/config.h \
@@ -141,14 +142,16 @@ HEADERS  += \
     src/DataManager.h \
     src-objects/FilterSet.h \
     src/Exception.h \
-    forms/SceneTableView.h
+    forms/SceneTableView.h \
+    forms/FilterWidget.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
     forms/ActorProfileView.ui \
     forms/SceneDetailView.ui \
     forms/SplashScreen.ui \
-    forms/SearchPathsDialog.ui
+    forms/SearchPathsDialog.ui \
+    forms/FilterWidget.ui
 
 QMAKE_CLEAN += \
     build/* \

@@ -40,15 +40,20 @@ ActorTableView::ActorTableView(QWidget *parent):
     table->setFrameShadow(QFrame::Plain);
     table->setIconSize(QSize(20, 20));
     table->setGridStyle(Qt::DotLine);
-
     this->mainLayout = new QVBoxLayout;
     mainLayout->addWidget(table);
     setLayout(mainLayout);
+    /// Set Up Selection Model
     this->selectionModel = table->selectionModel();
     connect(selectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(selectionChanged(QModelIndex,QModelIndex)));
-    connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(rowClicked(QModelIndex)));
-    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
-    connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(table,          SIGNAL(clicked(QModelIndex)),                       this, SLOT(rowClicked(QModelIndex)));
+    connect(proxyModel,     SIGNAL(rowsInserted(QModelIndex,int,int)),          this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(proxyModel,     SIGNAL(rowsRemoved(QModelIndex,int,int)),           this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    /// Hide Columns that are present only for filtering reasons.
+    table->hideColumn(ACTOR_WEIGHT_COLUMN);
+    table->hideColumn(ACTOR_ETH_COLUMN);
+    table->hideColumn(ACTOR_PIERCING_COLUMN);
+    table->hideColumn(ACTOR_TATTOO_COLUMN);
 }
 
 void ActorTableView::addRows(RowList rows){
