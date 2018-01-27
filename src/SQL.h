@@ -5,10 +5,12 @@
 #include "sqlconnection.h"
 #include "SceneList.h"
 #include <QMutex>
+/*
 #include <QtSql>
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QSqlDatabase>
+*/
 #include <QString>
 #include <QStringList>
 #include <QSharedPointer>

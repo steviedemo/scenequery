@@ -23,6 +23,7 @@
 #define LOAD_SCENES
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
 //    this->runMode = Debug;
+    this->vault = QSharedPointer<DataManager>(new DataManager(this), &DataManager::deleteObject);
     this->runMode = Release;//Debug;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
     qRegisterMetaType<int>("int");
@@ -38,15 +39,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<ActorPtr>("ActorPtr");
     qRegisterMetaType<SceneList>("SceneList");
     qRegisterMetaType<ActorList>("ActorList");
-    qRegisterMetaType<SceneMap>("SceneMap");
-    qRegisterMetaType<ActorMap>("ActorMap");
     qRegisterMetaType<RowList>("RowList");
     qRegisterMetaType<QFileInfoList>("QFileInfoList");
     qRegisterMetaType<FilterSet>("FilterSet");
     this->videoOpen = false;
     QCoreApplication::setOrganizationName("SQ");
     QCoreApplication::setApplicationName("Scene Query");
-    this->vault     = QSharedPointer<DataManager>(new DataManager());
+
     ui->setupUi(this);
     this->sql       = new SQL();
     this->sqlThread = new QThread();
@@ -65,9 +64,11 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connectViews();
 
     /// Open Splashscreen
-    this->splashScreen = new SplashScreen(vault, this);
+    this->splashScreen = new SplashScreen(this);
     connect(splashScreen, SIGNAL(sendActorRows(RowList)), ui->actorTableView,   SLOT(addRows(RowList)));
     connect(splashScreen, SIGNAL(sendSceneRows(RowList)), ui->sceneTableView,   SLOT(addRows(RowList)));
+    connect(splashScreen, SIGNAL(sendActors(ActorMap)),   vault.data(),         SLOT(setMap(ActorMap)));
+    connect(splashScreen, SIGNAL(sendScenes(SceneMap)),   vault.data(),         SLOT(setMap(SceneMap)));
     connect(splashScreen, SIGNAL(done()),                 this,                 SLOT(initDone()));
     qDebug("Opening Splashscreen...");
     splashScreen->show();
@@ -90,13 +91,14 @@ MainWindow::~MainWindow(){
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
+    this->vault     = QSharedPointer<DataManager>(new DataManager());
     /// Set Up Scene Detail View
     this->sceneDetailView   = new SceneDetailView(this);
-    this->sceneDetailView->hide();
     this->filterWidget      = new FilterWidget(this);
-    this->filterWidget->hide();
+
     ui->vbl_list_layout->addWidget(sceneDetailView);
     // Hide detail widgets
+    this->sceneDetailView->hide();
     this->ui->tabWidget_filters->hide();
     this->ui->profileWidget->hide();
     /// Give all other GUI Classes Access to data.
@@ -176,10 +178,17 @@ void MainWindow::initDone(){
 //    qDebug("Main Window Received %d actors, %d scenes, %d actor rows & %d scene rows", actorMap.size(), scenes.size(), actorRows.size(), sceneRows.size());
     //foreach(ActorPtr a, actors)                     { actorMap.insert(a->getName(), a); }
     //foreach(ScenePtr s, scenes)                     { sceneMap.insert(s->getID(),   s); }
+<<<<<<< HEAD
+    vault->add(actors);
+    vault->add(scenes);
+    ui->actorTableView->addRows(actorRows);
+    ui->sceneTableView->addRows(sceneRows);
+=======
     //vault->add(actors);
     //vault->add(scenes);
     //foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
     //foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
     ui->statusLabel->setText("Initialization Complete");
     /// Set up Filter boxes
     QStringList companies = sql->getCompanyList();
@@ -315,6 +324,7 @@ void MainWindow::on_actionScan_All_Folders_triggered(){
         SearchPathDialog dialog(this);
         dialog.exec();
     }
+#warning make this a user-created list in the future
     folders = settings.getList(KEY_SEARCH_PATHS);
     scanPaths(folders);
 }

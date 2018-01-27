@@ -58,7 +58,6 @@ public:
     int     entrySize();
     QList<QStandardItem *> buildQStandardItem();
     QList<QStandardItem *> getQStandardItem();
-    ItemList getItemList();
 
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;

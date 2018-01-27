@@ -6,10 +6,10 @@
 #include <QFutureSynchronizer>
 #include <QtConcurrent>
 #include <QtConcurrentRun>
-SplashScreen::SplashScreen(QSharedPointer<DataManager> vault, QWidget *parent) :
+SplashScreen::SplashScreen(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SplashScreen),
-    scenesBuilt(false), actorsBuilt(false), scenesLoaded(false), actorsLoaded(false), vault(vault)
+    scenesBuilt(false), actorsBuilt(false), scenesLoaded(false), actorsLoaded(false)
 {
     ui->setupUi(this);
     checkForDataDirectories();
@@ -18,6 +18,13 @@ SplashScreen::SplashScreen(QSharedPointer<DataManager> vault, QWidget *parent) :
         pb->setMinimum(0);
         pb->setValue(0);
     }
+<<<<<<< HEAD
+    this->scenes = {};
+    this->actors = {};
+    this->actorBuildThreadDone = false;
+    this->sceneBuildThreadDone = false;
+=======
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 }
 
 void SplashScreen::showEvent(QShowEvent *){
@@ -29,8 +36,8 @@ void SplashScreen::showEvent(QShowEvent *){
     connect(actorLoadThread, SIGNAL(startProgress(int,int)),  this, SLOT(startProgress(int,int)));
     connect(sceneLoadThread, SIGNAL(updateProgress(int,int)), this, SLOT(updateProgress(int,int)));
     connect(actorLoadThread, SIGNAL(updateProgress(int,int)), this, SLOT(updateProgress(int,int)));
-    connect(sceneLoadThread, SIGNAL(done(SceneMap)),          this, SLOT(receiveScenes(SceneMap)));
-    connect(actorLoadThread, SIGNAL(done(ActorMap)),          this, SLOT(receiveActors(ActorMap)));
+    connect(sceneLoadThread, SIGNAL(done(SceneMap)),         this, SLOT(receiveScenes(SceneMap)));
+    connect(actorLoadThread, SIGNAL(done(ActorMap)),         this, SLOT(receiveActors(ActorMap)));
     connect(this, SIGNAL(completed(int)), this, SLOT(stepComplete(int)));
     sceneLoadThread->start();
     actorLoadThread->start();
@@ -58,35 +65,66 @@ void SplashScreen::finishProgress(int ID){
         progressList.at(ID)->setValue(progressList.at(ID)->maximum());
     }
 }
+<<<<<<< HEAD
+void SplashScreen::actorBuildThreadFinished(){
+    this->actorBuildThreadDone = true;
+    qDebug("Actor Build Thread finished");
+}
+void SplashScreen::sceneBuildThreadFinished(){
+    this->sceneBuildThreadDone = true;
+    qDebug("Scene Build Thread Finished");
+}
 
-void SplashScreen::receiveActors(ActorMap list){
-    qDebug("Adding %d items to Actor Map", list.size());
-    vault->setMap(list);
+void SplashScreen::receiveActors(ActorList list){
+    this->actors = list;
     qDebug("Starting to build %d actor display items", list.size());
-    this->actorBuild = new DisplayMaker(list);
-    connect(actorBuild, SIGNAL(done(RowList)),      this, SIGNAL(sendActorRows(RowList)));
+    emit completed(LOAD_ACTOR_PROGRESS);
+    QMutexLocker ml(&mx);
+    this->actorBuild = new DisplayMaker(actors, this);
     connect(actorBuild, SIGNAL(done(RowList)),      this, SLOT(receiveActorDisplay(RowList)));
     connect(actorBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(actorBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
     connect(actorBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
-
-    actorBuild->start();
-
+    connect(actorBuild, SIGNAL(finished()),         this, SLOT(sceneBuildThreadFinished()));
+=======
+void SplashScreen::receiveActors(ActorMap list){
+    this->actorMap = list;
+    emit sendActors(list);
+    qDebug("Starting to build %d actor display items", list.size());
     emit completed(LOAD_ACTOR_PROGRESS);
+    QMutexLocker ml(&mx);
+    this->actorBuild = new DisplayMaker(actorMap);
+    connect(actorBuild, SIGNAL(done(RowList)),      this, SIGNAL(sendActorRows(RowList)));
+    connect(actorBuild, &DisplayMaker::done,        [=]{  stepComplete(BUILD_ACTOR_PROGRESS);   });
+    connect(actorBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
+    connect(actorBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
+    connect(actorBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
+    actorBuild->start();
 }
 
 void SplashScreen::receiveScenes(SceneMap list){
-    qDebug("Adding %d items to scene map", list.size());
-    vault->setMap(list);
+    this->sceneMap = list;
+    emit sendScenes(list);
     qDebug("Starting to build %d scene display items", list.size());
-    this->sceneBuild = new DisplayMaker(list);
-    connect(sceneBuild, SIGNAL(done(RowList)),      this, SIGNAL(sendSceneRows(RowList)));
+    emit completed(LOAD_SCENE_PROGRESS);
+    QMutexLocker ml(&mx);
+<<<<<<< HEAD
+    this->sceneBuild = new DisplayMaker(scenes, this);
     connect(sceneBuild, SIGNAL(done(RowList)),      this, SLOT(receiveSceneDisplay(RowList)));
     connect(sceneBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(sceneBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
     connect(sceneBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+    connect(sceneBuild, SIGNAL(finished()),         this, SLOT(actorBuildThreadFinished()));
+=======
+    this->sceneBuild = new DisplayMaker(sceneMap);
+    connect(sceneBuild, SIGNAL(done(RowMap)),       this, SIGNAL(sendSceneRows(RowList)));
+    connect(sceneBuild, &DisplayMaker::done,        [=]{  stepComplete(BUILD_SCENE_PROGRESS); });
+    connect(sceneBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
+    connect(sceneBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
+    connect(sceneBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
     sceneBuild->start();
-    emit completed(LOAD_SCENE_PROGRESS);
 }
 
 void SplashScreen::stepComplete(int progress){
@@ -99,10 +137,18 @@ void SplashScreen::stepComplete(int progress){
         this->sceneLoadThread->deleteLater();
     } else if (progress == BUILD_ACTOR_PROGRESS){
         this->actorsBuilt = true;
-        this->actorBuild->deleteLater();
+        if (actorBuild){
+            this->actorBuild->quit();
+            this->actorBuild->wait();
+            this->actorBuild->deleteLater();
+        }
     } else if (progress == BUILD_SCENE_PROGRESS){
         this->scenesBuilt = true;
-        this->sceneBuild->deleteLater();
+        if (sceneBuild){
+            this->sceneBuild->quit();
+            this->sceneBuild->wait();
+            this->sceneBuild->deleteLater();
+        }
     }
     qDebug("\nIndex %d Finished\n", progress);
     progressList[progress]->setRange(0, 100);
@@ -110,21 +156,32 @@ void SplashScreen::stepComplete(int progress){
     if (actorsLoaded && scenesLoaded && actorsBuilt && scenesBuilt){
         ml.unlock();
         qDebug("Initialization Finished");
-        emit done();
+        emit done(actors, scenes, actorRows, sceneRows);
     }
 }
 
 void SplashScreen::receiveActorDisplay(RowList rows){
 //    this->actorRows = rows;
     qDebug("Got %d actor rows", rows.size());
-//    emit sendActorRows(rows);
+<<<<<<< HEAD
+    //this->actorBuild->quit();
     emit completed(BUILD_ACTOR_PROGRESS);
+=======
+//    emit sendActorRows(rows);
+//    emit completed(BUILD_ACTOR_PROGRESS);
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 }
 void SplashScreen::receiveSceneDisplay(RowList rows){
 //    this->sceneRows = rows;
     qDebug("Got %d scene Rows", rows.size());
-//    emit sendSceneRows(sceneRows);
+<<<<<<< HEAD
+    //this->sceneBuild->quit();
     emit completed(BUILD_SCENE_PROGRESS);
+}
+=======
+//    emit sendSceneRows(sceneRows);
+//    emit completed(BUILD_SCENE_PROGRESS);
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 
 }
 
@@ -182,17 +239,14 @@ void miniSQL::run(){
             qWarning("No Items in table");
             return;
         }
-        int index = 0;
         emit startProgress(task, r.size());
         for(pqxx::result::const_iterator i = r.begin(); i != r.end(); ++i){
             if (currentTable == SCENE){
-                ScenePtr s = ScenePtr(new Scene(i));
-                sceneMap.insert(s->getID(), s);
+                sceneMap.push_back(ScenePtr(new Scene(i)));
             } else {
-                ActorPtr a = ActorPtr(new Actor(i));
-                actorMap.insert(a->getName(), a);
+                actorMap.push_back(ActorPtr(new Actor(i)));
             }
-            emit updateProgress(task, index++);
+            emit updateProgress(task, i);
         }
         int items = ((currentTable == SCENE) ? sceneMap.size() : actorMap.size());
         qDebug("miniSQL Thread loaded %d items with '%s'", items, qPrintable(statement));

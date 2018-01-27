@@ -26,6 +26,7 @@ bool compare(const LogicalOperator &op, const T &i, const T &j){
     }
     return p;
 }
+
 QString     toString(const LogicalOperator &op);
 LogicalOperator fromString(const QString &s);
 QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList nameFilters);

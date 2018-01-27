@@ -38,8 +38,6 @@ public:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 private:
-    bool filterMatchesAnything(const QString &s) const;
-    bool filterMatchesAnything(const LogicalOperator &op) const;
     void setFilter(QString text);
     QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
     bool filterMatches_filename (int row, const QModelIndex & index) const;
@@ -52,6 +50,12 @@ private:
     bool filterMatches_rating   (int row, const QModelIndex &index) const;
     bool filterMatches_added    (int row, const QModelIndex &index) const;
     bool filterMatches_release  (int row, const QModelIndex &index) const;
+
+    bool filterMatchesTriState(const TriState &t, const QString &s) const;
+    bool filterMatchesAnything(const QString &s) const { return (s.isEmpty() || (s == ".*")  || (s == ".*.*") || (s == ".*.*.*") || (s == "No Selection")); }
+    bool filterMatchesAnything(const LogicalOperator &op)  const {   return (op == NOT_SET); }
+    bool filterMatchesAnything(const TriState &op) const {   return (op == DONT_CARE); }
+    bool filterMatchesAnything(const int &i) const  {   return i > -1;          }
     LogicalOperator durationOp, qualityOp, sizeOp, ratingOp, releasedOp, addedOp;
     QString nameFilter, companyFilter, tagFilter, fileFilter;
     qint64 sizeFilter;

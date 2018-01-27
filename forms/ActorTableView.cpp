@@ -8,8 +8,8 @@ ActorTableView::ActorTableView(QWidget *parent):
     this->itemClicked = false;
     this->proxyModel = new ActorProxyModel(this);
     this->table = new QTableView;
-    QStringList actorHeaders, sceneHeaders;
-    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Scenes" << "Bio Size";
+    QStringList actorHeaders;
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Age" << "Height" << "Weight" << "Tattoos?" << "Piercings?";
     this->actorModel = new QStandardItemModel();
     this->actorModel->setSortRole(Qt::DecorationRole);
     this->actorParent = actorModel->invisibleRootItem();
@@ -40,19 +40,32 @@ ActorTableView::ActorTableView(QWidget *parent):
     table->setFrameShadow(QFrame::Plain);
     table->setIconSize(QSize(20, 20));
     table->setGridStyle(Qt::DotLine);
-
     this->mainLayout = new QVBoxLayout;
     mainLayout->addWidget(table);
     setLayout(mainLayout);
+    /// Set Up Selection Model
     this->selectionModel = table->selectionModel();
     connect(selectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(selectionChanged(QModelIndex,QModelIndex)));
-    connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(rowClicked(QModelIndex)));
-    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
-    connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(table,          SIGNAL(clicked(QModelIndex)),                       this, SLOT(rowClicked(QModelIndex)));
+    connect(proxyModel,     SIGNAL(rowsInserted(QModelIndex,int,int)),          this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(proxyModel,     SIGNAL(rowsRemoved(QModelIndex,int,int)),           this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    /// Hide Columns that are present only for filtering reasons.
+    table->hideColumn(ACTOR_WEIGHT_COLUMN);
+    table->hideColumn(ACTOR_ETH_COLUMN);
+    table->hideColumn(ACTOR_PIERCING_COLUMN);
+    table->hideColumn(ACTOR_TATTOO_COLUMN);
 }
 
 void ActorTableView::addRows(RowList rows){
-    foreach(QList<QStandardItem *> row, rows)  { actorModel->appendRow(row);       }
+    foreach(Row row, rows){
+        actorModel->appendRow(row);
+    }
+    actorModel->sort(ACTOR_NAME_COLUMN);
+}
+
+void ActorTableView::setFilters(FilterSet filters){
+#warning Write code to apply filters to actor table from a FilterSet data structure.
+    qDebug("Setting Actor Filters");
 }
 
 void ActorTableView::addNewActors(const ActorList &list){

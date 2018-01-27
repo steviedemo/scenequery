@@ -5,7 +5,7 @@
 #include "SceneParser.h"
 #include "SQL.h"
 #include "Query.h"
-#include <QSqlQuery>
+////#include <QSqlQuery>
 #include <QVariant>
 #include <QStringListIterator>
 #include <QRegularExpression>

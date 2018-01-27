@@ -17,6 +17,8 @@ MOC_DIR     = build
 OBJECTS_DIR = build
 UI_DIR      = build
 
+PRECOMPILED_HEADER = src/precompiledheaders.h
+
 QMAKE_MACOSX_DEPLOYMENT_TARGET=10.9#-mmacosx-version-min
 QMAKE_CXXFLAGS =        -std=c++0x
 QMAKE_CFLAGS_DEBUG =    -std=gnu99
@@ -100,7 +102,8 @@ SOURCES += \
     src/MiniThreads.cpp \
     src/DataManager.cpp \
     src-objects/FilterSet.cpp \
-    forms/SceneTableView.cpp
+    forms/SceneTableView.cpp \
+    forms/FilterWidget.cpp
 
 HEADERS  += \
     src/config.h \
@@ -141,14 +144,17 @@ HEADERS  += \
     src/DataManager.h \
     src-objects/FilterSet.h \
     src/Exception.h \
-    forms/SceneTableView.h
+    forms/SceneTableView.h \
+    forms/FilterWidget.h \
+    src/precompiledheaders.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \
     forms/ActorProfileView.ui \
     forms/SceneDetailView.ui \
     forms/SplashScreen.ui \
-    forms/SearchPathsDialog.ui
+    forms/SearchPathsDialog.ui \
+    forms/FilterWidget.ui
 
 QMAKE_CLEAN += \
     build/* \

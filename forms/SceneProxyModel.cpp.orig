@@ -28,25 +28,17 @@ void SceneProxyModel::clearFilters(){
     setFilter(".*");
 }
 void SceneProxyModel::setFilter(QString text){
-    //qDebug("Filter changed to '%s'", qPrintable(text));
-    //    invalidateFilter();
+//    invalidateFilter();
     this->setFilterRegExp(text);
     this->setFilterFixedString(text);
 }
 
-bool SceneProxyModel::filterMatchesTriState(const TriState &t, const QString &s) const {
-    bool result = (!s.isEmpty() && (s != "None"));
-    bool filterMatches = false;
-    if (t == ON ){
-        filterMatches = result;
-    } else if (t == OFF){
-        filterMatches = (!result);
-    } else {
-        filterMatches = true;
-    }
-    return filterMatches;
-}
+<<<<<<< HEAD
+bool SceneProxyModel::filterMatchesAnything(const LogicalOperator &op) const {return (op == NOT_SET);}
+bool SceneProxyModel::filterMatchesAnything(const QString &s)          const {return (s.isEmpty() || s == ".*" || s == ".*.*" || s == "No Selection");}
 
+=======
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
     return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();
 }

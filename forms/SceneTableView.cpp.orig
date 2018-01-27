@@ -46,11 +46,16 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     this->initComplete = true;
 }
 
+<<<<<<< HEAD
+void SceneTableView::addRows(RowList sceneRows){
+    foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
+=======
 void SceneTableView::addRows(RowList rows){
     foreach(Row row, rows){
         sceneModel->appendRow(row);
     }
     sceneModel->sort(SCENE_NAME_COLUMN);
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 }
 
 void SceneTableView::rowCountChanged(QModelIndex, int, int){

@@ -20,7 +20,11 @@ public:
     int countRows();
     void setDataContainers(QSharedPointer<DataManager> vault){  this->vault = vault;    }
 public slots:
+<<<<<<< HEAD
+    void addRows(RowList sceneRows);
+=======
     void addRows(RowList);
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
     void addNewScene(ScenePtr);
     void addNewScenes(SceneList);
     void receiveSceneCountRequest();

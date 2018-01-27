@@ -1,8 +1,8 @@
 #include "filenames.h"
 #include "config.h"
-#include <QFileInfo>
 #include "Scene.h"
 #include "Actor.h"
+#include <QFileInfo>
 #include <QRegularExpression>
 #include <QPixmap>
 #include <QImageWriter>

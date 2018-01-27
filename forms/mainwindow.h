@@ -4,6 +4,7 @@
 #include "config.h"
 #include "curlTool.h"
 #include "FileScanner.h"
+#include "FilterWidget.h"
 #include "SceneList.h"
 #include "DataManager.h"
 #include "Actor.h"
@@ -44,7 +45,7 @@ public:
 
 private slots:
     /// Receivers
-    void initDone(ActorList, SceneList, RowList, RowList);
+    void initDone(void);
     void receiveScenes(SceneList);
     void receiveActors(ActorList);
     void receiveSingleActor(ActorPtr);
@@ -133,6 +134,7 @@ private:
     RowList rows;
     /// Threads
     FileRenamer *updater;
+    FilterWidget *filterWidget;
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     SplashScreen *splashScreen;

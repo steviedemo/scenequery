@@ -40,7 +40,11 @@ public slots:
     void selectActor(const QString &name);
     void removeActor(QString name);
     void removeActor(ActorPtr);
+<<<<<<< HEAD
+    void addRows(RowList rows);
+=======
     void setFilters(FilterSet);
+>>>>>>> 62d3ccba5faac19dec21229a21dbaa2b032d4fe7
 private:
     QWidget *parent;
     QString ethnicityFilter, nameFilter, hairFilter, currentSelection;

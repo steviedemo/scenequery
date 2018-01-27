@@ -26,7 +26,7 @@ QString toString(const LogicalOperator &op){
         return "NOT_EQUAL";
     } else if (op == NOT_SET){
         p = "NOT_SET";
-        qWarning("Operator not set when comparing two items");
+        //qWarning("Operator not set when comparing two items");
     }
     return p;
 }
@@ -49,6 +49,8 @@ LogicalOperator fromString(const QString &p){
     }
     return op;
 }
+
+
 bool nonzero(double d){
     return d > 0;
 }
@@ -124,7 +126,7 @@ QStringList getEntryList(QString path, QDir::Filter typeFilter, QStringList name
 
 ActorList MapToList(ActorMap actors){
     ActorList list = {};
-    QMapIterator<QString, ActorPtr> it(actors);
+    QHashIterator<QString, ActorPtr> it(actors);
     while(it.hasNext()){
         it.next();
         list.push_back(it.value());

@@ -1,8 +1,8 @@
 #ifndef FILENAMES_H
 #define FILENAMES_H
-#include <QString>
 #include "definitions.h"
 #include <QPair>
+#include <QString>
 bool isEmpty(const QPair<QString,QString> &);
 QPair<QString, QString> splitAbsolutePath(const QString path);
 bool splitAbsolutePath(const QString path, QString &filepath, QString &filename);
