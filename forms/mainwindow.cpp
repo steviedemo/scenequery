@@ -4,6 +4,7 @@
 #include "ui_mainwindow.h"
 #include "SceneParser.h"
 #include "SceneRenamer.h"
+#include "FilterSet.h"
 #include "FileScanner.h"
 #include "Scene.h"
 #include "Actor.h"
@@ -40,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<ActorList>("ActorList");
     qRegisterMetaType<RowList>("RowList");
     qRegisterMetaType<QFileInfoList>("QFileInfoList");
+    qRegisterMetaType<FilterSet>("FilterSet");
     this->videoOpen = false;
     QCoreApplication::setOrganizationName("SQ");
     QCoreApplication::setApplicationName("Scene Query");
@@ -91,7 +93,9 @@ MainWindow::~MainWindow(){
 void MainWindow::setupViews(){
     this->vault     = QSharedPointer<DataManager>(new DataManager());
     /// Set Up Scene Detail View
-    this->sceneDetailView = new SceneDetailView(this);
+    this->sceneDetailView   = new SceneDetailView(this);
+    this->filterWidget      = new FilterWidget(this);
+
     ui->vbl_list_layout->addWidget(sceneDetailView);
     // Hide detail widgets
     this->sceneDetailView->hide();

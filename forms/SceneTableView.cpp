@@ -55,7 +55,11 @@ void SceneTableView::addRows(RowList rows){
 
 void SceneTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
+}
 
+void SceneTableView::applyFilters(FilterSet filters){
+#warning Write code to apply the passed filters.
+    qDebug("Scene Table View Received Filters.");
 }
 
 QModelIndex SceneTableView::findSceneIndex(const QRegExp &rx, const int column){

@@ -4,6 +4,7 @@
 #include <QWidget>
 #include "ActorProxyModel.h"
 #include "DataManager.h"
+#include "FilterSet.h"
 #include "definitions.h"
 #include <QFrame>
 #include <QAbstractItemView>
@@ -39,6 +40,7 @@ public slots:
     void selectActor(const QString &name);
     void removeActor(QString name);
     void removeActor(ActorPtr);
+    void setFilters(FilterSet);
 private:
     QWidget *parent;
     QString ethnicityFilter, nameFilter, hairFilter, currentSelection;

@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include "SceneProxyModel.h"
 #include "DataManager.h"
+#include "FilterSet.h"
 #include <QSharedPointer>
 #include "SceneList.h"
 #include "definitions.h"
@@ -26,7 +27,6 @@ public slots:
     void resizeSceneView();
     void updateSceneItem(int id);
     void purgeSceneItems(QVector<int>);
-
     void actorFilterChanged(const ActorPtr a);
     void actorFilterChanged(const QString s)        {   proxyModel->setFilterActor(QString("^.*%1.*$").arg(s)); }
     void companyFilterChanged(QString s="")         {   proxyModel->setFilterCompany(QString(".*%1.*").arg(s)); }
@@ -36,6 +36,7 @@ public slots:
     void durationFilterChanged  (QTime t=QTime(), const LogicalOperator op=NOT_SET){  proxyModel->setFilterDuration(t, op);   }
     void searchByID(const int &);
     void clearSearchFilter()                        {   proxyModel->setFilterFilename(".*"); }
+    void applyFilters(FilterSet);
 private slots:
     void rowCountChanged(QModelIndex, int, int);
     void clearFilter(void)      {   proxyModel->clearFilters();         }

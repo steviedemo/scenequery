@@ -63,6 +63,11 @@ void ActorTableView::addRows(RowList rows){
     actorModel->sort(ACTOR_NAME_COLUMN);
 }
 
+void ActorTableView::setFilters(FilterSet filters){
+#warning Write code to apply filters to actor table from a FilterSet data structure.
+    qDebug("Setting Actor Filters");
+}
+
 void ActorTableView::addNewActors(const ActorList &list){
     qDebug("%s adding actors to display", __FILE__);
     emit progressBegin(QString("Adding %1 actors to the view").arg(list.size()), list.size());

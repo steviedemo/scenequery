@@ -4,6 +4,7 @@
 #include "config.h"
 #include "curlTool.h"
 #include "FileScanner.h"
+#include "FilterWidget.h"
 #include "SceneList.h"
 #include "DataManager.h"
 #include "Actor.h"
@@ -137,6 +138,7 @@ private:
     RowList rows;
     /// Threads
     FileRenamer *updater;
+    FilterWidget *filterWidget;
     SceneDetailView *sceneDetailView;
     ProfileDialog *testProfileDialog, *addProfileDialog;
     SplashScreen *splashScreen;

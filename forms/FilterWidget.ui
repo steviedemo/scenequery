@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>852</width>
-    <height>300</height>
+    <width>671</width>
+    <height>294</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -38,7 +38,7 @@
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>20</height>
           </size>
          </property>
          <property name="text">
@@ -47,10 +47,24 @@
         </widget>
        </item>
        <item row="4" column="1">
-        <widget class="QComboBox" name="cb_height"/>
+        <widget class="QComboBox" name="cb_height">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item row="1" column="1">
-        <widget class="QComboBox" name="cb_age"/>
+        <widget class="QComboBox" name="cb_age">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item row="6" column="2">
         <widget class="QPushButton" name="pb_apply_actor">
@@ -60,7 +74,14 @@
         </widget>
        </item>
        <item row="2" column="1">
-        <widget class="QComboBox" name="cb_hair"/>
+        <widget class="QComboBox" name="cb_hair">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item row="1" column="0">
         <widget class="QLabel" name="label_3">
@@ -79,7 +100,7 @@
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>20</height>
           </size>
          </property>
          <property name="text">
@@ -91,7 +112,7 @@
         <widget class="QLineEdit" name="le_height">
          <property name="maximumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>25</height>
           </size>
          </property>
@@ -114,7 +135,14 @@
         </widget>
        </item>
        <item row="5" column="1">
-        <widget class="QComboBox" name="cb_weight"/>
+        <widget class="QComboBox" name="cb_weight">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
+         </property>
+        </widget>
        </item>
        <item row="3" column="0">
         <widget class="QLabel" name="label_4">
@@ -133,7 +161,7 @@
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>20</height>
           </size>
          </property>
          <property name="text">
@@ -158,7 +186,7 @@
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>20</height>
           </size>
          </property>
          <property name="text">
@@ -170,7 +198,7 @@
         <widget class="QLineEdit" name="le_weight">
          <property name="maximumSize">
           <size>
-           <width>80</width>
+           <width>100</width>
            <height>25</height>
           </size>
          </property>
@@ -202,7 +230,7 @@
          <property name="maximumSize">
           <size>
            <width>80</width>
-           <height>16777215</height>
+           <height>20</height>
           </size>
          </property>
          <property name="text">
@@ -218,12 +246,12 @@
         </widget>
        </item>
        <item row="3" column="1">
-        <widget class="QComboBox" name="cb_skin"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLabel" name="label_6">
-         <property name="text">
-          <string>Actor Filters</string>
+        <widget class="QComboBox" name="cb_skin">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>16777215</height>
+          </size>
          </property>
         </widget>
        </item>
@@ -234,31 +262,53 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_6">
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Actor Filters</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
      <widget class="QWidget" name="sceneFilterPage">
       <layout class="QGridLayout" name="gridLayout">
-       <item row="3" column="1">
+       <item row="2" column="1">
         <widget class="QComboBox" name="cb_duration"/>
        </item>
-       <item row="3" column="2">
+       <item row="2" column="2">
         <widget class="QTimeEdit" name="te_durationEdit">
          <property name="displayFormat">
           <string>h:mm</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="0">
+       <item row="1" column="0">
         <widget class="QLabel" name="lb_company">
          <property name="text">
           <string>Company</string>
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
+       <item row="2" column="0">
         <widget class="QLabel" name="lb_duration">
          <property name="text">
           <string>Duration</string>
+         </property>
+        </widget>
+       </item>
+       <item row="7" column="0">
+        <widget class="QPushButton" name="pb_clearSceneFilters">
+         <property name="text">
+          <string>Reset</string>
          </property>
         </widget>
        </item>
@@ -269,90 +319,81 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_7">
-         <property name="text">
-          <string>TextLabel</string>
-         </property>
-        </widget>
-       </item>
-       <item row="5" column="0">
+       <item row="4" column="0">
         <widget class="QLabel" name="lb_tags">
          <property name="text">
           <string>Tags</string>
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
+       <item row="1" column="1">
         <widget class="QLineEdit" name="le_company"/>
        </item>
-       <item row="5" column="1">
+       <item row="4" column="1">
         <widget class="QLineEdit" name="le_tags"/>
        </item>
-       <item row="7" column="1">
+       <item row="6" column="1">
         <widget class="QComboBox" name="cb_addedDate"/>
        </item>
-       <item row="7" column="0">
+       <item row="6" column="0">
         <widget class="QLabel" name="label_13">
          <property name="text">
           <string>Added</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="0">
+       <item row="3" column="0">
         <widget class="QLabel" name="lb_rating">
          <property name="text">
           <string>Rating</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="0">
+       <item row="5" column="0">
         <widget class="QLabel" name="label_12">
          <property name="text">
           <string>Release Date</string>
          </property>
         </widget>
        </item>
-       <item row="4" column="2">
+       <item row="3" column="2">
         <widget class="QComboBox" name="cb_ratingValue"/>
        </item>
        <item row="0" column="1">
         <widget class="QLabel" name="lb_title_scenes">
+         <property name="font">
+          <font>
+           <pointsize>16</pointsize>
+           <weight>75</weight>
+           <italic>true</italic>
+           <bold>true</bold>
+          </font>
+         </property>
          <property name="text">
           <string>Scene Filters</string>
          </property>
         </widget>
        </item>
-       <item row="6" column="1">
+       <item row="5" column="1">
         <widget class="QComboBox" name="cb_releaseDate"/>
        </item>
-       <item row="1" column="1">
-        <widget class="QComboBox" name="cb_1"/>
-       </item>
        <item row="7" column="2">
-        <widget class="QDateEdit" name="de_added"/>
-       </item>
-       <item row="4" column="1">
-        <widget class="QComboBox" name="cb_ratingOp"/>
-       </item>
-       <item row="6" column="2">
-        <widget class="QDateEdit" name="de_released">
-         <property name="displayFormat">
-          <string>yyyy/MM/dd</string>
-         </property>
-        </widget>
-       </item>
-       <item row="8" column="2">
         <widget class="QPushButton" name="pb_applySceneFilters">
          <property name="text">
           <string>Apply</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="0">
-        <widget class="QPushButton" name="pb_clearSceneFilters">
-         <property name="text">
-          <string>Reset</string>
+       <item row="6" column="2">
+        <widget class="QDateEdit" name="de_added"/>
+       </item>
+       <item row="3" column="1">
+        <widget class="QComboBox" name="cb_ratingOp"/>
+       </item>
+       <item row="5" column="2">
+        <widget class="QDateEdit" name="de_released">
+         <property name="displayFormat">
+          <string>yyyy/MM/dd</string>
          </property>
         </widget>
        </item>
