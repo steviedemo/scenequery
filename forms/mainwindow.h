@@ -58,9 +58,6 @@ private slots:
     void db_to_mw_receiveScenes(SceneList);
     void sdv_to_mw_showActor(QString);
 
-    //void sdv_to_mw_requestBirthday(QString);
-    void sw_to_mw_selectionChanged(int id);
-    void sw_to_mw_itemClicked(int id);
     /// Progress & Status Updates
     void startProgress(QString, int);
     void closeProgress(QString);
@@ -76,7 +73,6 @@ private slots:
 
     /// Window Events
     void actorSelectionChanged(QString);
-    void actorTableView_clicked(QString);
 
     /// Buttons
 

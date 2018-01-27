@@ -22,7 +22,7 @@
 #define LOAD_SCENES
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow){
 //    this->runMode = Debug;
-
+    this->vault = QSharedPointer<DataManager>(new DataManager(this), &DataManager::deleteObject);
     this->runMode = Release;//Debug;
     this->setWindowIcon(QIcon(QPixmap("SceneQuery.icns")));
     qRegisterMetaType<int>("int");
@@ -150,8 +150,8 @@ void MainWindow::connectViews(){
 
     connect(ui->tb_searchActors,        SIGNAL(clicked()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(clicked()),                      this,               SLOT(searchScenes()));
-    connect(ui->le_searchActors,        &QLineEdit::returnPressed,              ui->tb_searchActors,SIGNAL(clicked()));
-    connect(ui->le_searchScenes,        &QLineEdit::returnPressed,              ui->tb_searchScenes,SIGNAL(clicked()));
+    connect(ui->le_searchActors,        SIGNAL(returnPressed()),                this,               SLOT(searchActors()));
+    connect(ui->le_searchScenes,        SIGNAL(returnPressed()),                this,               SLOT(searchScenes()));
 
     connect(ui->pb_saveActors,          &QPushButton::clicked,                  vault.data(),       &DataManager::saveAllActors);
     connect(ui->actionSave_Actors,      SIGNAL(triggered()),                    vault.data(),       SLOT(saveAllActors()));
@@ -189,8 +189,8 @@ void MainWindow::initDone(ActorList actors, SceneList scenes, RowList actorRows,
     //foreach(ScenePtr s, scenes)                     { sceneMap.insert(s->getID(),   s); }
     vault->add(actors);
     vault->add(scenes);
-    foreach(QList<QStandardItem *> row, actorRows)  { actorModel->appendRow(row);       }
-    foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
+    ui->actorTableView->addRows(actorRows);
+    ui->sceneTableView->addRows(sceneRows);
     ui->statusLabel->setText("Initialization Complete");
     /// Set up Filter boxes
     QStringList companies = sql->getCompanyList();
@@ -439,7 +439,7 @@ void MainWindow::searchScenes(){
     QString searchTerm = ui->le_searchScenes->text();
     if (!searchTerm.isEmpty()){
         qDebug("Searching Scenes for '%s'", qPrintable(searchTerm));
-        ui->sceneTableView->searchByFilename(searchTerm);
+        ui->sceneTableView->filenameFilterChanged(searchTerm);
         this->prevSearchScene = searchTerm;
     }
 }

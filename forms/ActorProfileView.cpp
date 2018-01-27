@@ -177,6 +177,7 @@ void ActorProfileView::reloadProfilePhoto(){
 
 void ActorProfileView::loadActorProfile(QString name){
     if (!name.isEmpty()){
+        qDebug("Actor Map Size: %d", vault->countActors());
         if (vault->contains(name) && !vault->getActor(name).isNull()){
             ActorPtr a = vault->getActor(name);
             outputDetails(a);

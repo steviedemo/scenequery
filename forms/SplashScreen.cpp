@@ -20,6 +20,8 @@ SplashScreen::SplashScreen(QWidget *parent) :
     }
     this->scenes = {};
     this->actors = {};
+    this->actorBuildThreadDone = false;
+    this->sceneBuildThreadDone = false;
 }
 
 void SplashScreen::showEvent(QShowEvent *){
@@ -60,16 +62,26 @@ void SplashScreen::finishProgress(int ID){
         progressList.at(ID)->setValue(progressList.at(ID)->maximum());
     }
 }
+void SplashScreen::actorBuildThreadFinished(){
+    this->actorBuildThreadDone = true;
+    qDebug("Actor Build Thread finished");
+}
+void SplashScreen::sceneBuildThreadFinished(){
+    this->sceneBuildThreadDone = true;
+    qDebug("Scene Build Thread Finished");
+}
+
 void SplashScreen::receiveActors(ActorList list){
     this->actors = list;
     qDebug("Starting to build %d actor display items", list.size());
     emit completed(LOAD_ACTOR_PROGRESS);
     QMutexLocker ml(&mx);
     this->actorBuild = new DisplayMaker(actors, this);
-    connect(actorBuild, SIGNAL(done(RowList)), this, SLOT(receiveActorDisplay(RowList)));
-    connect(actorBuild, SIGNAL(startRun(int,int)), this, SLOT(startProgress(int,int)));
-    connect(actorBuild, SIGNAL(stopRun(int)), this, SLOT(finishProgress(int)));
-    connect(actorBuild, SIGNAL(update(int,int)), this, SLOT(updateProgress(int,int)));
+    connect(actorBuild, SIGNAL(done(RowList)),      this, SLOT(receiveActorDisplay(RowList)));
+    connect(actorBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
+    connect(actorBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
+    connect(actorBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+    connect(actorBuild, SIGNAL(finished()),         this, SLOT(sceneBuildThreadFinished()));
     actorBuild->start();
 }
 
@@ -79,10 +91,11 @@ void SplashScreen::receiveScenes(SceneList list){
     emit completed(LOAD_SCENE_PROGRESS);
     QMutexLocker ml(&mx);
     this->sceneBuild = new DisplayMaker(scenes, this);
-    connect(sceneBuild, SIGNAL(done(RowList)), this, SLOT(receiveSceneDisplay(RowList)));
-    connect(sceneBuild, SIGNAL(startRun(int,int)), this, SLOT(startProgress(int,int)));
-    connect(sceneBuild, SIGNAL(stopRun(int)), this, SLOT(finishProgress(int)));
-    connect(sceneBuild, SIGNAL(update(int,int)), this, SLOT(updateProgress(int,int)));
+    connect(sceneBuild, SIGNAL(done(RowList)),      this, SLOT(receiveSceneDisplay(RowList)));
+    connect(sceneBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
+    connect(sceneBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
+    connect(sceneBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+    connect(sceneBuild, SIGNAL(finished()),         this, SLOT(actorBuildThreadFinished()));
     sceneBuild->start();
 }
 
@@ -96,10 +109,18 @@ void SplashScreen::stepComplete(int progress){
         this->sceneLoadThread->deleteLater();
     } else if (progress == BUILD_ACTOR_PROGRESS){
         this->actorsBuilt = true;
-        this->actorBuild->deleteLater();
+        if (actorBuild){
+            this->actorBuild->quit();
+            this->actorBuild->wait();
+            this->actorBuild->deleteLater();
+        }
     } else if (progress == BUILD_SCENE_PROGRESS){
         this->scenesBuilt = true;
-        this->sceneBuild->deleteLater();
+        if (sceneBuild){
+            this->sceneBuild->quit();
+            this->sceneBuild->wait();
+            this->sceneBuild->deleteLater();
+        }
     }
     qDebug("\nIndex %d Finished\n", progress);
     progressList[progress]->setValue(progressList.at(progress)->maximum());
@@ -113,13 +134,13 @@ void SplashScreen::stepComplete(int progress){
 void SplashScreen::receiveActorDisplay(QVector<QList<QStandardItem *> > rows){
     this->actorRows = rows;
     qDebug("Got %d actor rows", rows.size());
-    this->actorBuild->deleteLater();
+    //this->actorBuild->quit();
     emit completed(BUILD_ACTOR_PROGRESS);
 }
 void SplashScreen::receiveSceneDisplay(QVector<QList<QStandardItem *> > rows){
     this->sceneRows = rows;
     qDebug("Got %d scene Rows", rows.size());
-    this->sceneBuild->deleteLater();
+    //this->sceneBuild->quit();
     emit completed(BUILD_SCENE_PROGRESS);
 }
 
@@ -152,7 +173,6 @@ void DisplayMaker::run(){
         }
     }
     sync.waitForFinished();
-    emit stopRun(id);
     emit done(rows);
 }
 

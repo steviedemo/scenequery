@@ -38,6 +38,7 @@ public slots:
     void selectActor(const QString &name);
     void removeActor(QString name);
     void removeActor(ActorPtr);
+    void addRows(RowList rows);
 private:
     QWidget *parent;
     QStringList headers;

@@ -46,6 +46,10 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     this->initComplete = true;
 }
 
+void SceneTableView::addRows(RowList sceneRows){
+    foreach(QList<QStandardItem *>row, sceneRows)   { sceneModel->appendRow(row);       }
+}
+
 void SceneTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
 
@@ -66,8 +70,9 @@ QModelIndex SceneTableView::findSceneIndex(const QRegExp &rx, const int column){
 }
 
 void SceneTableView::updateSceneDisplay(int id){
-#warning Placeholder for updating Scene Display Row
-    qDebug("Placeholder Function in SceneTableView for updating scene Display item");
+    if(vault->contains(id)){
+        vault->getScene(id)->updateQStandardItem();
+    }
 }
 
 void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
@@ -111,7 +116,7 @@ int SceneTableView::countRows(){
 }
 
 void SceneTableView::updateSceneItem(int id){
-    if (vault.contains(id)){
+    if (vault->contains(id)){
         ScenePtr s = vault->getScene(id);
         qDebug("Updating %s's Display Item", qPrintable(s->getFilename()));
         s->updateQStandardItem();
@@ -149,7 +154,7 @@ void SceneTableView::searchByID(const int &id){
 }
 void SceneTableView::actorFilterChanged(ActorPtr a){
     if (!a.isNull()){
-        actorFilterChanged(a->getName());
+        proxyModel->setFilterActor(a->getName());
     }
 }/*
 void SceneTableView::actorFilterChanged(QString name){
@@ -160,11 +165,6 @@ void SceneTableView::actorFilterChanged(QString name){
     table->resizeColumnsToContents();
 }*/
 
-//void SceneTableView::filenameFilterChanged(QString word){
-//    this->fileFilter = word;
-//    proxyModel->setFilterRegExp(".*"+word+".*");
-//    proxyModel->setFilterFilename(word);
-//}
 
 void SceneTableView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);
@@ -172,7 +172,7 @@ void SceneTableView::addData(int column, QString data){
 
 void SceneTableView::addNewScene(ScenePtr s){
     if (!s.isNull()){
-        if (!vault->contains(s)){
+        if (!vault->contains(s->getID())){
             sceneModel->appendRow(s->buildQStandardItem());
             vault->add(s);
         }
@@ -199,10 +199,10 @@ void SceneTableView::purgeSceneItems(QVector<int> ids){
 }
 
 void SceneTableView::addNewScenes(SceneList list){
-    emit progressBegin(QString("Adding %1 Items to the Scene Table").arg(list.size()));
+    emit progressBegin(QString("Adding %1 Items to the Scene Table").arg(list.size()), list.size());
     int index = 0;
     foreach(ScenePtr s, list){
-        addScene(s);
+        addNewScene(s);
         emit progressUpdate(++index);
     }
     emit progressEnd(QString("Added %1 items to the Scene Table").arg(list.size()));

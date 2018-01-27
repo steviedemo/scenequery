@@ -19,6 +19,7 @@ public:
     int countRows();
     void setDataContainers(QSharedPointer<DataManager> vault){  this->vault = vault;    }
 public slots:
+    void addRows(RowList sceneRows);
     void addNewScene(ScenePtr);
     void addNewScenes(SceneList);
     void receiveSceneCountRequest();
@@ -30,7 +31,7 @@ public slots:
     void actorFilterChanged(const QString s)        {   proxyModel->setFilterActor(QString("^.*%1.*$").arg(s)); }
     void companyFilterChanged(QString s="")         {   proxyModel->setFilterCompany(QString(".*%1.*").arg(s)); }
     void tagFilterChanged(QString s="")             {   proxyModel->setFilterTag(QString(".*%1.*").arg(s)); }
-    void searchByFilename(const QString s="")       {   proxyModel->setFilterFilename(QString(".*%1.*").arg(s));    }
+    void filenameFilterChanged(const QString s="")       {   proxyModel->setFilterFilename(QString(".*%1.*").arg(s));    }
     void qualityFilterChanged   (const int i=-1,  const LogicalOperator op=NOT_SET) {   proxyModel->setFilterQuality(i, op);    }
     void durationFilterChanged  (QTime t=QTime(), const LogicalOperator op=NOT_SET){  proxyModel->setFilterDuration(t, op);   }
     void searchByID(const int &);

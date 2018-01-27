@@ -34,7 +34,7 @@ void SceneProxyModel::setFilter(QString text){
 }
 
 bool SceneProxyModel::filterMatchesAnything(const LogicalOperator &op) const {return (op == NOT_SET);}
-bool SceneProxyModel::filterMatchesAnything(const QString &s)          const {return (s.isEmpty() || s == ".*" || s == "No Selection");}
+bool SceneProxyModel::filterMatchesAnything(const QString &s)          const {return (s.isEmpty() || s == ".*" || s == ".*.*" || s == "No Selection");}
 
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
     return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();

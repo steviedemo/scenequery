@@ -75,6 +75,8 @@ public slots:
     void receiveActorDisplay(RowList);
 private slots:
     void stepComplete(int);
+    void sceneBuildThreadFinished();
+    void actorBuildThreadFinished();
 private:
     void showEvent(QShowEvent *event);
     void closeEvent(QCloseEvent *event);
@@ -84,6 +86,7 @@ private:
     DisplayMaker *actorBuild, *sceneBuild;
     ActorList actors;
     SceneList scenes;
+    bool actorBuildThreadDone, sceneBuildThreadDone;
     bool scenesBuilt, actorsBuilt, scenesLoaded, actorsLoaded;
     QMutex mx;
     QVector<QList<QStandardItem *>>actorRows, sceneRows;
