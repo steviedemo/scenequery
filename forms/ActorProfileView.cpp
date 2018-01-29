@@ -48,15 +48,24 @@ void ActorProfileView::on_tb_editName_clicked(){
     ui->nameLineEdit->setText(current->getName());
 }
 
-void ActorProfileView::setActorsScenes(SceneList list){
-    this->updateList = list;
-    qDebug("Actor Profile View Received %d scenes for %s", list.size(), qPrintable(current->getName()));
+void ActorProfileView::showProfileView(QString name){
+    this->show();
+    loadActorProfile(name);
+}
+void ActorProfileView::updateProfileView(QString name){
+    if (!this->isHidden()){
+        loadActorProfile(name);
+    }
+}
+void ActorProfileView::hideProfileView(){
+    this->clearFields();
+    this->hide();
 }
 
 void ActorProfileView::on_tb_saveNameEdit_clicked(){
     newName = ui->nameLineEdit->text();
     oldName = ui->label_name->text();
-    emit apv_to_mw_requestScenes(oldName);
+    this->updateList = vault->getActorsScenes(oldName);
     if (!newName.isEmpty()){
         qDebug("Changing '%s' to '%s'", qPrintable(oldName), qPrintable(newName));
         // Check if the new name already exists as a separate entry in the database.

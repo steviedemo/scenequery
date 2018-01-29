@@ -56,16 +56,34 @@ ActorTableView::ActorTableView(QWidget *parent):
     table->hideColumn(ACTOR_TATTOO_COLUMN);
 }
 
-void ActorTableView::addRows(RowList rows){
-    foreach(Row row, rows){
-        actorModel->appendRow(row);
-    }
-    actorModel->sort(ACTOR_NAME_COLUMN);
+void ActorTableView::clearFilters(){
+    proxyModel->clearFilters();
 }
 
-void ActorTableView::setFilters(FilterSet filters){
-#warning Write code to apply filters to actor table from a FilterSet data structure.
-    qDebug("Setting Actor Filters");
+void ActorTableView::connectViews(SceneTableView *table, SceneDetailView *detail, ActorProfileView *profile){
+    this->profileView = profile;
+    this->detailView = detail;
+    this->sceneTableView = table;
+    connect(this,       SIGNAL(actorClicked(QString)),          sceneTableView, SLOT(actorFilterChanged(QString)));
+    connect(this,       SIGNAL(actorSelectionChanged(QString)), sceneTableView, SLOT(actorFilterChanged(QString)));
+    connect(detailView, SIGNAL(showActor(QString)),             this,           SLOT(selectActor(QString)));
+    connect(detailView, SIGNAL(showActor(ActorPtr)),            this,           SLOT(selectActor(ActorPtr)));
+    connect(this,       SIGNAL(actorClicked(QString)),          profileView,    SLOT(showProfileView(QString)));
+    connect(this,       SIGNAL(actorSelectionChanged(QString)), profileView,    SLOT(updateProfileView(QString)));
+    connect(profileView,SIGNAL(requestActor(QString)),          this,           SLOT(selectActor(QString)));
+    connect(profileView,SIGNAL(deleteActor(ActorPtr)),          this,           SLOT(removeActor(ActorPtr)));
+    connect(profileView,SIGNAL(deleteActor(QString)),           this,           SLOT(removeActor(QString)));
+}
+
+void ActorTableView::loadFilters(FilterSet filters){
+    qDebug("Actor Table View is loading a set of pre-saved filters");
+    proxyModel->loadFilters(filters);
+}
+
+FilterSet ActorTableView::saveFilters(){
+    FilterSet filters = FilterSet(this->proxyModel);
+    emit saveFilterSet(filters);
+    return filters;
 }
 
 void ActorTableView::addNewActors(const ActorList &list){
@@ -104,20 +122,25 @@ void ActorTableView::addNewActor(const ActorPtr a){
     }
 }
 
-void ActorTableView::addNewItems(const QVector<QList<QStandardItem *> > rows){
+void ActorTableView::addRows(const QVector<QList<QStandardItem *> > rows){
     int index = 0;
-    qDebug("%s::%s adding %d rows to display", __FILE__, __FUNCTION__, rows.size());
+    qDebug("%s::%s adding %d rows to the Actor display", __FILE__, __FUNCTION__, rows.size());
     emit progressBegin(QString("Adding %1 rows to the Actor Table").arg(rows.size()), rows.size());
     foreach(QList<QStandardItem *> row, rows){
         this->actorModel->appendRow(row);
         emit progressUpdate(++index);
     }
     emit progressEnd(QString("Finished adding %1 Rows to the display").arg(rows.size()));
+    emit rowsFinishedLoading();
+    table->resizeColumnsToContents();
+    table->resizeRowsToContents();
+    actorModel->sort(ACTOR_NAME_COLUMN);
 }
 
 void ActorTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
 }
+
 void ActorTableView::resizeToContents(){
     table->resizeColumnsToContents();
     table->resizeRowsToContents();
@@ -132,26 +155,27 @@ QModelIndex ActorTableView::currentIndex(){
     return table->currentIndex();
 }
 
-void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex){
-    this->prevIdx = currentIdx;
+void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex previousIndex){
+    this->prevIdx = previousIndex;
     this->currentIdx = modelIndex;
     QString name = selectedName();
     if (!name.isEmpty()){
         if (itemClicked){
             emit actorClicked(name);
-            itemClicked = false;
         } else {
             emit actorSelectionChanged(name);
         }
     }
     this->currentSelection = name;
+    this->itemClicked = false;
 }
 
-void ActorTableView::rowClicked(QModelIndex /*idx*/){
-    itemClicked = true;
-    if (!prevIdx.isValid()){
+void ActorTableView::rowClicked(QModelIndex index){
+    this->currentIdx = index;
+    this->itemClicked = true;
+    if (!prevIdx.isValid()){    // If this is the first time an item is selected, open the profile view.
         emit actorClicked(selectedName());
-    }
+   }
 }
 void ActorTableView::removeActor(ActorPtr a){
     removeActor(a->getName());
@@ -196,8 +220,13 @@ QModelIndex ActorTableView::findActorIndex_base(const QRegExp &rx, const int col
     return matchingIndex;
 }
 
+void ActorTableView::selectActor(ActorPtr actor){
+    if (!actor.isNull()){
+        selectActor(actor->getName());
+    }
+}
 
-void ActorTableView::selectActor(const QString &name){
+void ActorTableView::selectActor(QString name){
     if (!name.isEmpty()){
         QModelIndex i = findActorIndex(name);
         if (i.isValid()){

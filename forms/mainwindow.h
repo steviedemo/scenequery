@@ -66,7 +66,6 @@ private slots:
     void showSuccess(QString);
     void newProgressDialog(QString, int);
     void updateProgressDialog(int);
-    void updateProgressDialog(QString);
     void closeProgressDialog();
     void renameFile(ScenePtr);
     void removeActorItem(ActorPtr);
@@ -78,7 +77,7 @@ private slots:
     /// Buttons
 
     void scan_directory_chosen(QString);
-    void on_tb_clearActorFilters_clicked();
+//    void on_tb_clearActorFilters_clicked();
 
 
     void receiveTestBio             (ActorPtr);
@@ -100,14 +99,13 @@ private slots:
 
     void on_actionAdd_Scan_Folder_triggered();
 
+//    void on_tb_clearSearchActors_clicked();
+
 private:
     RunMode runMode;
     QString newName;
     void startScanner(const QStringList &);
-    void resetActorFilterSelectors(void);
     void setupViews         (void);
-    void connectViews       (void);
-    void startThreads       (void);
     QString getCurrentName (QAbstractItemModel *);
     QModelIndex getCurrentIndex(QAbstractItemModel *);
     ActorPtr getSelectedActor(void);

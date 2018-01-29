@@ -64,12 +64,10 @@ void SplashScreen::receiveActors(ActorMap list){
     vault->setMap(list);
     qDebug("Starting to build %d actor display items", list.size());
     this->actorBuild = new DisplayMaker(list);
-    connect(actorBuild, SIGNAL(done(RowList)),      this, SIGNAL(sendActorRows(RowList)));
     connect(actorBuild, SIGNAL(done(RowList)),      this, SLOT(receiveActorDisplay(RowList)));
     connect(actorBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(actorBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
     connect(actorBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
-
     actorBuild->start();
 
     emit completed(LOAD_ACTOR_PROGRESS);
@@ -80,7 +78,6 @@ void SplashScreen::receiveScenes(SceneMap list){
     vault->setMap(list);
     qDebug("Starting to build %d scene display items", list.size());
     this->sceneBuild = new DisplayMaker(list);
-    connect(sceneBuild, SIGNAL(done(RowList)),      this, SIGNAL(sendSceneRows(RowList)));
     connect(sceneBuild, SIGNAL(done(RowList)),      this, SLOT(receiveSceneDisplay(RowList)));
     connect(sceneBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(sceneBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
@@ -115,17 +112,22 @@ void SplashScreen::stepComplete(int progress){
 }
 
 void SplashScreen::receiveActorDisplay(RowList rows){
-//    this->actorRows = rows;
+    this->actorRows = rows;
     qDebug("Got %d actor rows", rows.size());
-//    emit sendActorRows(rows);
+    emit sendActorRows(rows);
+}
+void SplashScreen::actorRowsLoaded(){
+    qDebug("Actor Rows Finished Loading into the Table View");
     emit completed(BUILD_ACTOR_PROGRESS);
 }
 void SplashScreen::receiveSceneDisplay(RowList rows){
-//    this->sceneRows = rows;
+    this->sceneRows = rows;
     qDebug("Got %d scene Rows", rows.size());
-//    emit sendSceneRows(sceneRows);
+    emit sendSceneRows(sceneRows);
+}
+void SplashScreen::sceneRowsLoaded(){
+    qDebug("Scene Rows Finished Loading into the Table View");
     emit completed(BUILD_SCENE_PROGRESS);
-
 }
 
 void DisplayMaker::run(){

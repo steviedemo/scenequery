@@ -76,6 +76,8 @@ private slots:
     void receiveActors(ActorMap);
     void receiveSceneDisplay(RowList);
     void receiveActorDisplay(RowList);
+    void sceneRowsLoaded();
+    void actorRowsLoaded();
 private:
     void showEvent(QShowEvent *event);
     void closeEvent(QCloseEvent *event);

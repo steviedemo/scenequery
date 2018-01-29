@@ -50,7 +50,16 @@ SceneDetailView::~SceneDetailView(){
     delete ui;
 }
 
-void SceneDetailView::sceneSelectionChanged(ScenePtr s){
+void SceneDetailView::hideDetailView(){
+    this->clearDisplay();
+    this->hide();
+}
+void SceneDetailView::showDetailView(ScenePtr s){
+    this->show();
+    this->loadScene(s);
+}
+
+void SceneDetailView::updateDetailView(ScenePtr s){
     if (!this->isHidden()){
         loadScene(s);
     }

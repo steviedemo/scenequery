@@ -34,6 +34,8 @@
 #define SCENE_RATING_COLUMN     8
 #define SCENE_PATH_COLUMN       9
 #define SCENE_ID_COLUMN         10
+#define SCENE_SERIES_COLUMN     11
+#define SCENE_TAG_COLUMN        12
 
 #define BUILD_ACTOR_PROGRESS 0
 #define BUILD_SCENE_PROGRESS 1
@@ -41,27 +43,8 @@
 #define LOAD_SCENE_PROGRESS  3
 #define COUNT_SCENE_PROGRESS 4
 #define MINIMUM_BIO_SIZE 11
-
-
 #define KEY_SEARCH_PATHS    "Search Paths"
 
-#define FILTER_DURATION     "DURATION"
-#define FILTER_DURATION_OP  "DURATION_OP"
-#define FILTER_QUALITY      "QUALITY"
-#define FILTER_QUALITY_OP   "QUALITY_OP"
-#define FILTER_RATING       "RATING"
-#define FILTER_RATING_OP    "RATING_OP"
-#define FILTER_RELEASE      "RELEASE"
-#define FILTER_RELEASE_OP   "RELEASE_OP"
-#define FILTER_ADDED        "ADDED"
-#define FILTER_ADDED_OP     "ADDED_OP"
-#define FILTER_SIZE         "SIZE"
-#define FILTER_SIZE_OP      "SIZE_OP"
-#define FILTER_COMPANY      "COMPANY"
-#define FILTER_SERIES       "SERIES"
-#define FILTER_ACTOR        "ACTOR"
-#define FILTER_WORD         "WORD"
-#define FILTER_TAG          "TAG"
 
 enum TriState        { ON, OFF, DONT_CARE };
 

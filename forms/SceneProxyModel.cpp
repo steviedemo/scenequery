@@ -28,8 +28,8 @@ void SceneProxyModel::clearFilters(){
     setFilter(".*");
 }
 void SceneProxyModel::setFilter(QString text){
-    //qDebug("Filter changed to '%s'", qPrintable(text));
-    //    invalidateFilter();
+    qDebug("Setting Scene Filter to '%s'", qPrintable(text));
+    invalidateFilter();
     this->setFilterRegExp(text);
     this->setFilterFixedString(text);
 }
@@ -46,54 +46,107 @@ bool SceneProxyModel::filterMatchesTriState(const TriState &t, const QString &s)
     }
     return filterMatches;
 }
-
+bool SceneProxyModel::filterMatchesAnything(const QString &s) const {
+    bool match = (s.isEmpty() || (s == ".*")  || (s == ".*.*") || (s == ".*.*.*") || s.contains("No Selection"));
+    return match;
+}
 QString SceneProxyModel::getCellData(int row, int column, const QModelIndex &sourceParent) const{
     return sourceModel()->data(sourceModel()->index(row, column, sourceParent)).toString();
 }
 
 bool SceneProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const{
-    QString filename = getCellData(source_row, SCENE_PATH_COLUMN, source_parent);
-    //qDebug("Checking '%s'", qPrintable(filename));
-    bool fileMatch = (fileFilter == ".*"         || filterMatches_filename  (source_row, source_parent));
-    //qDebug() << "	"<< (fileMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  fileFilter;
-    bool nameMatch = filterMatches_name      (source_row, source_parent);
-    //qDebug() << "	"<< (nameMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  nameFilter;
-    bool durationMatch = (!durationFilter.isValid()  || filterMatches_duration  (source_row, source_parent));
-    //qDebug() << "	"<< (durationMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  durationFilter.toString("h:mm:ss");
-    bool companyMatch = (companyFilter == ".*"      || filterMatches_company   (source_row, source_parent));
-    //qDebug() << "	"<< (companyMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  companyFilter;
-    bool sizeMatch = ((sizeFilter == -1)         || filterMatches_filesize  (source_row, source_parent));
-    //qDebug() << "	"<< (sizeMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  sizeFilter;
-    bool heightMatch = ((qualityFilter == -1)      || filterMatches_quality   (source_row, source_parent));
-    //qDebug() << "	"<< (heightMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  qualityFilter;
-    bool ratingMatch = ((!ratingFilter.isValid())  || filterMatches_rating    (source_row, source_parent));
-    //qDebug() << "	"<< (ratingMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  ratingFilter.grade();
-    bool releaseMatch = (!releasedFilter.isValid()  || filterMatches_release   (source_row, source_parent));
-    //qDebug() << "	"<< (releaseMatch ? "Matches" : "Doesn't Match") << " Filter: " <<  releasedFilter.toString("yyyy/MM/dd") << endl;
-    return (fileMatch && nameMatch && durationMatch && companyMatch && sizeMatch && heightMatch && ratingMatch && releaseMatch);
+/*
+    QString criteria("");
+    QTextStream out(&criteria);
+*/
+    bool fileMatch(true), nameMatch(true),durationMatch(true),companyMatch(true),sizeMatch(true),heightMatch(true),ratingMatch(true),releaseMatch(true);
+    if (!filterMatchesAnything(fileFilter)){
+    //    out << " | File Filter: '" << fileFilter << "'";
+        fileMatch = filterMatches_filename  (source_row, source_parent);
+    }
+    if (!filterMatchesAnything(nameFilter)){
+    //    out << " | Name Filter: '" << nameFilter << "'";
+        nameMatch = filterMatches_name(source_row, source_parent);
+    }
+    if (!filterMatchesAnything(companyFilter)){
+    //    out << " | Company Filter: '" << companyFilter << "'";
+        companyMatch = filterMatches_company(source_row, source_parent);
+    }
+    if (!filterMatchesAnything(durationFilter) && !filterMatchesAnything(durationOp)){
+    //    out << " | Length Filter: " << toString(durationOp) << " " << durationFilter.toString("h:mm:ss");
+        durationMatch = filterMatches_duration(source_row, source_parent);
+    }
+    if (!filterMatchesAnything(sizeOp) && !filterMatchesAnything(sizeFilter)){
+    //    out << " | Size Filter: " << toString(sizeOp) << " " << sizeFilter;
+        sizeMatch = filterMatches_filesize  (source_row, source_parent);
+    }
+    if (!filterMatchesAnything(qualityOp) && !filterMatchesAnything(qualityFilter)){
+    //    out << " | Height Filter: " << toString(qualityOp) << " " << qualityFilter;
+        heightMatch = ((qualityFilter == -1)      || filterMatches_quality   (source_row, source_parent));
+    }
+    if (!filterMatchesAnything(ratingFilter) && !filterMatchesAnything(ratingOp)){
+    //    out << " | Rating Filter: " << toString(ratingOp) << " " << ratingFilter.grade();
+        ratingMatch = ((!ratingFilter.isValid())  || filterMatches_rating    (source_row, source_parent));
+    }
+    if (!filterMatchesAnything(releasedOp) && !filterMatchesAnything(releasedFilter)){
+    //    out << " | Release Date Filter: " << toString(releasedOp) << " " << releasedFilter.toString("yyyy.MM.dd");
+        releaseMatch = (!releasedFilter.isValid()  || filterMatches_release   (source_row, source_parent));
+    }
+    bool match = (fileMatch && nameMatch && durationMatch && companyMatch && sizeMatch && heightMatch && ratingMatch && releaseMatch);
+    /*
+    if (match && !criteria.isEmpty()){
+        QString filename = getCellData(source_row, SCENE_PATH_COLUMN, source_parent);
+        filename.remove(QRegularExpression(".+\\/"));    
+    }
+    */
+    return match;
+}
+
+void SceneProxyModel::loadFilters(FilterSet set){
+    QPair<LogicalOperator, QTime> filterDuration= set.getFilterDuration();
+    this->durationOp = filterDuration.first;
+    this->durationFilter = filterDuration.second;
+    QPair<LogicalOperator, QDate> filterRelease = set.getFilterRelease();
+    this->releasedOp = filterRelease.first;
+    this->releasedFilter = filterRelease.second;
+    QPair<LogicalOperator, QDate> filterAdded   = set.getFilterAdded();
+    this->addedOp = filterAdded.first;
+    this->addedFilter = filterAdded.second;
+    QPair<LogicalOperator, int>   filterQuality = set.getFilterQuality();
+    this->qualityOp = filterQuality.first;
+    this->qualityFilter = filterQuality.second;
+    QPair<LogicalOperator, qint64>filterSize    = set.getFilterSize();
+    this->sizeOp = filterSize.first;
+    this->sizeFilter = filterSize.second;
+    QPair<LogicalOperator, Rating>filterRating  = set.getFilterRating();
+    this->ratingOp = filterRating.first;
+    this->ratingFilter = filterRating.second;
+    this->idFilter      = set.getFilterID();
+    this->titleFilter   = set.getFilterTitle();
+    this->nameFilter    = set.getFilterName();
+    this->companyFilter = set.getFilterCompany();
+    this->tagFilter     = set.getFilterTags();
+    this->fileFilter    = set.getFilterFilename();
+    this->seriesFilter  = set.getFilterSeries();
 }
 
 bool SceneProxyModel::filterMatches_filename(int row, const QModelIndex &index) const{
     bool match = true;
-    if (fileFilter == ".*" || fileFilter.isEmpty()){
-        match = true;
-    } else {
+    if (!filterMatchesAnything(fileFilter)){
+        QRegularExpression rx(fileFilter);
         QString filenameData = getCellData(row, SCENE_PATH_COLUMN, index);
-        match = filenameData.contains(fileFilter);
+        match = rx.match(filenameData).hasMatch();
     }
     return match;
 }
 
 bool SceneProxyModel::filterMatches_name(int row, const QModelIndex &currIndex) const{
-    bool match = false;
-    if (nameFilter == ".*"  || nameFilter.isEmpty()){
-        match = true;
-    } else {
+    bool match = true;
+    if (!filterMatchesAnything(nameFilter)){
         QString mainName = getCellData(row, SCENE_NAME_COLUMN, currIndex);
         QString featNames = getCellData(row, SCENE_FEATURED_COLUMN, currIndex);
-        if(mainName.contains(nameFilter) || featNames.contains(nameFilter)){
-            match = true;
-        }
+        QRegularExpression rx(nameFilter);
+        match = (rx.match(mainName).hasMatch() || rx.match(featNames).hasMatch());
     }
     return match;
 }
@@ -180,23 +233,42 @@ bool SceneProxyModel::filterMatches_release(int row, const QModelIndex &index) c
     return match;
 }
 
-bool SceneProxyModel::filterMatches_tag(int /*row*/, const QModelIndex &/*index*/) const{
-    QString tag = "";
-    QRegularExpression rx(tagFilter);
-    QRegularExpressionMatch match = rx.match(tag);
-    return match.hasMatch();
+bool SceneProxyModel::filterMatches_title(int row, const QModelIndex &index) const{
+    bool match = true;
+    if (!filterMatchesAnything(titleFilter)){
+        QString title = getCellData(row, SCENE_TITLE_COLUMN, index);
+        QRegularExpression rx(titleFilter);
+        match = rx.match(title).hasMatch();
+    }
+    return match;
+}
+
+bool SceneProxyModel::filterMatches_tag(int row, const QModelIndex &index) const{
+    bool match = true;
+    if (!filterMatchesAnything(tagFilter)){
+        QString tags = getCellData(row, SCENE_TAG_COLUMN, index);
+        QRegularExpression rx(tagFilter);
+        match = rx.match(tags).hasMatch();
+    }
+    return match;
 }
 
 bool SceneProxyModel::filterMatches_company(int row, const QModelIndex &index) const{
     bool match = true;
     if (!filterMatchesAnything(companyFilter)){
-        match = false;
+        QRegularExpression rx(companyFilter);
         QString company = getCellData(row, SCENE_COMPANY_COLUMN, index);
-        if (!company.isEmpty()){
-            QRegularExpression rx(companyFilter);
-            QRegularExpressionMatch m = rx.match(company);
-            match = m.hasMatch();
-        }
+        match = rx.match(company).hasMatch();
+    }
+    return match;
+}
+
+bool SceneProxyModel::filterMatches_series(int row, const QModelIndex &index) const{
+    bool match = true;
+    if (!filterMatchesAnything(seriesFilter)){
+        QRegularExpression rx(seriesFilter);
+        QString data = getCellData(row, SCENE_SERIES_COLUMN, index);
+        match = rx.match(data).hasMatch();
     }
     return match;
 }

@@ -39,27 +39,42 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     table->resizeColumnsToContents();
     this->selectionModel = table->selectionModel();
     connect(selectionModel, SIGNAL(currentRowChanged(QModelIndex,QModelIndex)), this, SLOT(selectionChanged(QModelIndex,QModelIndex)));
-    connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(sceneClicked(QModelIndex)));
+    connect(table, SIGNAL(clicked(QModelIndex)), this, SLOT(itemClicked(QModelIndex)));
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
-    connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
-    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)), this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),   this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
     this->initComplete = true;
 }
 
+void SceneTableView::connectViews(SceneDetailView *detail, ActorProfileView *profile){
+    this->detailView = detail;
+    this->profileView= profile;
+    connect(this,           SIGNAL(sceneClicked(ScenePtr)),         detailView, SLOT(showDetailView(ScenePtr)));
+    connect(this,           SIGNAL(sceneSelectionChanged(ScenePtr)),detailView, SLOT(updateDetailView(ScenePtr)));
+    connect(profileView,    SIGNAL(hidden()),                       detailView, SLOT(hideDetailView()));
+    connect(profileView,    SIGNAL(hidden()),                       this,       SLOT(setFilter_name()));
+    connect(detailView,     SIGNAL(showActor(ActorPtr)),            profileView,SLOT(loadActorProfile(ActorPtr)));
+
+}
+
 void SceneTableView::addRows(RowList rows){
+    int index = 0;
+    qDebug("%s::%s adding %d rows to the Scene Table", __FILE__, __FUNCTION__, rows.size());
+    emit progressBegin(QString("Adding %1 Rows to the actor Table").arg(rows.size()), rows.size());
     foreach(Row row, rows){
-        sceneModel->appendRow(row);
+        this->sceneModel->appendRow(row);
+        emit progressUpdate(++index);
     }
+    emit progressEnd(QString("Finished Adding %1 Rows to the Scene Table").arg(rows.size()));
+    emit rowsFinishedLoading();
+    table->resizeColumnsToContents();
+    table->resizeRowsToContents();
     sceneModel->sort(SCENE_NAME_COLUMN);
 }
 
+
 void SceneTableView::rowCountChanged(QModelIndex, int, int){
     emit displayChanged(proxyModel->rowCount());
-}
-
-void SceneTableView::applyFilters(FilterSet filters){
-#warning Write code to apply the passed filters.
-    qDebug("Scene Table View Received Filters.");
 }
 
 QModelIndex SceneTableView::findSceneIndex(const QRegExp &rx, const int column){
@@ -82,6 +97,15 @@ void SceneTableView::updateSceneDisplay(int id){
     }
 }
 
+void SceneTableView::updateSceneItem(int id){
+    if (vault->contains(id)){
+        ScenePtr s = vault->getScene(id);
+        qDebug("Updating %s's Display Item", qPrintable(s->getFilename()));
+        s->updateQStandardItem();
+    }
+}
+
+
 void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
     qDebug("Selection Changed");
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
@@ -96,7 +120,7 @@ void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldI
     }
 }
 
-void SceneTableView::sceneClicked(QModelIndex modelIndex){
+void SceneTableView::itemClicked(QModelIndex modelIndex){
     qDebug("Clicked");
     int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
     if (id > 0){
@@ -104,7 +128,7 @@ void SceneTableView::sceneClicked(QModelIndex modelIndex){
         if (vault->contains(id)){
             ScenePtr s = vault->getScene(id);
             if (!s.isNull()){
-                emit loadSceneDetails(s);
+                emit sceneClicked(s);
             }
         }
     }
@@ -115,18 +139,6 @@ void SceneTableView::rowDoubleClicked(const QModelIndex &modelIndex){
     if (id > 0){
         this->currentFileSelection = id;
         emit playFile(id);
-    }
-}
-
-int SceneTableView::countRows(){
-    return proxyModel->rowCount();
-}
-
-void SceneTableView::updateSceneItem(int id){
-    if (vault->contains(id)){
-        ScenePtr s = vault->getScene(id);
-        qDebug("Updating %s's Display Item", qPrintable(s->getFilename()));
-        s->updateQStandardItem();
     }
 }
 
@@ -151,15 +163,10 @@ QVector<int> SceneTableView::getIDs(){
     return ids;
 }
 
-void SceneTableView::resizeSceneView(){
-    this->table->resizeColumnsToContents();
-    this->table->resizeRowsToContents();
-}
-
 void SceneTableView::searchByID(const int &id){
     proxyModel->setFilterID(id);
 }
-void SceneTableView::actorFilterChanged(ActorPtr a){
+void SceneTableView::setFilter_name(const ActorPtr a){
     if (!a.isNull()){
         proxyModel->setFilterActor(a->getName());
     }
@@ -172,6 +179,19 @@ void SceneTableView::actorFilterChanged(QString name){
     table->resizeColumnsToContents();
 }*/
 
+
+void SceneTableView::loadFilters(FilterSet set){
+    if (set.getFilterType() == ACTOR_FILTER){
+        qWarning("Scene Table View received filter set of type 'Actor Filter'. Not Loading.");
+        return;
+    } else {
+        proxyModel->loadFilters(set);
+    }
+}
+void SceneTableView::saveFilters(){
+    FilterSet filters = FilterSet(this->proxyModel);
+    emit saveFilterSet(filters);
+}
 
 void SceneTableView::addData(int column, QString data){
     proxyModel->setData(proxyModel->index(newRow, column), data);

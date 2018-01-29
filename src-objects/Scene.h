@@ -33,7 +33,7 @@ private:
     QVector<int> ages;
     void fromParser(class SceneParser p);
     QStandardItem *itemTitle, *itemActors, *itemCompany, *itemRating, *itemDate;
-    QStandardItem *itemQuality, *itemLength, *itemSize, *itemFeaturedActors, *itemPath, *itemID;
+    QStandardItem *itemQuality, *itemLength, *itemSize, *itemFeaturedActors, *itemPath, *itemID, *itemTags, *itemSeries;
     QList<QStandardItem *>displayRow;
     bool displayBuilt;
 public slots:

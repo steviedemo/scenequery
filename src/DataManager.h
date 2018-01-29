@@ -19,6 +19,7 @@ public:
     bool        contains(const QString &name)   const;
     ActorPtr    getActor(const QString);
     ScenePtr    getScene(const int id);
+    SceneList   getActorsScenes(const QString name);
     void        add     (const SceneList,   bool saveToDatabase=false);
     void        add     (const ActorList,   bool saveToDatabase=false);
     bool        add     (const ScenePtr,    bool saveToDatabase=false);

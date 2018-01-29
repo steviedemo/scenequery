@@ -387,7 +387,8 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemCompany   = new QStandardItem(company);
     this->itemPath      = new QStandardItem(path);
     this->itemID        = new QStandardItem(QString::number(ID));
-
+    this->itemTags      = new QStandardItem(this->tagString());
+    this->itemSeries    = new QStandardItem(series);
     QString date("");
     if (released.isValid()){
         date = released.toString("yyyy/MM/dd");
@@ -422,7 +423,8 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
     row << itemActors << itemTitle << itemCompany << itemQuality \
         << itemFeaturedActors <<  itemSize << itemLength \
-        << itemDate << itemRating << itemPath << itemID;
+        << itemDate << itemRating << itemPath << itemID \
+        << itemTags << itemSeries;
     displayBuilt = true;
     return row;
 }

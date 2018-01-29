@@ -22,6 +22,25 @@ void ActorProxyModel::clearFilters(){
     this->piercingFilter    = DONT_CARE;
 }
 
+void ActorProxyModel::loadFilters(const FilterSet filters){
+    this->nameFilter= filters.getFilterName();
+    skinFilter      = filters.getFilterEthnicity();
+    tattooFilter    = filters.getFilterTattoos();
+    piercingFilter  = filters.getFilterPiercings();
+    QPair<LogicalOperator, Height> filterHeight = filters.getFilterHeight();
+    heightOp        = filterHeight.first;
+    heightFilter    = filterHeight.second;
+    QPair<LogicalOperator, int>    filterSceneCount = filters.getFilterSceneCount();
+    countOp         = filterSceneCount.first;
+    sceneCountFilter= filterSceneCount.second;
+    QPair<LogicalOperator, int>    filterWeight = filters.getFilterWeight();
+    weightOp        = filterWeight.first;
+    weightFilter    = filterWeight.second;
+    QPair<LogicalOperator, int>    filterAge = filters.getFilterAge();
+    ageOp           = filterAge.first;
+    ageFilter       = filterAge.second;
+}
+
 bool ActorProxyModel::filterMatchesTriState(const TriState &t, const QString &s) const {
     bool result = (!s.isEmpty() && (s != "None"));
     bool filterMatches = false;

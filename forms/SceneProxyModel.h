@@ -13,10 +13,13 @@ class SceneProxyModel : public QSortFilterProxyModel
 public:
     SceneProxyModel(QObject *parent = 0);
     void    clearFilters        (void);
-    void    setFilterActor      (const QString name=".*")                           {   this->nameFilter = name;        setFilter(name);         }
-    void    setFilterCompany    (const QString company=".*")                        {   this->companyFilter = company;  setFilter(company);      }
-    void    setFilterTag        (const QString tag=".*")                            {   this->tagFilter = tag;          setFilter(tag);          }
-    void    setFilterFilename   (const QString searchTerm=".*")                     {   this->fileFilter = searchTerm;  setFilter(searchTerm);   }
+    void    loadFilters         (FilterSet filters);
+    void    setFilterActor      (const QString name=".*")                           {   this->nameFilter = name;                  setFilter(name); ;       }
+    void    setFilterCompany    (const QString company=".*")                        {   this->companyFilter = company;            setFilter(company);     }
+    void    setFilterTag        (const QString tag=".*")                            {   this->tagFilter = ".*"+tag+".*";          setFilter(".*"+tag+".*");         }
+    void    setFilterFilename   (const QString searchTerm=".*")                     {   this->fileFilter = ".*"+searchTerm+".*";  setFilter(".*"+searchTerm+".*");  }
+    void    setFilterTitle      (const QString title=".*")                          {   this->titleFilter = ".*"+title+".*";      setFilter(".*"+title+".*");       }
+    void    setFilterSeries     (const QString series=".*")                         {   this->seriesFilter = series;              setFilter(series);                }
     void    setFilterID         (const int id       = -1)                           {   this->idFilter = id;            }
     void    setFilterQuality    (const int quality  = -1,       const LogicalOperator op=NOT_SET) {   this->qualityOp = op;   this->qualityFilter = quality;}
     void    setFilterDuration   (const QTime time   = QTime(),  const LogicalOperator op=NOT_SET) {   this->durationOp = op;  this->durationFilter = time;  }
@@ -25,6 +28,8 @@ public:
     void    setFilterRelease    (const QDate date   = QDate(),  const LogicalOperator op=NOT_SET) {   this->releasedOp= op;   this->releasedFilter = date;  }
     void    setFilterAdded      (const QDate date   = QDate(),  const LogicalOperator op=NOT_SET) {   this->addedOp = op;     this->addedFilter = date;     }
     QString filterActor()                           const                           {   return this->nameFilter;                          }
+    QString filterTitle()                           const                           {   return this->titleFilter;                         }
+    QString filterSeries()                          const                           {   return this->seriesFilter;                        }
     QString filterCompany()                         const                           {   return this->companyFilter;                       }
     QString filterTag()                             const                           {   return this->tagFilter;                           }
     int     filterID()                              const                           {   return this->idFilter;                            }
@@ -38,9 +43,9 @@ public:
 protected:
     bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
 private:
-    void setFilter(QString text);
+    void setFilter(QString text=".*");
     QString getCellData(int row, int column, const QModelIndex &sourceParent) const;
-    bool filterMatches_filename (int row, const QModelIndex & index) const;
+    bool filterMatches_filename (int row, const QModelIndex &index) const;
     bool filterMatches_name     (int row, const QModelIndex &index) const;
     bool filterMatches_company  (int row, const QModelIndex &index) const;
     bool filterMatches_tag      (int row, const QModelIndex &index) const;
@@ -50,14 +55,18 @@ private:
     bool filterMatches_rating   (int row, const QModelIndex &index) const;
     bool filterMatches_added    (int row, const QModelIndex &index) const;
     bool filterMatches_release  (int row, const QModelIndex &index) const;
-
+    bool filterMatches_title    (int row, const QModelIndex &index) const;
+    bool filterMatches_series   (int row, const QModelIndex &index) const;
     bool filterMatchesTriState(const TriState &t, const QString &s) const;
-    bool filterMatchesAnything(const QString &s) const { return (s.isEmpty() || (s == ".*")  || (s == ".*.*") || (s == ".*.*.*") || (s == "No Selection")); }
+    bool filterMatchesAnything(const QString &s) const;
     bool filterMatchesAnything(const LogicalOperator &op)  const {   return (op == NOT_SET); }
     bool filterMatchesAnything(const TriState &op) const {   return (op == DONT_CARE); }
     bool filterMatchesAnything(const int &i) const  {   return i > -1;          }
+    bool filterMatchesAnything(const Rating &r) const { return r.isEmpty(); }
+    bool filterMatchesAnything(const QDate &d) const { return (d.isNull() || !d.isValid()); }
+    bool filterMatchesAnything(const QTime &t) const { return (t.isNull() || !t.isValid()); }
     LogicalOperator durationOp, qualityOp, sizeOp, ratingOp, releasedOp, addedOp;
-    QString nameFilter, companyFilter, tagFilter, fileFilter;
+    QString nameFilter, companyFilter, tagFilter, fileFilter, titleFilter, seriesFilter;
     qint64 sizeFilter;
     QTime durationFilter;
     QDate addedFilter, releasedFilter;

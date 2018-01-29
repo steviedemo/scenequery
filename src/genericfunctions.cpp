@@ -50,6 +50,24 @@ LogicalOperator fromString(const QString &p){
     return op;
 }
 
+QString toString(const TriState &t){
+    QString s("DONT_CARE");
+    if (t == ON){
+        s = "ON";
+    } else if (t == OFF){
+        s = "OFF";
+    }
+    return s;
+}
+TriState triStateFromString(const QString &s){
+    TriState t = DONT_CARE;
+    if (s == "ON"){
+        t = ON;
+    } else if (s == "OFF"){
+        t = OFF;
+    }
+    return t;
+}
 
 bool nonzero(double d){
     return d > 0;

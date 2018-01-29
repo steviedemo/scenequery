@@ -24,7 +24,9 @@ public:
 public slots:
     void loadActorProfile(ActorPtr a);
     void loadActorProfile(QString name);
-    void setActorsScenes(SceneList);
+    void showProfileView(QString name);
+    void updateProfileView(QString name);
+    void hideProfileView();
 private slots:
     void reloadProfilePhoto();
     void on_selectNewPhoto_clicked();
@@ -72,7 +74,6 @@ signals:
     void reloadProfile();
     void renameFile(ScenePtr s);
     void apv_to_ct_updateBio(QString name);
-    void apv_to_mw_requestScenes(QString name);
     void requestActor(QString name);
     void apv_to_mw_sendNewActor(ActorPtr);
 };

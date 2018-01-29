@@ -28,6 +28,21 @@ void DataManager::setMap(SceneMap scenes){
     emit statusUpdate(QString("Added %1 Scenes").arg(scenes.size()));
 }
 
+SceneList DataManager::getActorsScenes(const QString name){
+    SceneList list = {};
+    if (!name.isEmpty()){
+        qDebug("Gathering Scenes for actor '%s'", qPrintable(name));
+        QHashIterator<int, ScenePtr> it(sceneMap);
+        while(it.hasNext()){
+            if (it.value()->hasActor(name)){
+                list << it.value();
+            }
+        }
+        qDebug("Returning %d scenes for '%s'", list.size(), qPrintable(name));
+    }
+    return list;
+}
+
 bool DataManager::add(const ActorPtr a, bool saveToDB){
     bool dataValid = false;
     if (!a.isNull()){

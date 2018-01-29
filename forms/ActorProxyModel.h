@@ -2,6 +2,7 @@
 #define ACTORPROXYMODEL_H
 #include "definitions.h"
 #include "Height.h"
+#include "FilterSet.h"
 #include <QSortFilterProxyModel>
 #include <QPair>
 #include <QRegularExpression>
@@ -12,6 +13,7 @@ public:
     enum NumberFilterType{ greater_than, less_than, equal_to };
     ActorProxyModel(QObject *parent = 0);
     void        clearFilters();
+    QString     getFilterName()         const   {   return nameFilter;      }
     QString     getFilterHair()         const   {   return hairFilter;      }
     QString     getFilterEthnicity()    const   {   return skinFilter;      }
     TriState    getFilterTattoos()      const   {   return tattooFilter;    }
@@ -20,6 +22,8 @@ public:
     QPair<LogicalOperator,int>    getFilterWeight()     const { return QPair<LogicalOperator,int>   (weightOp, weightFilter);   }
     QPair<LogicalOperator,int>    getFilterSceneCount() const { return QPair<LogicalOperator,int>   (countOp, sceneCountFilter);}
 public slots:
+    void loadFilters(const FilterSet filters);
+
     void setFilterName          (const QString name="")      {   nameFilter = QString(".*%1.*").arg(name);       }
     void setFilterHairColor     (const QString hairColor="") {   hairFilter = QString(".*%1.*").arg(hairColor);  }
     void setFilterEthnicity     (const QString ethnicity="") {   skinFilter = QString(".*%1.*").arg(ethnicity);  }
