@@ -34,6 +34,7 @@ SceneList DataManager::getActorsScenes(const QString name){
         qDebug("Gathering Scenes for actor '%s'", qPrintable(name));
         QHashIterator<int, ScenePtr> it(sceneMap);
         while(it.hasNext()){
+            it.next();
             if (it.value()->hasActor(name)){
                 list << it.value();
             }

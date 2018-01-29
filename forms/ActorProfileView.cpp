@@ -65,40 +65,48 @@ void ActorProfileView::hideProfileView(){
 void ActorProfileView::on_tb_saveNameEdit_clicked(){
     newName = ui->nameLineEdit->text();
     oldName = ui->label_name->text();
-    this->updateList = vault->getActorsScenes(oldName);
     if (!newName.isEmpty()){
+        bool nameExists = false;
         qDebug("Changing '%s' to '%s'", qPrintable(oldName), qPrintable(newName));
         // Check if the new name already exists as a separate entry in the database.
-        QString query = QString("SELECT FROM actors WHERE name=%1").arg(Query::sqlSafe(oldName));
-        sqlConnection sql(query);
-        if (sql.execute()){
-            pqxx::result result = sql.getResult();
-            /// If the Actor's new Name isn't already a separate database item, update the current actor to have that name
-            if (result.size() == 0){
-                current->setName(newName);
-                Query q = current->toQuery();
-                std::string statement = q.toPqxxUpdate("actors");
-                sql.setQuery(statement);
-                if (sql.execute()){
-                    qDebug("Actor '%s's Name Updated to '%s'", qPrintable(oldName), qPrintable(newName));
-                    current->updateQStandardItem();
-                    this->outputDetails(current);
-                }
-            } else {    /// If there is already another entry with the new name, delete the current record.
-                qDebug("'%s' is already in the database. Removing '%s' from the database.", qPrintable(newName),qPrintable(oldName));
-                QString q = QString("DELETE FROM actors WHERE name = %1").arg(Query::sqlSafe(oldName));
-                sql.setQuery(q.toStdString());
-                emit requestActor(newName);
-            }
-
-            foreach(ScenePtr s, updateList){
-                s->renameActor(oldName, newName);
-                emit renameFile(s);
-            }
-            this->hide();
+        if (vault->contains(newName)){
+            nameExists = true;
         } else {
-            qWarning("Error Running Query '%s'", qPrintable(query));
+            QString query = QString("SELECT FROM actors WHERE name=%1").arg(Query::sqlSafe(oldName));
+            sqlConnection sql(query);
+            if (sql.execute()){
+                pqxx::result result = sql.getResult();
+                /// If the Actor's new Name isn't already a separate database item, update the current actor to have that name
+                if (result.size() == 0){
+                    nameExists = true;
+                }
+            } else {
+                qWarning("Error Checking Database for '%s'", qPrintable(oldName));
+            }
         }
+        if (!nameExists) {
+            current->setName(newName);
+            Query q = current->toQuery();
+            std::string query = q.toPqxxUpdate("actors");
+            sqlConnection sql(query);
+            if (sql.execute()){
+                qDebug("Actor '%s's Name Updated to '%s'", qPrintable(oldName), qPrintable(newName));
+                current->updateQStandardItem();
+                this->outputDetails(current);
+            }
+        } else {    /// If there is already another entry with the new name, delete the current record.
+            qDebug("'%s' is already in the database. Removing '%s' from the database.", qPrintable(newName),qPrintable(oldName));
+            emit deleteActor(oldName);
+            qDebug("Loading '%s' from the Actor Map", qPrintable(newName));
+            current = vault->getActor(newName);
+            outputDetails(current);
+        }
+        this->updateList = vault->getActorsScenes(oldName);
+        foreach(ScenePtr s, updateList){
+            s->renameActor(oldName, newName);
+            emit renameFile(s);
+        }
+        this->hide();
     } else {
         qWarning("Not Renaming '%s' to an empty string", qPrintable(oldName));
     }

@@ -77,6 +77,11 @@ MainWindow::~MainWindow(){
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
+    this->sql       = new SQL();
+    connect(vault.data(),       SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
+    connect(vault.data(),       SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
+    connect(vault.data(),       SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
+    connect(vault.data(),       SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
     /// Set Up Scene Detail View
     this->sceneDetailView   = new SceneDetailView(this);
     ui->vbl_list_layout->addWidget(sceneDetailView);
@@ -102,6 +107,7 @@ void MainWindow::setupViews(){
     connect(ui->actorTableView,         SIGNAL(displayChanged(int)),            ui->lcd_actorCount, SLOT(display(int)));
 
     connect(ui->profileWidget,          SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
+    connect(ui->profileWidget,          SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
     connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          this,               SLOT(removeActorItem(ActorPtr)));
     connect(this,                       SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
     connect(ui->profileWidget,          SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
@@ -142,11 +148,7 @@ void MainWindow::initDone(){
     ui->statusLabel->setText("Initialization Complete");
     qDebug("Initializing Worker Threads");
     this->curl = new curlTool();
-    this->sql       = new SQL();
-    connect(vault.data(),       SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
-    connect(vault.data(),       SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
-    connect(vault.data(),       SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
-    connect(vault.data(),       SIGNAL(save(SceneList)),                sql,                SLOT(store(SceneList)));
+
 
 
     qDebug("Making connections between widgets, curlTool, and SQL Thread");
