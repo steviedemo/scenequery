@@ -65,6 +65,8 @@ void ActorProfileView::hideProfileView(){
 void ActorProfileView::on_tb_saveNameEdit_clicked(){
     newName = ui->nameLineEdit->text();
     oldName = ui->label_name->text();
+    this->updateList = vault->getActorsScenes(oldName);
+
     if (!newName.isEmpty()){
         bool nameExists = false;
         qDebug("Changing '%s' to '%s'", qPrintable(oldName), qPrintable(newName));
@@ -84,6 +86,14 @@ void ActorProfileView::on_tb_saveNameEdit_clicked(){
                 qWarning("Error Checking Database for '%s'", qPrintable(oldName));
             }
         }
+        if (updateList.size() > 0){
+            foreach(ScenePtr s, updateList){
+                s->renameActor(oldName, newName);
+                if (QFile(s->getFullpath()).exists()){
+                    emit renameFile(s);
+                }
+            }
+        }
         if (!nameExists) {
             current->setName(newName);
             Query q = current->toQuery();
@@ -94,19 +104,20 @@ void ActorProfileView::on_tb_saveNameEdit_clicked(){
                 current->updateQStandardItem();
                 this->outputDetails(current);
             }
+
         } else {    /// If there is already another entry with the new name, delete the current record.
             qDebug("'%s' is already in the database. Removing '%s' from the database.", qPrintable(newName),qPrintable(oldName));
             emit deleteActor(oldName);
             qDebug("Loading '%s' from the Actor Map", qPrintable(newName));
-            current = vault->getActor(newName);
-            outputDetails(current);
+            ActorPtr a = vault->getActor(newName);
+            if (!a.isNull()){
+                outputDetails(a);
+            } else {
+                qWarning("Error Loading '%s'", qPrintable(newName));
+                hideProfileView();
+            }
         }
-        this->updateList = vault->getActorsScenes(oldName);
-        foreach(ScenePtr s, updateList){
-            s->renameActor(oldName, newName);
-            emit renameFile(s);
-        }
-        this->hide();
+
     } else {
         qWarning("Not Renaming '%s' to an empty string", qPrintable(oldName));
     }
@@ -216,10 +227,9 @@ void ActorProfileView::loadActorProfile(ActorPtr a){
 void ActorProfileView::outputDetails(ActorPtr a){
     clearFields();
     this->current = a;
-    ui->nameEditFrame->hide();
+    ui->nameLineEdit->setText(a->getName());
     ui->label_name->show();
     ui->label_name->setText(a->getName());
-    ui->saveProfile->setDisabled(true);
     ui->nameEditFrame->hide();
     Biography bio = a->getBio();
     /// Set Basic Fields
