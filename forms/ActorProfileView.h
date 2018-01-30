@@ -5,6 +5,7 @@
 #include "imageeditor.h"
 #include "SceneList.h"
 #include "DataManager.h"
+#include "SQL.h"
 #include <QWidget>
 #include <QShortcut>
 #include <QLineEdit>
@@ -20,7 +21,7 @@ class ActorProfileView : public QWidget
 public:
     explicit ActorProfileView(QWidget *parent = 0);
     ~ActorProfileView();
-    void setData(QSharedPointer<DataManager> vault){ this->vault = vault;   }
+    void setData(QSharedPointer<DataManager> vault){ this->vault = vault; }
 public slots:
     void loadActorProfile(ActorPtr a);
     void loadActorProfile(QString name);

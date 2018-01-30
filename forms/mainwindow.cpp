@@ -105,10 +105,9 @@ void MainWindow::setupViews(){
     /// Make Relevant connections between widgets
     connect(ui->sceneTableView,         SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,SLOT(display(int)));
     connect(ui->actorTableView,         SIGNAL(displayChanged(int)),            ui->lcd_actorCount, SLOT(display(int)));
-
+    connect(ui->profileWidget,          SIGNAL(saveToDatabase(ActorPtr)),       sql,                SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(chooseNewPhoto()),               this,               SLOT(selectNewProfilePhoto()));
     connect(ui->profileWidget,          SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
-    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          this,               SLOT(removeActorItem(ActorPtr)));
     connect(this,                       SIGNAL(deleteActor(QString)),           sql,                SLOT(dropActor(QString)));
     connect(ui->profileWidget,          SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
 
@@ -139,7 +138,7 @@ void MainWindow::setupViews(){
     connect(sql,                        SIGNAL(sendResult(SceneList)),          this,               SLOT(receiveScenes(SceneList)));
     connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
     connect(sql,                        SIGNAL(sendPurgeList(QVector<int>)),    ui->sceneTableView, SLOT(purgeSceneItems(QVector<int>)));
-    connect(ui->actorTableView,         SIGNAL(actorSelectionChanged(QString)), this,               SLOT(actorSelectionChanged(QString)));
+    //connect(ui->actorTableView,         SIGNAL(actorSelectionChanged(QString)), this,               SLOT(actorSelectionChanged(QString)));
 }
 
 void MainWindow::initDone(){
@@ -182,11 +181,8 @@ void MainWindow::initDone(){
     /// Set up the SQL Thread for communications with the main thread
 
     /// Connect Actor Profile Widget with Database & Curl Thread
-    ui->profileWidget->hide();
-    connect(ui->profileWidget,          SIGNAL(saveToDatabase(ActorPtr)),       sql,                SLOT(updateActor(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(updateFromWeb(ActorPtr)),        curl,               SLOT(updateBio(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(downloadPhoto(ActorPtr)),        curl,               SLOT(downloadPhoto(ActorPtr)));
-    connect(ui->profileWidget,          SIGNAL(deleteActor(ActorPtr)),          sql,                SLOT(drop(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(apv_to_ct_updateBio(QString)),   curl,               SLOT(apv_to_ct_getProfile(QString)));
     connect(curl,                       SIGNAL(ct_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
 
@@ -204,27 +200,6 @@ void MainWindow::initDone(){
     sql->moveToThread(sqlThread);
     sqlThread->start();
     qDebug("SQL Thread Started");
-}
-
-void MainWindow::sdv_to_mw_showActor(QString name){
-    if (this->vault->contains(name)){
-        ui->profileWidget->loadActorProfile(vault->getActor(name));
-    }
-}
-
-void MainWindow::apv_to_mw_receiveSceneListRequest(QString actorName){
-    if(!actorName.isEmpty() && actorName == currentActor->getName()){
-        QVector<int> ids = ui->sceneTableView->getIDs();
-        sceneUpdateList.clear();
-        foreach(int id, ids){
-            if (vault->contains(id)){
-                sceneUpdateList << vault->getScene(id);
-            }
-        }
-
-    } else {
-        qWarning("Error: Not Returning any scenes to ActorProfileView, as an empty name was passed to MainWindow");
-    }
 }
 
 /** \brief Choose a Directory to scan files in from */
@@ -311,25 +286,25 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
     qDebug("Added %d Scenes!", list.size());
 }
 
-void MainWindow::actorSelectionChanged(QString name){
-    if (vault->contains(name)){
-        ActorPtr a = vault->getActor(name);
-        if (!a.isNull()){
-            qDebug("'%s' Selected", qPrintable(name));
-            this->currentActor = a;
-            if (!ui->profileWidget->isHidden()){
-                ui->profileWidget->loadActorProfile(currentActor);
-            }
-            if (!this->sceneDetailView->isHidden()){
-                this->sceneDetailView->clearDisplay();
-                this->sceneDetailView->hide();
-            }
-        } else {
-            qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
-            ui->actorTableView->removeActor(name);
-        }
-    }
-}
+//void MainWindow::actorSelectionChanged(QString name){
+//    if (vault->contains(name)){
+//        ActorPtr a = vault->getActor(name);
+//        if (!a.isNull()){
+//            qDebug("'%s' Selected", qPrintable(name));
+//            this->currentActor = a;
+//            if (!ui->profileWidget->isHidden()){
+//                ui->profileWidget->loadActorProfile(currentActor);
+//            }
+//            if (!this->sceneDetailView->isHidden()){
+//                this->sceneDetailView->clearDisplay();
+//                this->sceneDetailView->hide();
+//            }
+//        } else {
+//            qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
+//            ui->actorTableView->removeActor(name);
+//        }
+//    }
+//}
 
 /** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
 ActorPtr MainWindow::getSelectedActor(){
@@ -362,7 +337,6 @@ void MainWindow::searchActors(){
 void MainWindow::on_actionDeleteActor_triggered(){
     qDebug("Delete Actor Shortcut Detected");
     if (!currentActor.isNull()){
-        removeActorItem(currentActor);
         emit deleteActor(currentActor->getName());
     }
 }
@@ -386,12 +360,6 @@ QString MainWindow::getCurrentName(QAbstractItemModel *model){
         }
     }
     return name;
-}
-void MainWindow::removeActorItem(ActorPtr actor){
-    if (!actor.isNull()){
-        ui->actorTableView->removeActor(actor->getName());
-        vault->remove(actor);
-    }
 }
 
 /** \brief Show an error Dialog with the provided Text. */
@@ -625,11 +593,11 @@ void MainWindow::renameFile(ScenePtr scene){
             newFileInfo.first = fileInfo.first;
             newFileInfo.second = newName;
             scene->setFile(newFileInfo);
-            QFile file(fullpath);
             bool saved = false;
             if (fullpath == newPath){
                 saved = true;
             } else {
+                QFile file(fullpath);
                 saved = file.rename(fullpath, newPath);
             }
             if (!saved){

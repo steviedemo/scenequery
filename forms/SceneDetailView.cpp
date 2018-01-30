@@ -118,7 +118,7 @@ void SceneDetailView::loadScene(ScenePtr s){
         if (resolution > 0){
             ui->resolutionLineEdit->setText(QString::number(resolution));
         }
-        QStringList cast = s->getActors();
+        QVector<QString> cast = s->getActors();
         if (!cast.isEmpty()){
             for (int i = 0; i < ageList.size(); ++i){
                 castList.at(i)->clear();
@@ -242,7 +242,7 @@ void SceneDetailView::on_pb_save_clicked(){
         }
         text = ui->tagsTextEdit->toPlainText();
         if (valid(text) && text != current->tagString()){
-            current->setTags(text.split(',', QString::SkipEmptyParts));
+            current->setTags(text.split(',', QString::SkipEmptyParts).toVector());
         }
         if (ui->ratingComboBox->currentIndex() != -1 && !ui->ratingComboBox->currentText().isEmpty()){
             this->current->setRating(ui->ratingComboBox->currentText());

@@ -42,45 +42,29 @@ Scene::Scene(SceneParser p):Entry(){
     this->clear();
     this->fromParser(p);
 }
-/*
-Scene::Scene(const Scene &s):Entry(), ID(s.ID),
-    length(s.length), height(s.height), width(s.width), sceneNumber(s.sceneNumber), size(s.size),
-    added(s.added), released(s.released), opened(s.opened),
-    title(s.title), company(s.company), series(s.series), url(s.url), dateString(s.dateString){
-    this->actors = s.actors;
-    this->tags = s.tags;
-    this->ages = s.ages;
-    this->displayBuilt = false;
-//    this->itemActors = s.itemActors;
-//    this->itemCompany = s.itemCompany;
-//    this->itemDate = s.itemDate;
-//    this->itemFeaturedActors = s.itemFeaturedActors;
-//    this->itemLength = s.itemLength;
-//    this->itemP
-}
-*/
+
 void Scene::clear(){
     this->ID            = -1;
-    this->length        = QTime(0,0,0,0);
-    this->height        = 0;
-    this->width         = 0;
-    this->sceneNumber   = 0;
-    this->size          = 0;
+    this->height        = -1;
+    this->width         = -1;
+    this->sceneNumber   = -1;
+    this->size          = -1;
     this->added         = QDate();
     this->opened        = QDate();
     this->released      = QDate();
+    this->length        = QTime(0,0,0,0);
     this->title         = QString("");
     this->company       = QString("");
     this->series        = QString("");
     this->url           = QString("");
     this->dateString    = QString("");
-    this->actors        = QStringList();
     this->filename      = QString("");
     this->filepath      = QString("");
-    this->tags          = QStringList();
     this->displayBuilt  = false;
-    this->ages          = {};
-    this->row           = {};
+    this->actors        = QVector<QString>(0);
+    this->tags          = QVector<QString>(0);
+    this->ages          = QVector<int>(0);
+    this->row           = QVector<int>(0);
     this->rating = Rating("R");
 }
 
@@ -96,15 +80,28 @@ void Scene::fromParser(SceneParser p){
         if (!p.isParsed()){
             p.parse();
         }
+        actors = QVector<QString>(0);
+        tags = QVector<QString>(0);
         this->filepath = p.getFilepath();
         this->filename = p.getFilename();
         //qDebug("Making Scene with name: '%s', and path: '%s'", qPrintable(filename), qPrintable(filepath));
-        this->actors    = p.getActors();
+        QStringList list = p.getActors();
+        if (list.size() > 0){
+            foreach(QString s, list){
+                actors.push_back(s);
+            }
+        }
+        list = {};
+        list = p.getTags();
+        if (list.size() > 0){
+            foreach(QString s, list){
+                tags.push_back(s);
+            }
+        }
         this->title     = p.getTitle();
         this->company   = p.getCompany();
         this->series    = p.getSeries();
         this->rating    = p.getRating();
-        this->tags      = p.getTags();
         this->width     = p.getWidth();
         this->height    = p.getHeight();
         this->size      = p.getSize();

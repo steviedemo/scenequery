@@ -53,11 +53,9 @@ private slots:
     void searchActors();
     void searchScenes();
 
-    void apv_to_mw_receiveSceneListRequest(QString actorName);
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
     void db_to_mw_receiveScenes(SceneList);
-    void sdv_to_mw_showActor(QString);
 
     /// Progress & Status Updates
     void startProgress(QString, int);
@@ -68,12 +66,10 @@ private slots:
     void updateProgressDialog(int);
     void closeProgressDialog();
     void renameFile(ScenePtr);
-    void removeActorItem(ActorPtr);
     void showCurrentActorProfile();
 
     /// Window Events
-    void actorSelectionChanged(QString);
-
+ //   void actorSelectionChanged(QString);
     /// Buttons
 
     void scan_directory_chosen(QString);

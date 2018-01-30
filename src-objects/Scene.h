@@ -28,7 +28,7 @@ private:
     qint64 size;
     QDate added, released, opened;
     QString title, company, series, url;
-    QStringList actors, tags;
+    QVector<QString> actors, tags;
     Rating rating;
     QVector<int> ages;
     void fromParser(class SceneParser p);
@@ -85,8 +85,8 @@ public:
     QString     getCompany      (void) const {   return company;        }
     QString     getSeries       (void) const {   return series;         }
     Rating      getRating       (void) const {   return rating;         }
-    QStringList getActors       (void) const {   return actors;         }
-    QStringList getTags         (void) const {   return tags;           }
+    QVector<QString> getActors       (void) const {   return actors;         }
+    QVector<QString> getTags         (void) const {   return tags;           }
     QString     tagString       (void) const;
     QDate       getOpened       (void) const {   return opened;         }
     QDate       getAdded        (void) const {   return added;          }
@@ -110,9 +110,14 @@ public:
         else
             return 0;
     }
+    bool hasActor(const QString &a) const {
+        bool has = false;
 
-    bool        hasActor(QString a) const {   return actors.contains(a);  }
-    bool        hasTag  (QString t) const {   return tags.contains(t);    }
+        if (!this->actors.isEmpty() && !a.isNull())
+            has = actors.contains(a);
+        return has;
+    }
+    bool        hasTag  (const QString &t) const {   return tags.contains(t);    }
     // Setters
     void    setSize     (const qint64 &s)      {   this->size = s;         }
     void    setWidth    (const int &w)         {   this->width = w;        }
@@ -124,8 +129,8 @@ public:
     void    setRating   (const Rating &r)      {   this->rating = r;       }
     void    setRating   (const QString &r)     {   this->rating = Rating(r);   }
 //    void    setRating   (int i)      {   this->rating = Rating(d);   }
-    void    setActors   (const QStringList &a) {   this->actors = a;       }
-    void    setTags     (const QStringList &t) {   this->tags = t;         }
+    void    setActors   (const QVector<QString> &a) {   this->actors = a;       }
+    void    setTags     (const QVector<QString> &t) {   this->tags = t;         }
     void    setOpened   (const QDate &d)       {   this->opened = d;       }
     void    setAdded    (const QDate &d)       {   this->added = d;        }
     void    setReleased (const QDate &d);
