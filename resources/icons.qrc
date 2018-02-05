@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>Icons/green_checkmark.png</file>
         <file>Icons/blank_profile_photo.png</file>
-        <file>Icons/edit_icon.png</file>
         <file>Icons/edit_icon_blue.png</file>
         <file>Icons/add_folder_icon.png</file>
         <file>Icons/edit_pencil.png</file>
@@ -24,33 +23,21 @@
         <file>Icons/shiny_blue_stop_icon.png</file>
         <file>Icons/shiny_blue_upload_icon.png</file>
         <file>Icons/magnifying_glass_1.ico</file>
-        <file>Icons/shiny_blue_search_icon.png</file>
         <file>Icons/red_close_icon.png</file>
         <file>Icons/flat_cloud_sync_icon.png</file>
         <file>Icons/flat_download_from_cloud_icon.png</file>
         <file>Icons/flat_download_to_computer_icon.png</file>
         <file>Icons/flat_hide_icon.png</file>
         <file>Icons/flat_lock_icon.png</file>
-        <file>Icons/flat_sync_with_cloud_icon.png</file>
         <file>Icons/refresh_desktop_icon.png</file>
-        <file>Icons/cloud down.ico</file>
-        <file>Icons/cloud up.ico</file>
-        <file>Icons/cloud-sync-icon.png</file>
         <file>Icons/database_sync_icon.png</file>
-        <file>Icons/flat_save_icon_2.png</file>
-        <file>Icons/Refresh Display.png</file>
         <file>Icons/update_female_icon.png</file>
         <file>Icons/blank_profile_photo_female.png</file>
-        <file>Icons/silhouette_female_sideview.png</file>
         <file>Icons/edit_profile_icon.png</file>
         <file>Icons/user_add_icon.png</file>
-        <file>Icons/user_edit_female.ico</file>
-        <file>Icons/user_add_female.png</file>
-        <file>Icons/user_accept_female.png</file>
         <file>Icons/Photo-icon.png</file>
         <file>Icons/Broom_icon.svg</file>
         <file>Icons/Preview-icon.png</file>
-        <file>Icons/film-spool-icon-3.jpg</file>
         <file>Icons/icon-film-spool-2.png</file>
         <file>Icons/film-spool-icon.png</file>
         <file>Icons/film_folder_icon.png</file>
@@ -67,7 +54,6 @@
         <file>Icons/female_silhouette_database_sync.png</file>
         <file>Icons/female_silhouette.png</file>
         <file>Icons/female_silhouette_add.png</file>
-        <file>Icons/female_silhouette_download_2.png</file>
         <file>Icons/female_silhouette_delete.png</file>
         <file>Icons/image_add.png</file>
         <file>Icons/image_delete.png</file>

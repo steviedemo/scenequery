@@ -1,7 +1,7 @@
-#include "mainwindow.h"
+#include "MainWindow.h"
 #include "config.h"
 #include "filenames.h"
-#include "ui_mainwindow.h"
+#include "ui_MainWindow.h"
 #include "SceneParser.h"
 #include "SceneRenamer.h"
 #include "FilterSet.h"
@@ -285,26 +285,6 @@ void MainWindow::db_to_mw_receiveScenes(SceneList list){
     ui->sceneTableView->resizeSceneView();
     qDebug("Added %d Scenes!", list.size());
 }
-
-//void MainWindow::actorSelectionChanged(QString name){
-//    if (vault->contains(name)){
-//        ActorPtr a = vault->getActor(name);
-//        if (!a.isNull()){
-//            qDebug("'%s' Selected", qPrintable(name));
-//            this->currentActor = a;
-//            if (!ui->profileWidget->isHidden()){
-//                ui->profileWidget->loadActorProfile(currentActor);
-//            }
-//            if (!this->sceneDetailView->isHidden()){
-//                this->sceneDetailView->clearDisplay();
-//                this->sceneDetailView->hide();
-//            }
-//        } else {
-//            qWarning("Actor Map doesn't Contain '%s'. Removing Item from Display", qPrintable(name));
-//            ui->actorTableView->removeActor(name);
-//        }
-//    }
-//}
 
 /** \brief Find out which actor is currently selected, and return an ActorPtr object to it, or a null pointer if no actor is currently selected. */
 ActorPtr MainWindow::getSelectedActor(){

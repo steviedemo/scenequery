@@ -39,7 +39,11 @@ PQXX = /usr/local/Cellar/libpqxx/6.0.0_1
 INCLUDEPATH += \
     /usr/local/include \
     src \
+    src/Threads \
     forms \
+    forms/Delegates \
+    forms/Dialogs \
+    forms/ItemViews \
     src-objects \
     src \
     PSQL/src \
@@ -68,11 +72,14 @@ LIBS += \
 
 SOURCES += \
     src/config.cpp \
-    src/curlTool.cpp \
-    src/FileScanner.cpp \
     src/genericfunctions.cpp \
     src/main.cpp\
-    forms/mainwindow.cpp \
+    src/filenames.cpp \
+    src/SceneRenamer.cpp \
+    src/SceneParser.cpp \
+    src/DataManager.cpp \
+    src-objects/Filepath.cpp \
+    src-objects/FilterSet.cpp \
     src-objects/Actor.cpp \
     src-objects/Biography.cpp \
     src-objects/Entry.cpp \
@@ -80,83 +87,81 @@ SOURCES += \
     src-objects/Rating.cpp \
     src-objects/Scene.cpp \
     src-objects/SceneList.cpp \
+    src/Threads/curlTool.cpp \
+    src/Threads/FileScanner.cpp \
+    src/Threads/MiniThreads.cpp \
+    src/Threads/SQL.cpp \
     PSQL/src/sqlconnection.cpp \
     PSQL/src/Query.cpp \
-    src/filenames.cpp \
-    forms/profiledialog.cpp \
-    forms/RatingDelegate.cpp \
     forms/RatingEditor.cpp \
-    forms/SceneProxyModel.cpp \
     forms/ActorProfileView.cpp \
-    src/VideoPlayer.cpp \
-    forms/imageeditor.cpp \
+    forms/Delegates/RatingDelegate.cpp \
+    forms/Delegates/DeleteButtonDelegate.cpp \
+    forms/Dialogs/profiledialog.cpp \
+    forms/Dialogs/VideoPlayer.cpp \
+    forms/Dialogs/imageeditor.cpp \
+    forms/Dialogs/SplashScreen.cpp \
     ImageCropper/src/imagecropper.cpp \
-    forms/ActorProxyModel.cpp \
-    forms/ActorTableView.cpp \
+    forms/ItemViews/SceneProxyModel.cpp \
+    forms/ItemViews/ActorProxyModel.cpp \
+    forms/ItemViews/ActorTableView.cpp \
+    forms/ItemViews/SceneTableView.cpp \
     forms/SceneDetailView.cpp \
-    src-objects/Filepath.cpp \
-    src/SceneRenamer.cpp \
-    src/SceneParser.cpp \
-    src/SQL.cpp \
-    forms/SplashScreen.cpp \
-    src/MiniThreads.cpp \
-    src/DataManager.cpp \
-    src-objects/FilterSet.cpp \
-    forms/SceneTableView.cpp \
     forms/FilterWidget.cpp \
-    forms/DeleteButtonDelegate.cpp
+    forms/MainWindow.cpp
 
 HEADERS  += \
     src/config.h \
-    src/curlTool.h \
     src/definitions.h \
-    src/FileScanner.h \
+    src/filenames.h \
+    src/SceneRenamer.h \
+    src/SceneParser.h \
+    src/DataManager.h \
+    src/Exception.h \
+    src/precompiledheaders.h \
+    src/Threads/FileScanner.h \
+    src/Threads/curlTool.h \
+    src/Threads/SQL.h \
+    src/Threads/MiniThreads.h \
     src/genericfunctions.h \
-    forms/mainwindow.h \
     src-objects/Actor.h \
     src-objects/Biography.h \
     src-objects/Height.h \
     src-objects/Rating.h \
     src-objects/Scene.h \
+    src-objects/Entry.h \
+    src-objects/Filepath.h \
+    src-objects/FilterSet.h \
+    src-objects/SceneList.h \
     PSQL/src/sqlconnection.h \
     PSQL/src/sql_definitions.h \
     PSQL/src/database.h \
     PSQL/src/Query.h \
-    src-objects/Entry.h \
-    src/filenames.h \
-    src-objects/SceneList.h \
-    forms/profiledialog.h \
-    forms/RatingDelegate.h \
     forms/RatingEditor.h \
-    forms/SceneProxyModel.h \
     forms/ActorProfileView.h \
-    src/VideoPlayer.h \
-    forms/imageeditor.h \
-    ImageCropper/src/imagecropper.h \
-    forms/ActorProxyModel.h \
-    forms/ActorTableView.h \
     forms/SceneDetailView.h \
-    src-objects/Filepath.h \
-    src/SceneRenamer.h \
-    src/SceneParser.h \
-    src/SQL.h \
-    forms/SplashScreen.h \
-    src/MiniThreads.h \
-    src/DataManager.h \
-    src-objects/FilterSet.h \
-    src/Exception.h \
-    forms/SceneTableView.h \
+    forms/Delegates/RatingDelegate.h \
+    forms/Delegates/DeleteButtonDelegate.h \
+    forms/Dialogs/profiledialog.h \
+    forms/Dialogs/VideoPlayer.h \
+    forms/Dialogs/imageeditor.h \
+    forms/Dialogs/SplashScreen.h \
+    forms/ItemViews/ActorProxyModel.h \
+    forms/ItemViews/ActorTableView.h \
+    forms/ItemViews/SceneProxyModel.h \
+    forms/ItemViews/SceneTableView.h \
+    ImageCropper/src/imagecropper.h \
     forms/FilterWidget.h \
-    src/precompiledheaders.h \
-    forms/DeleteButtonDelegate.h
+    forms/MainWindow.h
 
-FORMS    += forms/mainwindow.ui \
-    forms/profiledialog.ui \
+FORMS    += \
+    forms/Dialogs/profiledialog.ui \
     forms/ActorProfileView.ui \
     forms/SceneDetailView.ui \
-    forms/SplashScreen.ui \
-    forms/SearchPathsDialog.ui \
-    forms/FilterWidget.ui
+    forms/Dialogs/SplashScreen.ui \
+    forms/Dialogs/SearchPathsDialog.ui \
+    forms/FilterWidget.ui \
+    forms/MainWindow.ui
 
 QMAKE_CLEAN += \
     build/* \

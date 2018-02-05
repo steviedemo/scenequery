@@ -13,3 +13,6 @@
 [submodule "libqxt"]
 	path = libqxt
 	url = https://github.com/mnutt/libqxt.git
+[submodule "QtVlc"]
+	path = QtVlc
+	url = https://github.com/Orochimarufan/QtVlc.git

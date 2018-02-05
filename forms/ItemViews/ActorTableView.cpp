@@ -109,7 +109,7 @@ void ActorTableView::addNewActors(const ActorList &list){
     foreach(ActorPtr a, list){
         if (!a.isNull()){
             int matchingRows = actorModel->findItems(a->getName(),Qt::MatchExactly, ACTOR_NAME_COLUMN).size();
-            if (firstAdd || (matchingRows == 0)){
+            if (matchingRows == 0){
                 actorModel->appendRow(a->buildQStandardItem());
                 vault->add(a);
             } else if (!firstAdd){
