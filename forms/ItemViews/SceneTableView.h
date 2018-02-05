@@ -58,6 +58,8 @@ private slots:
     void rowDoubleClicked(const QModelIndex &index);
     void selectionChanged(QModelIndex, QModelIndex);
     void itemClicked(QModelIndex);
+    void removeItem();
+    void rightClickMenu(const QPoint &);
 private:
     QModelIndex findSceneIndex(const QRegExp &rx, const int column);
     void addData(int column, QString data);
@@ -76,6 +78,8 @@ private:
     QSharedPointer<DataManager> vault;
     SceneDetailView *detailView;
     ActorProfileView *profileView;
+    QModelIndex proxyIndex, modelIndex;
+    int currentID;
 signals:
     void rowsFinishedLoading();
     void displayChanged(int);

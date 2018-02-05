@@ -49,6 +49,7 @@ ActorTableView::ActorTableView(QWidget *parent):
     connect(table,          SIGNAL(clicked(QModelIndex)),                       this, SLOT(rowClicked(QModelIndex)));
     connect(proxyModel,     SIGNAL(rowsInserted(QModelIndex,int,int)),          this, SLOT(rowCountChanged(QModelIndex,int,int)));
     connect(proxyModel,     SIGNAL(rowsRemoved(QModelIndex,int,int)),           this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(table,          SIGNAL(customContextMenuRequested(QPoint)),         this, SLOT(displayRightClickMenu(QPoint)));
     /// Hide Columns that are present only for filtering reasons.
     table->hideColumn(ACTOR_WEIGHT_COLUMN);
     table->hideColumn(ACTOR_ETH_COLUMN);
@@ -98,6 +99,30 @@ void ActorTableView::addDeleteButtons(){
         t->setToolButtonStyle(Qt::ToolButtonIconOnly);
         connect(t, &QToolButton::released, this, [=]{ vault->remove(t->text()); emit deleteActor(t->text()); removeActor(t->text()); });
         table->setIndexWidget(index, t);
+    }
+}
+
+void ActorTableView::displayRightClickMenu(const QPoint &p){
+    QMenu *menu = new QMenu;
+    currentIdx = table->indexAt(p);
+    if (currentIdx.isValid()){
+        QString name = proxyModel->data(proxyModel->index(currentIdx.row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
+        if (!name.isEmpty()){
+            current = vault->getActor(name);
+            if (!current.isNull()){
+                menu->addAction("Remove", this, SLOT(removeCurrent()));
+                menu->exec(QCursor::pos());
+            }
+        }
+    }
+}
+void ActorTableView::removeCurrent(){
+    if (!current.isNull() && currentIdx.isValid()){
+        QModelIndex modelIndex = proxyModel->mapToSource(currentIdx);
+        proxyModel->removeRow(currentIdx.row());
+        actorModel->removeRow(modelIndex.row());
+        vault->remove(current->getName());
+        profileView->hide();
     }
 }
 
@@ -200,6 +225,12 @@ void ActorTableView::removeActor(QString name){
     qDebug("ActorTableView Removing %s from display...", qPrintable(name));
     QModelIndex index = findActorIndex_Exact(name);
     if (index.isValid()){
+        QModelIndex modelIndex = proxyModel->mapToSource(index);
+        if (!modelIndex.isValid()){
+            qWarning("Error: Mapped Actor Model Index is not valid for the proxy model index given");
+        } else {
+            actorModel->removeRow(modelIndex.row());
+        }
         proxyModel->removeRow(index.row());
     }
 }

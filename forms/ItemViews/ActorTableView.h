@@ -56,6 +56,7 @@ public slots:
     void selectActor(QString name);
     void selectActor(ActorPtr actor);
     void removeActor(QString name);
+    void removeCurrent();
     void removeActor(ActorPtr);
 private:
     QWidget *parent;
@@ -71,12 +72,14 @@ private:
     SceneTableView *sceneTableView;
     SceneDetailView *detailView;
     ActorProfileView *profileView;
+    ActorPtr current;
     bool itemClicked;
     void addDeleteButtons();
 private slots:
     void selectionChanged(QModelIndex, QModelIndex);
     void rowCountChanged(QModelIndex, int, int);
     void rowClicked(QModelIndex);
+    void displayRightClickMenu(const QPoint &);
 signals:
     void rowsFinishedLoading();
     void displayChanged(int);

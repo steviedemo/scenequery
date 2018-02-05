@@ -43,6 +43,7 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     connect(table, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(rowDoubleClicked(QModelIndex)));
     connect(proxyModel, SIGNAL(rowsRemoved(QModelIndex,int,int)),   this, SLOT(rowCountChanged(QModelIndex,int,int)));
     connect(proxyModel, SIGNAL(rowsInserted(QModelIndex,int,int)),  this, SLOT(rowCountChanged(QModelIndex,int,int)));
+    connect(table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(rightClickMenu(QPoint)));
     this->initComplete = true;
 }
 
@@ -55,6 +56,28 @@ void SceneTableView::connectViews(SceneDetailView *detail, ActorProfileView *pro
     connect(profileView,    SIGNAL(hidden()),                       detailView, SLOT(hideDetailView()));
     connect(profileView,    SIGNAL(hidden()),                       this,       SLOT(setFilter_name()));
     connect(detailView,     SIGNAL(showActor(ActorPtr)),            profileView,SLOT(loadActorProfile(ActorPtr)));
+}
+
+void SceneTableView::rightClickMenu(const QPoint &p){
+    proxyIndex = table->indexAt(p);
+    if (proxyIndex.isValid()){
+        modelIndex = proxyModel->mapToSource(proxyIndex);
+        currentID = proxyModel->data(proxyModel->index(proxyIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+        QMenu *menu = new QMenu;
+        menu->addAction(QIcon(":/Icons/red_close_icon.png"), "Remove", this, SLOT(removeItem()));
+        menu->exec();
+    }
+}
+
+void SceneTableView::removeItem(){
+    if (proxyIndex.isValid() && modelIndex.isValid()){
+        proxyModel->removeRow(proxyIndex.row());
+        sceneModel->removeRow(modelIndex.row());
+        vault->remove(currentID);
+        qDebug("Item Removed");
+    } else {
+        qWarning("Can't Remove Scene Item unless the Model Indexes Given are valid! The Rows Given are [Proxy]: %d, [Model]: %d", proxyIndex.row(), modelIndex.row());
+    }
 }
 
 void SceneTableView::addRows(RowList rows){
