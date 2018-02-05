@@ -21,7 +21,7 @@
 #define ACTOR_WEIGHT_COLUMN     6
 #define ACTOR_TATTOO_COLUMN     7
 #define ACTOR_PIERCING_COLUMN   8
-
+#define ACTOR_DELETE_COLUMN     9
 /// Scene List Headers
 #define SCENE_NAME_COLUMN       0
 #define SCENE_TITLE_COLUMN      1

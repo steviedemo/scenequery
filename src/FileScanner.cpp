@@ -227,7 +227,7 @@ ActorList FileScanner::parseActorList(SceneList sceneList){
     ActorList actorList;
     // For every scene in the list
     foreach(ScenePtr s, sceneList){
-        QStringList cast = s->getActors();
+        QVector<QString> cast = s->getActors();
         // Look at all actors in this scene
         foreach(QString name, cast){
             ActorPtr a = QSharedPointer<Actor>(new Actor(name));

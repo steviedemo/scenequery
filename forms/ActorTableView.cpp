@@ -9,7 +9,7 @@ ActorTableView::ActorTableView(QWidget *parent):
     this->proxyModel = new ActorProxyModel(this);
     this->table = new QTableView;
     QStringList actorHeaders;
-    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Age" << "Height" << "Weight" << "Tattoos?" << "Piercings?";
+    actorHeaders << "" << "Name" << "Hair Color" << "Ethnicity" << "Age" << "Height" << "Weight" << "Tattoos?" << "Piercings?" << "Delete";
     this->actorModel = new QStandardItemModel();
     this->actorModel->setSortRole(Qt::DecorationRole);
     this->actorParent = actorModel->invisibleRootItem();
@@ -71,6 +71,7 @@ void ActorTableView::connectViews(SceneTableView *table, SceneDetailView *detail
     connect(this,       SIGNAL(actorClicked(QString)),          profileView,    SLOT(showProfileView(QString)));
     connect(this,       SIGNAL(actorSelectionChanged(QString)), profileView,    SLOT(updateProfileView(QString)));
     connect(profileView,SIGNAL(requestActor(QString)),          this,           SLOT(selectActor(QString)));
+    connect(profileView,SIGNAL(selectActor(QString)),           this,           SLOT(selectActor(QString)));
     connect(profileView,SIGNAL(deleteActor(ActorPtr)),          this,           SLOT(removeActor(ActorPtr)));
     connect(profileView,SIGNAL(deleteActor(QString)),           this,           SLOT(removeActor(QString)));
 }
@@ -84,6 +85,20 @@ FilterSet ActorTableView::saveFilters(){
     FilterSet filters = FilterSet(this->proxyModel);
     emit saveFilterSet(filters);
     return filters;
+}
+
+void ActorTableView::addDeleteButtons(){
+    qDebug("Adding Delete Buttons");
+    for (int r = 0; r < actorModel->rowCount(); ++r){
+        QModelIndex index = actorModel->index(r, ACTOR_DELETE_COLUMN);
+        QString name = actorModel->data(actorModel->index(r, ACTOR_NAME_COLUMN)).toString();
+        QToolButton *t = new QToolButton();
+        t->setText(name);
+        t->setIcon(QIcon(":/Icons/red_close_icon.png"));
+        t->setToolButtonStyle(Qt::ToolButtonIconOnly);
+        connect(t, &QToolButton::released, this, [=]{ vault->remove(t->text()); emit deleteActor(t->text()); removeActor(t->text()); });
+        table->setIndexWidget(index, t);
+    }
 }
 
 void ActorTableView::addNewActors(const ActorList &list){

@@ -49,12 +49,12 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
 void SceneTableView::connectViews(SceneDetailView *detail, ActorProfileView *profile){
     this->detailView = detail;
     this->profileView= profile;
+    //connect(this,           &SceneTableView::displayChanged,        [=]{    table->resizeColumnsToContents();   });
     connect(this,           SIGNAL(sceneClicked(ScenePtr)),         detailView, SLOT(showDetailView(ScenePtr)));
     connect(this,           SIGNAL(sceneSelectionChanged(ScenePtr)),detailView, SLOT(updateDetailView(ScenePtr)));
     connect(profileView,    SIGNAL(hidden()),                       detailView, SLOT(hideDetailView()));
     connect(profileView,    SIGNAL(hidden()),                       this,       SLOT(setFilter_name()));
     connect(detailView,     SIGNAL(showActor(ActorPtr)),            profileView,SLOT(loadActorProfile(ActorPtr)));
-
 }
 
 void SceneTableView::addRows(RowList rows){

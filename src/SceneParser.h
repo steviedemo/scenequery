@@ -20,20 +20,20 @@ private:
     QPair<QString,QString> file;
     bool parsed;
     QString extension;
-    QStringList tags, actors;
+    QVector<QString> tags, actors;
     QString title, company, series;
     int height, width, size, sceneNumber;
     QTime length;
     Rating rating;
     QDate release;
     QDate accessed, created;
-    QStringList bracketedData;
+    QVector<QString> bracketedData;
     QMediaPlayer *player;
-    QStringList availableMetaDataKeys;
+    QVector<QString> availableMetaDataKeys;
     QByteArray  md5sum;
     void        bashScript        (QString absolutePath);
     void        readMetadata      (QString);
-    QStringList parseActors       (QString);
+    QVector<QString> parseActors       (QString);
     void        parseParentheses  (QString);
     QString     parseCompany      (QString);
     int         parseSceneNumber  (QString);
@@ -63,8 +63,8 @@ public:
     QString     getCompany      (void)  const {   return company;       }
     QString     getSeries       (void)  const {   return series;        }
     Rating      getRating       (void)  const {   return rating;        }
-    QStringList getActors       (void)  const {   return actors;        }
-    QStringList getTags         (void)  const {   return tags;          }
+    QVector<QString> getActors       (void)  const {   return actors;        }
+    QVector<QString> getTags         (void)  const {   return tags;          }
     QDate       getAccessed     (void)  const {   return accessed;      }
     QDate       getAdded        (void)  const {   return created;       }
     QDate       getReleased     (void)  const {   return release;       }

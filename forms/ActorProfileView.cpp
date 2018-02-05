@@ -103,6 +103,7 @@ void ActorProfileView::on_tb_saveNameEdit_clicked(){
                 qDebug("Actor '%s's Name Updated to '%s'", qPrintable(oldName), qPrintable(newName));
                 current->updateQStandardItem();
                 this->outputDetails(current);
+                emit selectActor(newName);
             }
 
         } else {    /// If there is already another entry with the new name, delete the current record.

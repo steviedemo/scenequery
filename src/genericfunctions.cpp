@@ -151,8 +151,17 @@ ActorList MapToList(ActorMap actors){
     }
     return list;
 }
+QString listToString(const QVector<QString> list){
+    QVectorIterator<QString> it(list);
+    QString s("");
+    while (it.hasNext()){
+        s.append(it.next());
+        if (it.hasNext()){  s.append(", ");  }
+    }
+    return s;
+}
 
-QString listToString(QStringList list){
+QString listToString(const QStringList list){
     QStringListIterator it(list);
     QString s("");
     while (it.hasNext()){
@@ -162,7 +171,7 @@ QString listToString(QStringList list){
     return s;
 }
 
-QString system_call(QString command){
+QString system_call(const QString command){
     QString output("");
     char buffer[4096];
     FILE *pipe = popen(qPrintable(command), "r");

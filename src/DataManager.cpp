@@ -20,30 +20,56 @@ bool DataManager::contains(const QString &name) const{
 void DataManager::setMap(ActorMap actors){
     QMutexLocker ml(&mx);
     this->actorMap = actors;
+    if (!sceneMap.isEmpty()){
+        mapActorsToScenes();
+    }
     emit statusUpdate(QString("Added %1 Actors").arg(actors.size()));
 }
 void DataManager::setMap(SceneMap scenes){
     QMutexLocker ml(&mx);
     this->sceneMap = scenes;
+    if (!actorMap.isEmpty()){
+        mapActorsToScenes();
+    }
     emit statusUpdate(QString("Added %1 Scenes").arg(scenes.size()));
 }
 
-SceneList DataManager::getActorsScenes(const QString name){
-    SceneList list = {};
-    if (!name.isEmpty()){
-        qDebug("Gathering Scenes for actor '%s'", qPrintable(name));
-        QHashIterator<int, ScenePtr> it(sceneMap);
-        while(it.hasNext()){
-            it.next();
-            ScenePtr s = it.value();
-            if (!s.isNull()){
-                if (s->hasActor(name)){
-                    list << it.value();
-                }
-            }
-        }
-        qDebug("Returning %d scenes for '%s'", list.size(), qPrintable(name));
+void DataManager::mapActorsToScenes(){
+    QHashIterator<QString, ActorPtr> it(actorMap);
+    while(it.hasNext()){
+        it.next();
+        this->actorSceneMap.insert(it.key(), QVector<ScenePtr>(0));
     }
+    QHashIterator<int, ScenePtr> jt(sceneMap);
+    while(jt.hasNext()){
+        jt.next();
+        foreach(QString s, jt.value()->getActors()){
+            actorSceneMap[s].push_back(jt.value());
+        }
+    }
+}
+
+QVector<ScenePtr> DataManager::getActorsScenes(const QString name){
+    QVector<ScenePtr> list = {};
+    if (actorSceneMap.contains(name)){
+        list = actorSceneMap.value(name);
+    }
+    //    SceneList list = {};
+//    if (!name.isEmpty()){
+//        qDebug("Gathering Scenes for actor '%s'", qPrintable(name));
+//        int index = 0;
+//        QHashIterator<int, ScenePtr> it(sceneMap);
+//        while(it.hasNext()){
+//            it.next();
+//            ScenePtr s = it.value();
+//            if (!s.isNull()){
+//                if (s->hasActor(name)){
+//                    list << it.value();
+//                }
+//            }
+//        }
+//        qDebug("Returning %d scenes for '%s'", list.size(), qPrintable(name));
+//    }
     return list;
 }
 

@@ -10,7 +10,7 @@ class SceneRenamer
 {
 private:
     ScenePtr current;
-    QStringList actors, tags;
+    QVector<QString> actors, tags;
     QString folder, extension, newFilename, oldFilename, title, company, series, releaseString, rating, tagString;
     QString mainActor, featuredActors;
     int actorCount;
@@ -27,9 +27,9 @@ protected:
     QString formatCompany();
     QString formatTitle();
     QString formatParentheses();
-    QString makeTagString(QStringList) const;
+    QString makeTagString(QVector<QString>) const;
     QString makeBracketString();
-    QString makeFeaturedString(QStringList) const;
+    QString makeFeaturedString(QVector<QString>) const;
 private:
     void scan(ScenePtr);
 };

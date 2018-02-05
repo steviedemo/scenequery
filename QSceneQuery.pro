@@ -103,7 +103,8 @@ SOURCES += \
     src/DataManager.cpp \
     src-objects/FilterSet.cpp \
     forms/SceneTableView.cpp \
-    forms/FilterWidget.cpp
+    forms/FilterWidget.cpp \
+    forms/DeleteButtonDelegate.cpp
 
 HEADERS  += \
     src/config.h \
@@ -146,7 +147,8 @@ HEADERS  += \
     src/Exception.h \
     forms/SceneTableView.h \
     forms/FilterWidget.h \
-    src/precompiledheaders.h
+    src/precompiledheaders.h \
+    forms/DeleteButtonDelegate.h
 
 FORMS    += forms/mainwindow.ui \
     forms/profiledialog.ui \

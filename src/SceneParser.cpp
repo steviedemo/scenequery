@@ -128,7 +128,7 @@ void SceneParser::parse(QString absolutePath){
 }
 
 void SceneParser::doubleCheckNames(){
-    QStringList l;
+    QVector<QString> l;
     foreach(QString actor, actors){
         if (actor.contains(" & ")){
             actor = actor.remove(QRegularExpression(" & .*"));
@@ -149,7 +149,7 @@ void SceneParser::readMetadata(QString filepath){
     //qDebug("Retriving Metadata");
     this->player = new QMediaPlayer;
     player->setMedia(QUrl::fromLocalFile(filepath));
-    availableMetaDataKeys = player->availableMetaData();
+    availableMetaDataKeys = player->availableMetaData().toVector();
 }
 
 // Get the Title.
@@ -327,8 +327,8 @@ void SceneParser::parseParentheses(QString name){
         } else {
             return;
         }
-        QStringList tagList;
-        QStringList list = data.split(QChar(','), QString::SkipEmptyParts);
+        QVector<QString> tagList = {};
+        QVector<QString> list = data.split(QChar(','), QString::SkipEmptyParts).toVector();
 //        qDebug("Tag List: ");
 //        foreach(QString tag, list){
 //            qDebug("\t%s", qPrintable(tag));
@@ -408,8 +408,8 @@ QString SceneParser::parseCompany(const QString name){
 }
 
 // Get all actors listed in the name
-QStringList SceneParser::parseActors(QString name){
-    QStringList actors;
+QVector<QString> SceneParser::parseActors(QString name){
+    QVector<QString> actors;
     // Get First Actor
     static const QRegularExpression firstActorRx("^([A-Za-z.\\s]+) - .+");
     QRegularExpressionMatch match = firstActorRx.match(name);
@@ -420,7 +420,7 @@ QStringList SceneParser::parseActors(QString name){
     name.remove(QRegularExpression(".*feat."));
     name.remove(QRegularExpression("\\(.*\\)\\..*"));
     if (name.isEmpty() || name.isNull()){
-        QStringList featuredActors = name.split(QRegularExpression("[&,]"));
+        QVector<QString> featuredActors = name.split(QRegularExpression("[&,]")).toVector();
         foreach(QString temp, featuredActors){
             actors.push_back(temp.trimmed());
         }

@@ -60,7 +60,7 @@ private:
     QShortcut *sc_chooseNewPhoto;
     QVector<QLineEdit *> lineEdits;
     QVector<QTextEdit *> textEdits;
-    SceneList updateList;
+    QVector<ScenePtr> updateList;
     QSharedPointer<DataManager> vault;
 signals:
     void profileChanged(ActorPtr a);
@@ -77,6 +77,7 @@ signals:
     void apv_to_ct_updateBio(QString name);
     void requestActor(QString name);
     void apv_to_mw_sendNewActor(ActorPtr);
+    void selectActor(QString);
 };
 
 #endif // ACTORPROFILEVIEW_H

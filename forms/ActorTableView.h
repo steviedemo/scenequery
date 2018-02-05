@@ -72,6 +72,7 @@ private:
     SceneDetailView *detailView;
     ActorProfileView *profileView;
     bool itemClicked;
+    void addDeleteButtons();
 private slots:
     void selectionChanged(QModelIndex, QModelIndex);
     void rowCountChanged(QModelIndex, int, int);
@@ -84,6 +85,7 @@ signals:
     void progressBegin(QString, int);
     void progressUpdate(int);
     void progressEnd(QString);
+    void deleteActor(QString);
     void saveFilterSet(FilterSet);
 };
 

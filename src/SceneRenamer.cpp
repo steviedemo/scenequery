@@ -7,14 +7,14 @@
 #include "Scene.h"
 #define FEAT            "feat."
 #define NAME_SEPERATOR  " - "
-SceneRenamer::SceneRenamer(ScenePtr scene): current(scene), actors(QStringList()), tags(QStringList()),
+SceneRenamer::SceneRenamer(ScenePtr scene): current(scene), actors(QVector<QString>(0)), tags(QVector<QString>(0)),
     folder(""), extension(""), newFilename(""), oldFilename(""), title(""), company(""),
     series(""), releaseString(""), rating(""), tagString(""), mainActor(""), featuredActors(""),
     actorCount(0), height(0), sceneNumber(0), sceneOk(false)
 {
     scan(scene);
 }
-SceneRenamer::SceneRenamer(Scene *scene): current(ScenePtr(scene)), actors(QStringList()), tags(QStringList()),
+SceneRenamer::SceneRenamer(Scene *scene): current(ScenePtr(scene)), actors(QVector<QString>(0)), tags(QVector<QString>(0)),
     folder(""), extension(""), newFilename(""), oldFilename(""), title(""), company(""),
     series(""), releaseString(""), rating(""), tagString(""), mainActor(""), featuredActors(""),
     actorCount(0), height(0), sceneNumber(0), sceneOk(false)
@@ -53,7 +53,7 @@ void SceneRenamer::scan(ScenePtr scene){
         this->series        = current->getSeries().trimmed();
         this->sceneNumber   = current->getSceneNumber();
         this->folder        = current->getFolder();
-        QStringList actorList = current->getActors();
+        QVector<QString> actorList = current->getActors();
         foreach(QString name, actorList){
             if (!name.isEmpty() && !actors.contains(name)){
                 actors << name.trimmed();
@@ -105,7 +105,7 @@ QString SceneRenamer::getNewFilename(){
     out.flush();
     return newFilename;
 }
-QString SceneRenamer::makeFeaturedString(QStringList names) const{
+QString SceneRenamer::makeFeaturedString(QVector<QString> names) const{
     QString s("");
     if (names.size() > 1){
         QMap<QString, int> actorMap;
@@ -163,11 +163,11 @@ QString SceneRenamer::makeBracketString(){
     return dataString;
 }
 
-QString SceneRenamer::makeTagString(QStringList list) const{
+QString SceneRenamer::makeTagString(QVector<QString> list) const{
     QString s("");
     QTextStream out(&s);
     if (!list.isEmpty()){
-        QStringListIterator it(list);
+        QVectorIterator<QString> it(list);
         while(it.hasNext()){
             out << it.next();
             if (it.hasNext()){
@@ -193,7 +193,7 @@ QString SceneRenamer::displayInfo(){
         out << "Released:   ???" << endl;
     }
     out << "Rating:     " << rating << endl;
-    QStringListIterator it(actors);
+    QVectorIterator<QString> it(actors);
     QString actorString("");
     while(it.hasNext()){
         actorString.append(it.next());

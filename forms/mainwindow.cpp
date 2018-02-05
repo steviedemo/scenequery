@@ -475,6 +475,7 @@ void MainWindow::selectNewProfilePhoto(){
             QString new_filename = getHeadshotName(this->currentActor->getName());
             QFile photo(source_filename);
             if (photo.copy(source_filename, new_filename)){
+                writeHeadshotThumbnail(new_filename);
                 qDebug("Successfully copied %s to %s", qPrintable(source_filename), qPrintable(new_filename));
                 this->currentActor->setHeadshot(new_filename);
                 this->currentActor->updateQStandardItem();
@@ -666,7 +667,7 @@ void MainWindow::on_actionWipe_Actor_Table_triggered(){
 
 void MainWindow::on_actionItemDetails_triggered(){
    qDebug("Show Profile Shortcut Triggered");
-   ui->profileWidget->loadActorProfile(currentActor);
+   ui->profileWidget->loadActorProfile(vault->getActor(ui->actorTableView->selectedName()));
 }
 
 

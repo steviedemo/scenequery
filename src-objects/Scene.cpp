@@ -7,7 +7,6 @@
 #include "Query.h"
 ////#include <QSqlQuery>
 #include <QVariant>
-#include <QStringListIterator>
 #include <QRegularExpression>
 #include <string>
 #ifdef DEBUG
@@ -64,7 +63,7 @@ void Scene::clear(){
     this->actors        = QVector<QString>(0);
     this->tags          = QVector<QString>(0);
     this->ages          = QVector<int>(0);
-    this->row           = QVector<int>(0);
+    this->row           = QList<QStandardItem *>();
     this->rating = Rating("R");
 }
 
@@ -85,7 +84,7 @@ void Scene::fromParser(SceneParser p){
         this->filepath = p.getFilepath();
         this->filename = p.getFilename();
         //qDebug("Making Scene with name: '%s', and path: '%s'", qPrintable(filename), qPrintable(filepath));
-        QStringList list = p.getActors();
+        QVector<QString> list = p.getActors();
         if (list.size() > 0){
             foreach(QString s, list){
                 actors.push_back(s);
@@ -125,7 +124,7 @@ Scene::Scene(QSqlRecord r){
     this->company   = r.value("company").toString();
     this->series    = r.value("series").toString();
     this->rating.fromString(r.value("rating").toString());
-    this->tags      = r.value("tags").toString().split(',');
+    this->tags      = r.value("tags").toString().split(',').toVector();
     this->width     = r.value("width").toInt();
     this->height    = r.value("height").toInt();
     this->size      = r.value("size").toInt();
@@ -287,7 +286,7 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
             this->opened = QDate();
         }
         if (!entry.at("tags").is_null()){
-            this->tags = QString::fromStdString(entry["tags"].as<std::string>()).split(',', QString::SkipEmptyParts);
+            this->tags = QString::fromStdString(entry["tags"].as<std::string>()).split(',', QString::SkipEmptyParts).toVector();
         }
         bool error = false;
         for (int idx = 0; idx < 4 && !error; ++idx){
@@ -401,7 +400,7 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     if (actors.size() > 0){
         mainActor = actors.at(0).trimmed();
         if (actors.size() > 1){
-            QStringListIterator it(actors);
+            QVectorIterator<QString> it(actors);
             it.next();
             while(it.hasNext()){
                 QString curr = it.next();
@@ -432,7 +431,7 @@ void Scene::updateQStandardItem(){
         if (actors.size() > 0){
             mainActor = actors.at(0).trimmed();
             if (actors.size() > 1){
-                QStringListIterator it(actors);
+                QVectorIterator<QString> it(actors);
                 it.next();
                 while(it.hasNext()){
                     QString curr = it.next();
@@ -477,7 +476,7 @@ bool Scene::inDatabase(void){
 QString Scene::tagString() const{
     QString s("");
     QTextStream out(&s);
-    QStringListIterator it(tags);
+    QVectorIterator<QString> it(tags);
     while(it.hasNext()){
         out << it.next() << (it.hasNext() ? ", " : "");
     }

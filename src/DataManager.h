@@ -19,7 +19,7 @@ public:
     bool        contains(const QString &name)   const;
     ActorPtr    getActor(const QString);
     ScenePtr    getScene(const int id);
-    SceneList   getActorsScenes(const QString name);
+    QVector<ScenePtr>   getActorsScenes(const QString name);
     void        add     (const SceneList,   bool saveToDatabase=false);
     void        add     (const ActorList,   bool saveToDatabase=false);
     bool        add     (const ScenePtr,    bool saveToDatabase=false);
@@ -49,9 +49,11 @@ public slots:
 private:
     SceneMap sceneMap;
     ActorMap actorMap;
+    QHash<QString, QVector<QSharedPointer<Scene>>> actorSceneMap;
     SceneList sceneUpdateList;
     ActorList actorUpdateList;
     QMutex mx;
+    void mapActorsToScenes();
 signals:
     void save(ActorPtr);
     void save(ScenePtr);
