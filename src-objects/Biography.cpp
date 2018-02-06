@@ -53,50 +53,54 @@ QString Biography::getPiercings() const   {   return this->piercings;     }
 QString Biography::getTattoos() const     {   return this->tattoos;       }
 int     Biography::getWeight() const      {   return this->weight;        }
 
+bool Biography::validateString(const QString &s){
+
+}
+
 void Biography::setName(QString s){
     if (!s.contains(illegalChars)){
         this->name = s;
     }
 }
 
-void Biography::setBirthday(QDate d){
+void Biography::setBirthday(const QDate &d){
     if (!d.isNull()){ this->birthdate = d; }
 }
-void Biography::setCity(QString c){
+void Biography::setCity(const QString &c){
     if (!c.contains(this->illegalChars) && !c.contains("No data", Qt::CaseInsensitive) && !c.contains("Unknown", Qt::CaseInsensitive)){
         this->city = c;
     }
 }
-void Biography::setEthnicity(QString s){
+void Biography::setEthnicity(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->ethnicity = s;
     }
 }
-void Biography::setEyeColor(QString s){
+void Biography::setEyeColor(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->eyes = s;
     }
 }
-void Biography::setHairColor(QString s){
+void Biography::setHairColor(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->hair = s;
     }
 }
-void Biography::setMeasurements(QString s){
+void Biography::setMeasurements(const QString &s){
     if (!s.contains(illegalChars) && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->measurements = s; }
 }
-void Biography::setNationality(QString s){
+void Biography::setNationality(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->nationality = s;
     }
 }
-void Biography::setPiercings(QString s){
+void Biography::setPiercings(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->piercings = s;
     }
 }
-void Biography::setTattoos(QString s){
+void Biography::setTattoos(const QString &s){
     if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
         this->tattoos = s;
     }

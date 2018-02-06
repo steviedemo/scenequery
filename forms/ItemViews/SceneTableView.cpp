@@ -65,6 +65,7 @@ void SceneTableView::rightClickMenu(const QPoint &p){
         currentID = proxyModel->data(proxyModel->index(proxyIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         QMenu *menu = new QMenu;
         menu->addAction(QIcon(":/Icons/red_close_icon.png"), "Remove", this, SLOT(removeItem()));
+        menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", this, SLOT(reparseItem()));
         menu->exec();
     }
 }
@@ -79,6 +80,29 @@ void SceneTableView::removeItem(){
         qWarning("Can't Remove Scene Item unless the Model Indexes Given are valid! The Rows Given are [Proxy]: %d, [Model]: %d", proxyIndex.row(), modelIndex.row());
     }
 }
+
+void SceneTableView::reparseItem(){
+    if (proxyIndex.isValid()){
+        ScenePtr s = getSelection(proxyIndex);
+        s->reparse();
+        s->updateQStandardItem();
+    } else {
+        qWarning("Can't Reparse Scene Item With invalid index!");
+    }
+}
+
+ScenePtr SceneTableView::getSelection(const QModelIndex &x){
+    ScenePtr s;
+    if (x.isValid()){
+        bool ok = false;
+        int id = proxyModel->data(proxyModel->index(x.row(), SCENE_ID_COLUMN)).toInt(&ok);
+        if (ok && id > -1){
+            s = vault->getScene(id);
+        }
+    }
+    return s;
+}
+
 
 void SceneTableView::addRows(RowList rows){
     int index = 0;
@@ -193,15 +217,7 @@ void SceneTableView::setFilter_name(const ActorPtr a){
     if (!a.isNull()){
         proxyModel->setFilterActor(a->getName());
     }
-}/*
-void SceneTableView::actorFilterChanged(QString name){
-    filenameFilterChanged("");
-    this->nameFilter = name;
-    proxyModel->setFilterRegExp(name);
-    proxyModel->setFilterActor(name);
-    table->resizeColumnsToContents();
-}*/
-
+}
 
 void SceneTableView::loadFilters(FilterSet set){
     if (set.getFilterType() == ACTOR_FILTER){

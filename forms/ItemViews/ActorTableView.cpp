@@ -57,10 +57,6 @@ ActorTableView::ActorTableView(QWidget *parent):
     table->hideColumn(ACTOR_TATTOO_COLUMN);
 }
 
-void ActorTableView::clearFilters(){
-    proxyModel->clearFilters();
-}
-
 void ActorTableView::connectViews(SceneTableView *table, SceneDetailView *detail, ActorProfileView *profile){
     this->profileView = profile;
     this->detailView = detail;
@@ -75,17 +71,6 @@ void ActorTableView::connectViews(SceneTableView *table, SceneDetailView *detail
     connect(profileView,SIGNAL(selectActor(QString)),           this,           SLOT(selectActor(QString)));
     connect(profileView,SIGNAL(deleteActor(ActorPtr)),          this,           SLOT(removeActor(ActorPtr)));
     connect(profileView,SIGNAL(deleteActor(QString)),           this,           SLOT(removeActor(QString)));
-}
-
-void ActorTableView::loadFilters(FilterSet filters){
-    qDebug("Actor Table View is loading a set of pre-saved filters");
-    proxyModel->loadFilters(filters);
-}
-
-FilterSet ActorTableView::saveFilters(){
-    FilterSet filters = FilterSet(this->proxyModel);
-    emit saveFilterSet(filters);
-    return filters;
 }
 
 void ActorTableView::addDeleteButtons(){
@@ -111,6 +96,9 @@ void ActorTableView::displayRightClickMenu(const QPoint &p){
             current = vault->getActor(name);
             if (!current.isNull()){
                 menu->addAction("Remove", this, SLOT(removeCurrent()));
+                menu->addAction("Update Bio",       [=] { emit updateFromWeb(current->getName());   });
+                menu->addAction("Download Photo",   [=] { emit downloadPhoto(current->getName());   });
+                menu->addAction("Remove Photo",     [=] { current->
                 menu->exec(QCursor::pos());
             }
         }
@@ -177,28 +165,14 @@ void ActorTableView::addRows(const QVector<QList<QStandardItem *> > rows){
     actorModel->sort(ACTOR_NAME_COLUMN);
 }
 
-void ActorTableView::rowCountChanged(QModelIndex, int, int){
-    emit displayChanged(proxyModel->rowCount());
-}
-
-void ActorTableView::resizeToContents(){
-    table->resizeColumnsToContents();
-    table->resizeRowsToContents();
-    table->sortByColumn(ACTOR_NAME_COLUMN);
-}
-
-QString ActorTableView::selectedName() const{
+QString ActorTableView::currentName() const{
     return proxyModel->data(proxyModel->index(table->currentIndex().row(), ACTOR_NAME_COLUMN), Qt::DisplayRole).toString();
-}
-
-QModelIndex ActorTableView::currentIndex(){
-    return table->currentIndex();
 }
 
 void ActorTableView::selectionChanged(QModelIndex modelIndex, QModelIndex previousIndex){
     this->prevIdx = previousIndex;
     this->currentIdx = modelIndex;
-    QString name = selectedName();
+    QString name = currentName();
     if (!name.isEmpty()){
         if (itemClicked){
             emit actorClicked(name);
@@ -214,11 +188,8 @@ void ActorTableView::rowClicked(QModelIndex index){
     this->currentIdx = index;
     this->itemClicked = true;
     if (!prevIdx.isValid()){    // If this is the first time an item is selected, open the profile view.
-        emit actorClicked(selectedName());
+        emit actorClicked(currentName());
    }
-}
-void ActorTableView::removeActor(ActorPtr a){
-    removeActor(a->getName());
 }
 
 void ActorTableView::removeActor(QString name){
@@ -266,11 +237,6 @@ QModelIndex ActorTableView::findActorIndex_base(const QRegExp &rx, const int col
     return matchingIndex;
 }
 
-void ActorTableView::selectActor(ActorPtr actor){
-    if (!actor.isNull()){
-        selectActor(actor->getName());
-    }
-}
 
 void ActorTableView::selectActor(QString name){
     if (!name.isEmpty()){
@@ -281,9 +247,6 @@ void ActorTableView::selectActor(QString name){
     }
 }
 
-int ActorTableView::countRows(){
-    return proxyModel->rowCount();
-}
 QStringList ActorTableView::namesDisplayed(){
     QStringList names;
     for(int i = 0; i < proxyModel->rowCount(); ++i){
@@ -296,36 +259,17 @@ QStringList ActorTableView::namesDisplayed(){
     return names;
 }
 
-void ActorTableView::setHorizontalHeaders(QStringList){
-}
-
-void ActorTableView::resizeView(){
-    table->resizeColumnsToContents();
-    table->resizeRowsToContents();
-}
-void ActorTableView::setSourceModel(QAbstractItemModel *model){
-    proxyModel->setSourceModel(model);
+void ActorTableView::setHorizontalHeaders(QStringList ){
 }
 
 void ActorTableView::addActor(ActorPtr a){
-    if (!a.isNull() && actorModel->findItems(a->getName(), Qt::MatchExactly, ACTOR_NAME_COLUMN).isEmpty()){
-        actorModel->appendRow(a->buildQStandardItem());
-        vault->add(a, true);
+    if (!a.isNull()){
+        if (actorModel->findItems(a->getName(), Qt::MatchExactly, ACTOR_NAME_COLUMN).isEmpty()){
+            actorModel->appendRow(a->buildQStandardItem());
+            vault->add(a, true);
+        } else {
+            vault->update(a);
+            a->updateQStandardItem();
+        }
     }
 }
-void ActorTableView::filterChanged(QString){}
-void ActorTableView::filterChangedName(const QString name){
-    this->nameFilter = name;
-    proxyModel->setFilterName(name);
-}
-
-void ActorTableView::filterChangedEthnicity(QString s){
-    this->ethnicityFilter = s;
-    proxyModel->setFilterEthnicity(s);
-}
-void ActorTableView::filterChangedHair(QString s){
-    this->hairFilter = s;
-    proxyModel->setFilterHairColor(s);
-}
-void ActorTableView::filterChangedSceneCount(ActorProxyModel::NumberFilterType, int){}
-

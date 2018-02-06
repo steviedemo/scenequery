@@ -41,21 +41,21 @@ public slots:
     void    updateQStandardItem();
 public:    
     QString dateString;
-    Scene   (void);
-    Scene   (QString);
-    Scene   (QSqlRecord);
-    Scene   (class SceneParser);
-    Scene   (pqxx::result::const_iterator record);
+    explicit Scene   (void)                                 : Entry(){  clear();                        }
+    explicit Scene   (class SceneParser p)                  : Entry(){  clear();    fromParser(p);      }
+    explicit Scene   (pqxx::result::const_iterator record)  : Entry(){  clear();    fromRecord(record); }
+    explicit Scene   (const QString path);
+    explicit Scene   (QSqlRecord);
     //Scene   (const Scene &s);
-    ~Scene  (void);
-    void    clear();
-    void    reparse();
+    ~Scene  (void){}
+    void            clear();
+    void            reparse();
     friend bool     hasScene(const Scene s);
-    friend Scene duplicate(const Scene &s);
-    friend bool operator ==(const Scene &s1, const Scene &s2);
-    Query   toQuery() const;
-    void    fromRecord(pqxx::result::const_iterator record);
-    int     entrySize();
+    friend Scene    duplicate(const Scene &s);
+    friend bool     operator ==(const Scene &s1, const Scene &s2);
+    Query           toQuery() const;
+    void            fromRecord(pqxx::result::const_iterator record);
+    int             entrySize();
     QList<QStandardItem *> buildQStandardItem();
     QList<QStandardItem *> getQStandardItem();
 
@@ -68,56 +68,46 @@ public:
     void    setAge      (int, int);
     void    setAge      (QString, int);
     int     getAge      (QString name);
-    bool    hasDisplay  (void) ;
-    bool    exists      (void) const;
+    bool    hasDisplay  (void) const    {   return displayBuilt;    }
+    bool    exists      (void) const    {   return QFile(QString("%1/%2").arg(filepath).arg(filename)).exists();    }
+
     bool    equals      (const Scene &other) const;
     bool    equals      (const ScenePtr &other) const;
     bool    equals      (const QPair<QString, QString> &) const;
     bool    equals      (const QString &) const;
     // Getters
-    int         getID           (void) const {   return ID;             }
-    qint64      getSize         (void) const {   return size;           }
-    int         getWidth        (void) const {   return width;          }
-    int         getHeight       (void) const {   return height;         }
-    int         getSceneNumber  (void) const {   return sceneNumber;    }
-    QTime       getLength       (void) const {   return length;         }
-    QString     getTitle        (void) const {   return title;          }
-    QString     getCompany      (void) const {   return company;        }
-    QString     getSeries       (void) const {   return series;         }
-    Rating      getRating       (void) const {   return rating;         }
-    QVector<QString> getActors       (void) const {   return actors;         }
-    QVector<QString> getTags         (void) const {   return tags;           }
-    QString     tagString       (void) const;
-    QDate       getOpened       (void) const {   return opened;         }
-    QDate       getAdded        (void) const {   return added;          }
-    QDate       getReleased     (void) const;
-    QString     getReleaseString(void) const;
-    QPair<QString,QString>  getFile (void) const;
-    QString     getFullpath     (void) const {   return QString("%1/%2").arg(filepath).arg(filename); }
-    QString     getFilename     (void) const {   return filename;    }
-    QString     getFolder       (void) const {   return filepath;     }
+    QPair<QString,QString>  getFile (void)      const {     return QPair<QString,QString>(filepath,filename);   }
+    int             getID           (void)      const {     return ID;             }
+    qint64          getSize         (void)      const {     return size;           }
+    int             getWidth        (void)      const {     return width;          }
+    int             getHeight       (void)      const {     return height;         }
+    int             getSceneNumber  (void)      const {     return sceneNumber;    }
+    QTime           getLength       (void)      const {     return length;         }
+    QString         getTitle        (void)      const {     return title;          }
+    QString         getCompany      (void)      const {     return company;        }
+    QString         getSeries       (void)      const {     return series;         }
+    Rating          getRating       (void)      const {     return rating;         }
+    QVector<QString>getActors       (void)      const {     return actors;         }
+    QVector<QString>getTags         (void)      const {     return tags;           }
+    QDate           getOpened       (void)      const {     return opened;         }
+    QDate           getAdded        (void)      const {     return added;          }
+    QDate           getReleased     (void)      const {     return released;        }
+    QString         getReleaseString(void)      const {     return ((released.isValid()) ? released.toString("yyyy.MM.dd") : "");   }
+    QString         getFullpath     (void)      const {     return QString("%1/%2").arg(filepath).arg(filename); }
+    QString         getFilename     (void)      const {     return filename;    }
+    QString         getFolder       (void)      const {     return filepath;     }
 
-    bool        hasValidFile    (void) const;
-    QString     getActor     (int i=0) const {
-        if (actors.size() > (i))
-            return actors.at(i);
-        else
-            return "";
-    }
-    int  getAge  (int i=0) const {
-        if (ages.size() > i)
-            return ages.at(i);
-        else
-            return 0;
-    }
+    bool            hasValidFile    (void)      const {     return (!(filepath.isNull() || filepath.isEmpty()) && !(filename.isNull() || filename.isEmpty()));}
+    QString         getActor        (int i=0)   const {     return ((actors.size() > i) ? actors.at(i) : "");   }
+    int             getAge          (int i=0)   const {     return ((ages.size() > i)   ? ages.at(i) : 0);      }
     bool hasActor(const QString &a) const {
         bool has = false;
-
         if (!this->actors.isEmpty() && !a.isNull())
             has = actors.contains(a);
         return has;
     }
-    bool        hasTag  (const QString &t) const {   return tags.contains(t);    }
+    QString     tagString       (void)              const;
+    bool        hasTag          (const QString &t)  const {   return tags.contains(t);    }
     // Setters
     void    setSize     (const qint64 &s)      {   this->size = s;         }
     void    setWidth    (const int &w)         {   this->width = w;        }
@@ -126,15 +116,15 @@ public:
     void    setTitle    (const QString &t);
     void    setCompany  (const QString &c);
     void    setSeries   (const QString &s);
-    void    setRating   (const Rating &r)      {   this->rating = r;       }
-    void    setRating   (const QString &r)     {   this->rating = Rating(r);   }
+    void    setRating   (const Rating &r)           {   this->rating = r;           }
+    void    setRating   (const QString &r)          {   this->rating = Rating(r);   }
 //    void    setRating   (int i)      {   this->rating = Rating(d);   }
-    void    setActors   (const QVector<QString> &a) {   this->actors = a;       }
-    void    setTags     (const QVector<QString> &t) {   this->tags = t;         }
-    void    setOpened   (const QDate &d)       {   this->opened = d;       }
-    void    setAdded    (const QDate &d)       {   this->added = d;        }
+    void    setActors   (const QVector<QString> &a) {   this->actors = a;           }
+    void    setTags     (const QVector<QString> &t) {   this->tags = t;             }
+    void    setOpened   (const QDate &d)            {   this->opened = d;           }
+    void    setAdded    (const QDate &d)            {   this->added = d;            }
     void    setReleased (const QDate &d);
-    void    setFile     (const QString &absolutePath);
+    void    setFile     (const QString &absolutePath){  splitAbsolutePath(absolutePath, filepath, filename);    }
     void    setFile     (const QPair<QString,QString> &file)   {   this->file = file;  }
     void    setSceneNumber(const int &s)       {   this->sceneNumber = s;  }
 

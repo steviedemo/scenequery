@@ -22,8 +22,8 @@ public:
     bool operator <=(Biography &other) const;
     void copy(const Biography &other);
     /** Setters/Getters */
-    void    setAliases(QString a);
-    QString getAliases(void) const;
+    void    setAliases      (const QString a);
+    QString getAliases      (void) const;
     void    setCity (QString c);
     QString getCity(void) const;
     void    setNationality(QString s);
@@ -58,6 +58,7 @@ private:
     Height height;
     int weight;
     QRegularExpression illegalChars;
+    bool validateString(const QString &s);
 
 };
 

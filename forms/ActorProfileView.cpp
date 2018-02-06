@@ -26,7 +26,7 @@ ActorProfileView::ActorProfileView(QWidget *parent) :
     connect(sc_hideProfile,             SIGNAL(activated()), this, SLOT(hide()));
     connect(ui->closeProfile,           SIGNAL(pressed()),   this, SLOT(hide()));
     connect(ui->clearFields,            SIGNAL(pressed()),   this, SLOT(clearFields()));
-    connect(this,                       SIGNAL(hidden()),    this,  SLOT(clearFields()));
+    connect(this,                       SIGNAL(hidden()),    this, SLOT(clearFields()));
 
     ui->nameEditFrame->hide();
     this->updateList = {};

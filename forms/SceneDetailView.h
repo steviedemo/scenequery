@@ -30,9 +30,9 @@ public slots:
     void clearDisplay(void);
     void loadScene(ScenePtr);
     void setDataContainers(QSharedPointer<DataManager> vault) { this->vault = vault;    }
-    void updateDetailView(ScenePtr);
-    void hideDetailView();
-    void showDetailView(ScenePtr);
+    void updateDetailView(ScenePtr s)   {   if (!hidden()){ loadScene(s);    }   }
+    void hideDetailView()               {   clearDisplay(); hide(); }
+    void showDetailView(ScenePtr s)     {   loadScene(s);   show(); }
 private slots:
     void rescanScene();
     void addActor(void);

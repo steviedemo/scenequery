@@ -9,30 +9,6 @@
 #include <QStringList>
 #include <QPixmap>
 #include "curlTool.h"
-Actor::Actor(QString name):
-    Entry(), name(name), bio(name){
-    this->dataUsage = 0.0;
-    this->photoPath = getProfilePhoto(name);
-    setup();
-}
-Actor::Actor(const Actor &a):
-    Entry(), bio(a.getName()){
-    this->bio = a.bio;
-    this->name = a.name;
-    this->dataUsage = a.dataUsage;
-    this->photoPath = a.photoPath;
-    setup();
-}
-
-Actor::Actor(QString actorName, Biography bio, QString headshot):
-    Entry(), name(actorName), bio(bio), dataUsage(0.0), photoPath(headshot){
-    setup();
-}
-
-
-Actor::Actor(pqxx::result::const_iterator &i):Entry(){
-    this->fromRecord(i);
-}
 
 void Actor::fromRecord(pqxx::result::const_iterator i){
     try{
@@ -63,46 +39,6 @@ void Actor::fromRecord(pqxx::result::const_iterator i){
     setup();
 }
 
-Actor::~Actor(){
-
-}
-
-void Actor::setup(){
-    this->sceneCount = 0;
-    this->sceneList = {};
-}
-
-void Actor::addScene(ScenePtr s){
-    this->sceneList.push_back(s);
-    this->sceneCount++;
-    if (!itemSceneCount){
-        this->itemSceneCount = new QStandardItem();
-    }
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
-}
-void Actor::addScene(void){
-    this->sceneCount++;
-    if (!itemSceneCount){
-        this->itemSceneCount = new QStandardItem();
-    }
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
-}
-
-void Actor::setScenes(SceneList list){
-    this->sceneList = list;
-    if (!itemSceneCount){
-        this->itemSceneCount = new QStandardItem();
-    }
-    this->itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
-}
-
-int Actor::size(){
-    int size = bio.size();
-    if (photoPath != DEFAULT_PROFILE_PHOTO) {   size++;    }
-    if (!name.isEmpty()){   size++; }
-    return size;
-}
-
 Actor Actor::operator =(Actor &obj){
     this->bio = obj.bio;
     this->name = obj.name;
@@ -111,39 +47,38 @@ Actor Actor::operator =(Actor &obj){
     return *this;
 }
 
-bool Actor::operator < (Actor &other) const {  return (this->name < other.getName());  }
-bool Actor::operator > (Actor &other) const {  return (this->name > other.getName());  }
-bool Actor::operator ==(Actor &other) const {  return (this->name == other.getName()); }
 
-bool Actor::hasBio(){
-    return (this->bio.size() > 2);
+bool Actor::inDatabase(){
+    bool found = false;
+    sqlConnection sql(QString("SELECT FROM actors WHERE name = %1").arg(name));
+    if (sql.execute()){
+        found = sql.foundMatch();
+    }
+    return found;
 }
 
-bool Actor::isEmpty()               {   return name.isEmpty();          }
-bool Actor::usingDefaultPhoto()     {   return (this->photoPath == DEFAULT_PROFILE_PHOTO);    }
-
-
-void Actor::setScaledProfilePhoto(QVariant profile){
-    this->profilePhoto = profile;
+void Actor::deleteHeadshot(){
+    if (!photoPath == DEFAULT_PROFILE_PHOTO){
+        qDebug("Removing '%s'...", qPrintable(photoPath));
+        QFile file(photoPath);
+        if (!file.remove()){
+            qWarning("Error Removing File '%s'", qPrintable(photoPath));
+        }
+        file = QFile(getHeadshotThumbnailName(name));
+        if (file.exists()){
+            qDebug("Removing '%s'...", qPrintable(file.fileName()));
+            if (!file.remove()){
+                qWarning("Error Removing file '%s'", qPrintable(file.fileName()));
+            }
+        }
+        setDefaultHeadshot();
+    }
 }
-
 void Actor::setDefaultHeadshot(){
     this->photoPath = DEFAULT_PROFILE_PHOTO;
     this->profilePhoto = QVariant(QPixmap(DEFAULT_PROFILE_PHOTO).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT));
     this->itemPhoto->setData(QVariant(profilePhoto), Qt::DecorationRole);
 }
-
-void Actor::setHeadshot(QString fileLocation)  {
-    this->photoPath = fileLocation;
-}
-
-QStandardItem *Actor::getNameItem(){
-    return this->itemName;
-}
-QList<QStandardItem *> Actor::getQStandardItem(){
-    return row;
-}
-
 
 QList<QStandardItem *> Actor::buildQStandardItem(){
     //qDebug("Creating Display item for %s", qPrintable(name));
@@ -193,8 +128,8 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
     if (this->photoPath.isEmpty()){
         this->photoPath = getProfilePhoto(name);
     }
-    //QImage scaledImage = QImage(photoPath).scaled(30,30, Qt::KeepAspectRatio,Qt::FastTransformation);
-    QImage scaledImage(getHeadshotThumbnail(name));
+    QImage scaledImage = scaleImage(photoPath, 30);
+    //QImage scaledImage(getHeadshotThumbnail(name));
     this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
     //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     row << itemPhoto << itemName << itemHair << itemEthnicity << itemAge << itemHeight << itemWeight << itemTattoos << itemPiercings;
@@ -205,8 +140,6 @@ QList<QStandardItem *> Actor::buildQStandardItem(){
 void Actor::updateQStandardItem(){
     this->photoPath = getProfilePhoto(name);
     this->itemSceneCount->setText(QString::number(sceneList.size()));
-    //QString photo = getProfilePhoto(name);
-    //this->itemPhoto->setData(QVariant(QPixmap(photo).scaledToHeight(ACTOR_LIST_PHOTO_HEIGHT)), Qt::DecorationRole);
     if (itemHair->text().isEmpty()){
         QString hair = bio.getHairColor();
         itemHair->setText(hair);
@@ -217,30 +150,10 @@ void Actor::updateQStandardItem(){
     }
     this->photoPath = getProfilePhoto(name);
     QImage scaledImage = scaleImage(photoPath, 30);
-    //QImage scaledImage = QImage(photoPath).scaled(30,30, Qt::KeepAspectRatio,Qt::FastTransformation);
     this->itemPhoto->setData(QVariant(scaledImage), Qt::DecorationRole);
 
     this->itemBioSize->setText(QString("%1").arg(size(), 2, 10, QChar('0')));
     this->itemSceneCount->setText(QString("%1").arg(sceneCount, 2, 10, QChar('0')));
-}
-
-void Actor::setSceneCount(const int &i){
-    this->sceneCount = i;
-}
-
-void Actor::setBio(const Biography &other){
-    qDebug("Copying new Biography into %s's profile", qPrintable(name));
-    this->bio.copy(other);
-    qDebug("%s's Bio is now of Size %d", qPrintable(name), this->bio.size());
-}
-
-bool Actor::inDatabase(){
-    bool found = false;
-    sqlConnection sql(QString("SELECT FROM actors WHERE name = %1").arg(name));
-    if (sql.execute()){
-        found = sql.foundMatch();
-    }
-    return found;
 }
 
 Query Actor::toQuery() const{
@@ -266,14 +179,4 @@ Query Actor::toQuery() const{
     q.addCriteria("ID", QString::number(this->ID));
     //qDebug("Actor Query Object Successfully Created");
     return q;
-}
-
-int Actor::entrySize(){
-    int size = bio.size();
-    size += (name.isEmpty() ? 0 : 1);
-    if (!usingDefaultPhoto()){
-        size++;
-    }
-    return size;
-
 }

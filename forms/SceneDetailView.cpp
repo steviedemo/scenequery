@@ -50,21 +50,6 @@ SceneDetailView::~SceneDetailView(){
     delete ui;
 }
 
-void SceneDetailView::hideDetailView(){
-    this->clearDisplay();
-    this->hide();
-}
-void SceneDetailView::showDetailView(ScenePtr s){
-    this->show();
-    this->loadScene(s);
-}
-
-void SceneDetailView::updateDetailView(ScenePtr s){
-    if (!this->isHidden()){
-        loadScene(s);
-    }
-}
-
 void SceneDetailView::loadScene(ScenePtr s){
     try{
         if (!current.isNull() && changed){
@@ -153,10 +138,8 @@ void SceneDetailView::loadScene(ScenePtr s){
 
 void SceneDetailView::rescanScene(){
     if (!current.isNull()){
-        qDebug("Reparsing Scene...");
         this->current->reparse();
         this->loadScene(current);
-        qDebug("Scene Parsed!");
     } else {
         qWarning("Unable to re-parse Null Scene");
     }
@@ -177,17 +160,6 @@ void SceneDetailView::addActor(){
         }
     }
 }
-
-//void SceneDetailView::receiveActorBirthday(QString name, QDate date){
-//    bool found = false;
-//    for(int i = 0; i < 4 && !found; ++i){
-//        if (castList.at(i)->text().contains(name, Qt::CaseInsensitive)){
-//            found = true;
-//            int age = (date.daysTo(QDate::fromString(ui->releasedLineEdit->text(), "MMMM d, yyyy"))/365);
-//            ageList.at(i)->setText(QString("Age: %1").arg(age));
-//        }
-//    }
-//}
 
 void SceneDetailView::clearDisplay(){
     for(int i = 0; i < 4; ++i){

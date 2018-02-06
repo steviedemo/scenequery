@@ -55,7 +55,6 @@ private slots:
 
     void pd_to_mw_addActorToDisplay(ActorPtr);
     void db_to_mw_receiveActors(ActorList);
-    void db_to_mw_receiveScenes(SceneList);
 
     /// Progress & Status Updates
     void startProgress(QString, int);
@@ -102,8 +101,6 @@ private:
     QString newName;
     void startScanner(const QStringList &);
     void setupViews         (void);
-    QString getCurrentName (QAbstractItemModel *);
-    QModelIndex getCurrentIndex(QAbstractItemModel *);
     ActorPtr getSelectedActor(void);
     /// View
     QIcon appIcon;

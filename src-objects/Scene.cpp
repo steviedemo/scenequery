@@ -22,24 +22,11 @@ bool operator==(const Scene &s1, const Scene &s2){
     return s1.equals(s2);
 }
 
-Scene::Scene():Entry(){
-    this->clear();
-}
-Scene::Scene(QString absolutePath): Entry(){
+Scene::Scene(const QString absolutePath): Entry(){
     this->clear();
     if (valid(absolutePath)){
         this->fromParser(SceneParser(absolutePath));
     }
-}
-
-Scene::Scene(pqxx::result::const_iterator record):Entry(){
-    this->clear();
-    this->fromRecord(record);
-}
-
-Scene::Scene(SceneParser p):Entry(){
-    this->clear();
-    this->fromParser(p);
 }
 
 void Scene::clear(){
@@ -311,30 +298,6 @@ void Scene::fromRecord(pqxx::result::const_iterator entry){
     }
 }
 
-Scene::~Scene(){}
-
-void Scene::setFile(const QString &absolutePath){
-    splitAbsolutePath(absolutePath, filepath, filename);
-
-}
-
-QPair<QString,QString>Scene::getFile() const{
-    QPair<QString,QString> f;
-    f.first = filepath;
-    f.second = filename;
-    return f;
-}
-
-bool Scene::exists() const{
-    QString absolutePath = QString("%1/%2").arg(filepath).arg(filename);
-    QFile file(absolutePath);
-    return file.exists();
-}
-
-bool Scene::hasDisplay(){
-    return displayBuilt;
-}
-
 bool Scene::equals(const QString &path) const{
     bool same = false;
     if (valid(path)){
@@ -482,16 +445,6 @@ QString Scene::tagString() const{
     }
     return s;
 }
-/*
-void Scene::setLength(double minutes){
-    int seconds = (int)(60*minutes);
-    QTime temp(0,0,0);
-    this->length = temp.addSecs(seconds);
-}
-*/
-bool Scene::hasValidFile() const{
-     return (!(filepath.isNull() || filepath.isEmpty()) && !(filename.isNull() || filename.isEmpty()));
-}
 
 Query Scene::toQuery() const{
     Query q;
@@ -608,14 +561,4 @@ bool Scene::equals(const Scene &other) const {
         }
     }
     return same;
-}
-QDate Scene::getReleased() const{
-    return released;
-}
-QString Scene::getReleaseString() const{
-
-    if (this->dateString.isEmpty()){
-        return released.toString("yyyy.MM.dd");
-    }
-    return dateString;
 }

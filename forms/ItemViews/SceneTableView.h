@@ -59,9 +59,11 @@ private slots:
     void selectionChanged(QModelIndex, QModelIndex);
     void itemClicked(QModelIndex);
     void removeItem();
+    void reparseItem();
     void rightClickMenu(const QPoint &);
 private:
     QModelIndex findSceneIndex(const QRegExp &rx, const int column);
+    ScenePtr    getSelection(const QModelIndex &);
     void addData(int column, QString data);
     QItemSelectionModel *selectionModel;
     QStandardItemModel  *sceneModel;
