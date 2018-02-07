@@ -67,12 +67,12 @@ private:
     void addData(int column, QString data);
     QItemSelectionModel *selectionModel;
     QStandardItemModel  *sceneModel;
-    QAbstractItemModel *sourceModel;
-    SceneProxyModel *proxyModel;
-    QStandardItem *sceneParent;
-    QTableView *table;
-    QWidget *parent;
-    QVBoxLayout *mainLayout;
+    QAbstractItemModel  *sourceModel;
+    SceneProxyModel     *proxyModel;
+    QStandardItem       *sceneParent;
+    QTableView          *table;
+    QWidget             *parent;
+    QVBoxLayout         *mainLayout;
     int newRow, currentFileSelection;
     bool initComplete;
     QString nameFilter, fileFilter;

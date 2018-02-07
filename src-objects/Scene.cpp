@@ -28,6 +28,10 @@ Scene::Scene(const QString absolutePath): Entry(){
         this->fromParser(SceneParser(absolutePath));
     }
 }
+Scene::Scene(SceneParser p): Entry(){
+    clear();
+    fromParser(p);
+}
 
 void Scene::clear(){
     this->ID            = -1;
@@ -340,8 +344,8 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     } else if (this->size > BYTES_PER_MEGABYTE){
         sizeString = QString("%1 MB").arg(size/BYTES_PER_MEGABYTE);
     }
-    QString path = QString("%1/%2").arg(filepath).arg(filename);
     this->itemSize      = new QStandardItem(sizeString);
+    QString path = QString("%1/%2").arg(filepath).arg(filename);
     this->itemTitle     = new QStandardItem(title);
     this->itemCompany   = new QStandardItem(company);
     this->itemPath      = new QStandardItem(path);
@@ -420,10 +424,26 @@ void Scene::updateQStandardItem(){
             itemQuality->setText("");
         }
         this->itemTitle->setText(title);
+        QString sizeString("");
+        if(size > BYTES_PER_GIGABYTE){
+            double gb = (double)(size/BYTES_PER_GIGABYTE);
+            sizeString = QString("%1 GB").arg(QString::number(gb, 'f', 2));
+        } else if (this->size > BYTES_PER_MEGABYTE){
+            sizeString = QString("%1 MB").arg(size/BYTES_PER_MEGABYTE);
+        }
+        this->itemSize->setText(sizeString);
         this->itemLength->setText(length.toString("h:mm:ss"));
         this->itemRating->setText(rating.grade());
         this->itemCompany->setText(company);
     }
+}
+
+QString Scene::getFullpath() const{
+    QString path("");
+    if (valid(filename) && valid(filepath)){
+        path = QString("%1/%2").arg(filepath).arg(filename);
+    }
+    return path;
 }
 
 bool Scene::inDatabase(void){

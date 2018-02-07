@@ -98,7 +98,7 @@ void ActorTableView::displayRightClickMenu(const QPoint &p){
                 menu->addAction("Remove", this, SLOT(removeCurrent()));
                 menu->addAction("Update Bio",       [=] { emit updateFromWeb(current->getName());   });
                 menu->addAction("Download Photo",   [=] { emit downloadPhoto(current->getName());   });
-                menu->addAction("Remove Photo",     [=] { current->
+                //menu->addAction("Remove Photo",     [=] { current->
                 menu->exec(QCursor::pos());
             }
         }

@@ -40,7 +40,11 @@ private:
 public slots:
     void updateQStandardItem();
 public:
-    Actor(QString name="", Biography bio=Biography(name), QString headshot=getProfilePhoto(name)) :
+    Actor(QString name=""): Entry(), name(name), bio(name), photoPath(getProfilePhoto(name)){
+        setup();
+    }
+
+    Actor(QString name, Biography bio, QString headshot) :
         Entry(), name(name), bio(bio), photoPath(headshot){  setup();    }
     Actor(const Actor &a) :
         Entry(), name(a.name), bio(a.bio), dataUsage(a.dataUsage), photoPath(a.photoPath){ setup(); }
@@ -49,16 +53,16 @@ public:
     //~Actor();
     void                    fromRecord          (pqxx::result::const_iterator record);
     QList<QStandardItem *>  buildQStandardItem  (void);
-    QList<QStandardItem *>  getQStandardItem    (void) const { return row;           }
+    QList<QStandardItem *>  getQStandardItem    (void) { return row;           }
     QStandardItem *         getNameItem         (void) const { return itemName;      }
     bool    updateBio   (void);
     void    setBio      (const Biography &b){ this->bio.copy(b);  }
-    int     size        (void)  const       { return entrySize(); }
-    int     entrySize   (void)  const       { return (bio.size() + (name.isEmpty() ? 0 : 1) + (usingDefaultPhoto() ? 0 : 1)); }
-    bool    hasBio      (void)  const       { return (bio.size() > 3);    }
+    int     size        (void)  { return entrySize(); }
+    int     entrySize   (void)  { return (bio.size() + (name.isEmpty() ? 0 : 1) + (usingDefaultPhoto() ? 0 : 1)); }
+    bool    hasBio      (void)  { return (bio.size() > 3);    }
     bool    isEmpty     (void)  const       { return name.isEmpty();      }
     // Operators
-    Actor operator =    (Actor &other);
+    //Actor operator =    (Actor &other);
     bool  operator ==   (Actor &other) const { return name == other.getName();    }
     bool  operator >    (Actor &other) const { return name > other.getName();     }
     bool  operator <    (Actor &other) const { return name < other.getName();     }

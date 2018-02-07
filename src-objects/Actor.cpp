@@ -38,7 +38,7 @@ void Actor::fromRecord(pqxx::result::const_iterator i){
     }
     setup();
 }
-
+/*
 Actor Actor::operator =(Actor &obj){
     this->bio = obj.bio;
     this->name = obj.name;
@@ -46,7 +46,7 @@ Actor Actor::operator =(Actor &obj){
     this->photoPath = obj.photoPath;
     return *this;
 }
-
+*/
 
 bool Actor::inDatabase(){
     bool found = false;
@@ -58,16 +58,16 @@ bool Actor::inDatabase(){
 }
 
 void Actor::deleteHeadshot(){
-    if (!photoPath == DEFAULT_PROFILE_PHOTO){
+    if (photoPath != DEFAULT_PROFILE_PHOTO){
         qDebug("Removing '%s'...", qPrintable(photoPath));
         QFile file(photoPath);
         if (!file.remove()){
             qWarning("Error Removing File '%s'", qPrintable(photoPath));
         }
-        file = QFile(getHeadshotThumbnailName(name));
-        if (file.exists()){
+        QFile thumb(getHeadshotThumbnailName(name));
+        if (thumb.exists()){
             qDebug("Removing '%s'...", qPrintable(file.fileName()));
-            if (!file.remove()){
+            if (!thumb.remove()){
                 qWarning("Error Removing file '%s'", qPrintable(file.fileName()));
             }
         }

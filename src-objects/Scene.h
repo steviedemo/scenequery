@@ -2,6 +2,7 @@
 #define SCENE_H
 #include <QByteArray>
 #include "definitions.h"
+#include "filenames.h"
 #include "genericfunctions.h"
 #include <QDate>
 #include <QDateTime>
@@ -42,7 +43,7 @@ public slots:
 public:    
     QString dateString;
     explicit Scene   (void)                                 : Entry(){  clear();                        }
-    explicit Scene   (class SceneParser p)                  : Entry(){  clear();    fromParser(p);      }
+    Scene   (class SceneParser p);
     explicit Scene   (pqxx::result::const_iterator record)  : Entry(){  clear();    fromRecord(record); }
     explicit Scene   (const QString path);
     explicit Scene   (QSqlRecord);
@@ -93,7 +94,7 @@ public:
     QDate           getAdded        (void)      const {     return added;          }
     QDate           getReleased     (void)      const {     return released;        }
     QString         getReleaseString(void)      const {     return ((released.isValid()) ? released.toString("yyyy.MM.dd") : "");   }
-    QString         getFullpath     (void)      const {     return QString("%1/%2").arg(filepath).arg(filename); }
+    QString         getFullpath     (void)      const;
     QString         getFilename     (void)      const {     return filename;    }
     QString         getFolder       (void)      const {     return filepath;     }
 

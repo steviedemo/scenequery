@@ -54,11 +54,11 @@ QString Biography::getTattoos() const     {   return this->tattoos;       }
 int     Biography::getWeight() const      {   return this->weight;        }
 
 bool Biography::validateString(const QString &s){
-
+    return (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive));
 }
 
-void Biography::setName(QString s){
-    if (!s.contains(illegalChars)){
+void Biography::setName(const QString &s){
+    if (!validateString(s)){
         this->name = s;
     }
 }
@@ -67,49 +67,55 @@ void Biography::setBirthday(const QDate &d){
     if (!d.isNull()){ this->birthdate = d; }
 }
 void Biography::setCity(const QString &c){
-    if (!c.contains(this->illegalChars) && !c.contains("No data", Qt::CaseInsensitive) && !c.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(c)){
         this->city = c;
     }
 }
 void Biography::setEthnicity(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->ethnicity = s;
     }
 }
 void Biography::setEyeColor(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->eyes = s;
     }
 }
 void Biography::setHairColor(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->hair = s;
     }
 }
 void Biography::setMeasurements(const QString &s){
-    if (!s.contains(illegalChars) && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->measurements = s; }
 }
 void Biography::setNationality(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->nationality = s;
     }
 }
 void Biography::setPiercings(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->piercings = s;
     }
 }
 void Biography::setTattoos(const QString &s){
-    if (!s.contains(illegalChars)  && !s.contains("No data", Qt::CaseInsensitive) && !s.contains("Unknown", Qt::CaseInsensitive)){
+    if (validateString(s)){
         this->tattoos = s;
     }
 }
-void Biography::setWeight(int w){
+void Biography::setWeight(const int &w){
     if (w > 0){
         this->weight = w;
     }
 }
+void    Biography::setAliases(const QString &a){
+    if (!a.contains("No known aliases", Qt::CaseInsensitive) && !a.contains("Unknown", Qt::CaseInsensitive) && !a.contains("No Data", Qt::CaseInsensitive) && !a.contains(illegalChars)){
+        this->aliases = a;
+    }
+}
+
 /** \brief Check if this object has the key with the name provided.
  */
 bool Biography::has(QString key){
@@ -148,16 +154,11 @@ Biography Biography::operator =(Biography &other){
     return *this;
 }
 */
-void    Biography::setAliases(QString a){
-    if (!a.contains("No known aliases", Qt::CaseInsensitive) && !a.contains("Unknown", Qt::CaseInsensitive) && !a.contains("No Data", Qt::CaseInsensitive) && !a.contains(illegalChars)){
-        this->aliases = a;
-    }
-}
 
-void Biography::setHeight      (Height h)          {   this->height.set(h);     }
-void Biography::setHeight      (int cm)            {   this->height.set(cm);    }
-void Biography::setHeight      (int f, int i)      {   this->height.set(f, i);  }
-void Biography::setHeight      (double d)          {   this->height.set(d);     }
+void Biography::setHeight      (const Height &h)            {   this->height.set(h);     }
+void Biography::setHeight      (const int &cm)              {   this->height.set(cm);    }
+void Biography::setHeight      (const int &f, const int &i) {   this->height.set(f, i);  }
+void Biography::setHeight      (const double &d)            {   this->height.set(d);     }
 int Biography::size(){
     int size = 0;
     size += (aliases.isEmpty() ? 0 : 1);

@@ -515,10 +515,15 @@ void MainWindow::renameFile(ScenePtr scene){
         SceneRenamer renamer(scene.data());
         QString newName = renamer.getNewFilename();
         QString text = QString("'%1'\n\nwould become:\n\n%2").arg(scene->getFilename()).arg(newName);
-        qDebug("'%s'\nwould become:\n'%s'\n", qPrintable(scene->getFilename()), qPrintable(newName));
-        QMessageBox box(QMessageBox::Question, tr("File Renamer"), text, QMessageBox::Save | QMessageBox::Cancel, this, Qt::WindowStaysOnTopHint);
-        box.resize(QSize(600,400));
-        if (box.exec() == QMessageBox::Save){
+        QString oldName = scene->getFullpath();
+        bool rename = (oldName == newName);
+        if (!rename){
+            qDebug("'%s'\nwould become:\n'%s'\n", qPrintable(scene->getFilename()), qPrintable(newName));
+            QMessageBox box(QMessageBox::Question, tr("File Renamer"), text, QMessageBox::Save | QMessageBox::Cancel, this, Qt::WindowStaysOnTopHint);
+            box.resize(QSize(600,400));
+            rename = (box.exec() == QMessageBox::Save);
+        }
+        if (rename){
 #ifdef RENAMER_THREAD
             this->updater = new FileRenamer(scene, newName, this);
             connect(updater, SIGNAL(error(QString)),            this,       SLOT(showError(QString)));

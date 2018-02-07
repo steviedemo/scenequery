@@ -54,7 +54,7 @@ private slots:
     void searchScenes();
 
     void pd_to_mw_addActorToDisplay(ActorPtr);
-    void db_to_mw_receiveActors(ActorList);
+    //void db_to_mw_receiveActors(ActorList);
 
     /// Progress & Status Updates
     void startProgress(QString, int);
