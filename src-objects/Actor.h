@@ -39,12 +39,11 @@ private:
         itemSceneCount->setData(QVariant(sceneCount), Qt::DecorationRole);
     }
 public slots:
-    void updateQStandardItem();
 public:
+    void updateQStandardItem();
     Actor(QString name=""): Entry(), name(name), bio(name), photoPath(getProfilePhoto(name)){
         setup();
     }
-
     Actor(QString name, Biography bio, QString headshot) :
         Entry(), name(name), bio(bio), photoPath(headshot){  setup();    }
     Actor(const Actor &a) :
@@ -52,6 +51,7 @@ public:
     Actor(pqxx::result::const_iterator &i) :
         Entry(){   fromRecord(i);    }
     //~Actor();
+    bool    save() const;
     void                    fromRecord          (pqxx::result::const_iterator record);
     QList<QStandardItem *>  buildQStandardItem  (void);
     QList<QStandardItem *>  getQStandardItem    (void) { return row;           }

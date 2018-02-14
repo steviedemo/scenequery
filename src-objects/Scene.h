@@ -19,7 +19,6 @@ bool operator ==(const ScenePtr &scene1, const ScenePtr &scene2);
 //bool operator !=(const ScenePtr &scene1, const ScenePtr &scene2);
 class Scene : public Entry, public QObject
 {
-
 private:
     long long int ID;
     QPair<QString,QString> file;
@@ -59,6 +58,7 @@ public:
     int             entrySize();
     QList<QStandardItem *> buildQStandardItem();
     QList<QStandardItem *> getQStandardItem();
+    bool    save();
 
     bool    sqlInsert(QString &query, QStringList &list) const;
     bool    sqlUpdate(QString &query, QStringList &list) const;
@@ -128,7 +128,6 @@ public:
     void    setFile     (const QString &absolutePath){  splitAbsolutePath(absolutePath, filepath, filename);    }
     void    setFile     (const QPair<QString,QString> &file)   {   this->file = file;  }
     void    setSceneNumber(const int &s)       {   this->sceneNumber = s;  }
-
 };
 
 

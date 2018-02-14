@@ -50,6 +50,15 @@ SceneDetailView::~SceneDetailView(){
     delete ui;
 }
 
+void SceneDetailView::loadScene(const int id){
+    if (vault->contains(id)){
+        currentSceneID = id;
+        loadScene(vault->getScene(id));
+    } else {
+        qWarning("SceneDetailView unable to load scene with ID '%d': Not found in vault.", id);
+    }
+}
+
 void SceneDetailView::loadScene(ScenePtr s){
     if (!s.isNull()){
         try{
@@ -142,6 +151,8 @@ void SceneDetailView::rescanScene(){
     if (!current.isNull()){
         this->current->reparse();
         this->loadScene(current);
+        int id = current->getID();
+        vault->save(id);
     } else {
         qWarning("Unable to re-parse Null Scene");
     }
@@ -240,8 +251,7 @@ void SceneDetailView::on_pb_save_clicked(){
         if (rename){
             emit renameFile(current);
         }
-        emit saveChanges(current);
-        vault->updateDisplayItem(currentSceneID);
+        vault->save(currentSceneID);
         changed = false;
         //enableLineEdits(true);
     } else {

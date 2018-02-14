@@ -29,9 +29,12 @@ public slots:
     //void receiveActorBirthday(QString, QDate);
     void clearDisplay(void);
     void loadScene(ScenePtr);
+    void loadScene(const int);
     void setDataContainers(QSharedPointer<DataManager> vault) { this->vault = vault;    }
-    void updateDetailView(ScenePtr s)   {   if (!isHidden()){ loadScene(s);    }   }
+    void updateDetailView(const int id) {   if (!isHidden()){ loadScene(id);    }   }
+    void updateDetailView(ScenePtr s)   {   if (!isHidden()){ loadScene(s);     }   }
     void hideDetailView()               {   clearDisplay(); hide(); }
+    void showDetailView(const int id)   {   loadScene(id);  show(); }
     void showDetailView(ScenePtr s)     {   loadScene(s);   show(); }
 private slots:
     void rescanScene();

@@ -17,7 +17,26 @@ bool DataManager::contains(const QString &name) const{
     return actorMap.contains(name);
 }
 
-
+bool DataManager::save(const int id){
+    bool success = false;
+    if (sceneMap.contains(id)){
+        success = sceneMap.value(id)->save();
+        sceneMap.value(id)->updateQStandardItem();
+    } else {
+        qWarning("Error: Map doesn't Contain ID %d, cannot save.", id);
+    }
+    return success;
+}
+bool DataManager::save(const QString name){
+    bool success = false;
+    if (actorMap.contains(name)){
+        success = actorMap.value(name)->save();
+        actorMap.value(name)->updateQStandardItem();
+    } else {
+        qWarning("Error: Map doesn't Contain Name '%s': Cannot Save.", qPrintable(name));
+    }
+    return success;
+}
 
 void DataManager::updateDisplayItem(const int id){
     if (contains(id)){

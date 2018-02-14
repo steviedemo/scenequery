@@ -52,8 +52,8 @@ void SceneTableView::connectViews(SceneDetailView *detail, ActorProfileView *pro
     this->detailView = detail;
     this->profileView= profile;
     //connect(this,           &SceneTableView::displayChanged,        [=]{    table->resizeColumnsToContents();   });
-    connect(this,           SIGNAL(sceneClicked(ScenePtr)),         detailView, SLOT(showDetailView(ScenePtr)));
-    connect(this,           SIGNAL(sceneSelectionChanged(ScenePtr)),detailView, SLOT(updateDetailView(ScenePtr)));
+    connect(this,           SIGNAL(sceneClicked(int)),              detailView, SLOT(showDetailView(int)));
+    connect(this,           SIGNAL(sceneSelectionChanged(int)),     detailView, SLOT(updateDetailView(int)));
     connect(profileView,    SIGNAL(hidden()),                       detailView, SLOT(hideDetailView()));
     connect(profileView,    SIGNAL(hidden()),                       this,       SLOT(setFilter_name()));
     connect(detailView,     SIGNAL(showActor(ActorPtr)),            profileView,SLOT(loadActorProfile(ActorPtr)));
@@ -92,10 +92,6 @@ void SceneTableView::updateCurrentItem(){
         }
 
     }
-}
-
-void SceneTableView::receiveInitialRow(ScenePtr s, Row r){
-    qDebug("Placeholder for initial role addition.");
 }
 
 void SceneTableView::rightClickMenu(const QPoint &p){
@@ -200,10 +196,7 @@ void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldI
         if (id > 0){
             if (currentFileSelection != id){
                 this->currentFileSelection = id;
-                ScenePtr s = vault->getScene(id);
-                if (!s.isNull()){
-                    emit sceneSelectionChanged(s);
-                }
+                emit sceneSelectionChanged(id);
             }
         }
     }
@@ -215,12 +208,7 @@ void SceneTableView::itemClicked(QModelIndex modelIndex){
         int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         if (id > 0){
             this->currentFileSelection = id;
-            if (vault->contains(id)){
-                ScenePtr s = vault->getScene(id);
-                if (!s.isNull()){
-                    emit sceneClicked(s);
-                }
-            }
+            emit sceneClicked(id);
         }
     }
 }

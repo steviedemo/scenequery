@@ -472,6 +472,13 @@ QString Scene::tagString() const{
     return s;
 }
 
+bool Scene::save(){
+    Query q = this->toQuery();
+    queryType type = SQL_UPDATE;
+    sqlConnection sql(q, type);
+    return sql.execute();
+}
+
 Query Scene::toQuery(){
     Query q;
     q.setTable("scenes");

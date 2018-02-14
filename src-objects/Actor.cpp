@@ -47,6 +47,11 @@ Actor Actor::operator =(Actor &obj){
     return *this;
 }
 */
+bool Actor::save() const{
+    Query query = this->toQuery();
+    sqlConnection sql(query, SQL_UPDATE);
+    return sql.execute();
+}
 
 bool Actor::inDatabase(){
     bool found = false;

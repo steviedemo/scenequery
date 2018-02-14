@@ -25,7 +25,6 @@ public:
 public slots:
     void loadFilters(FilterSet set);
     void saveFilters(void);
-    void receiveInitialRow(ScenePtr s, Row r);
     void addRow(const Row);
     void addRows(RowList);
     void addNewScene(ScenePtr);
@@ -90,8 +89,11 @@ signals:
     void displayChanged(int);
     void sendSceneCount(int);
     void playFile(int sceneID);
+    void sceneClicked(int id);
     void sceneClicked(ScenePtr);
+    void sceneSelectionChanged(int id);
     void sceneSelectionChanged(ScenePtr);
+    void loadSceneDetails(int id);
     void loadSceneDetails(ScenePtr);
     void progressBegin(QString, int);
     void progressUpdate(int);

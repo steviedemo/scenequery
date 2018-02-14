@@ -20,6 +20,8 @@ public:
     ActorPtr    getActor(const QString);
     ScenePtr    getScene(const int id);
     QVector<ScenePtr>   getActorsScenes(const QString name);
+    bool        save    (const int id);
+    bool        save    (const QString name);
     void        add     (const SceneList,   bool saveToDatabase=false);
     void        add     (const ActorList,   bool saveToDatabase=false);
     bool        add     (const ScenePtr,    bool saveToDatabase=false);
