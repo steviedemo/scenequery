@@ -5,7 +5,7 @@ DataManager::DataManager(QObject *parent):
     this->sceneUpdateList = {};
     this->actorUpdateList = {};
     this->actorMap = QHash<QString, ActorPtr>();
-    this->sceneMap = QHash<int, ScenePtr>();
+    this->sceneMap = QMap<int, ScenePtr>();
 }
 
 DataManager::~DataManager(){}
@@ -15,6 +15,43 @@ bool DataManager::contains(const int ID) const{
 }
 bool DataManager::contains(const QString &name) const{
     return actorMap.contains(name);
+}
+
+
+
+void DataManager::updateDisplayItem(const int id){
+    if (contains(id)){
+        ScenePtr s = this->sceneMap.value(id);
+        if (s.isNull()){
+            qWarning("Error: Scene with the ID %d is Null", id);
+        } else {
+            s->updateQStandardItem();
+        }
+    }
+}
+void DataManager::updateDisplayItem(const QString name){
+    if (contains(name)){
+        ActorPtr a = this->actorMap.value(name);
+        if (a.isNull()){
+            qWarning("Error: Vault entry for '%s' returned a null value", qPrintable(name));
+        } else {
+            a->updateQStandardItem();
+        }
+    }
+}
+QList<QStandardItem *> DataManager::buildQStandardItem(const int id){
+    QList<QStandardItem *> row;
+    if (contains(id)){
+        row = sceneMap[id]->buildQStandardItem();
+    }
+    return row;
+}
+QList<QStandardItem *> DataManager::buildQStandardItem(const QString name){
+    QList<QStandardItem *> row;
+    if (contains(name)){
+        row = actorMap[name]->buildQStandardItem();
+    }
+    return row;
 }
 
 void DataManager::setMap(ActorMap actors){
@@ -40,7 +77,7 @@ void DataManager::mapActorsToScenes(){
         it.next();
         this->actorSceneMap.insert(it.key(), QVector<ScenePtr>(0));
     }
-    QHashIterator<int, ScenePtr> jt(sceneMap);
+    QMapIterator<int, ScenePtr> jt(sceneMap);
     while(jt.hasNext()){
         jt.next();
         foreach(QString s, jt.value()->getActors()){
@@ -58,7 +95,7 @@ QVector<ScenePtr> DataManager::getActorsScenes(const QString name){
 //    if (!name.isEmpty()){
 //        qDebug("Gathering Scenes for actor '%s'", qPrintable(name));
 //        int index = 0;
-//        QHashIterator<int, ScenePtr> it(sceneMap);
+//        QMapIterator<int, ScenePtr> it(sceneMap);
 //        while(it.hasNext()){
 //            it.next();
 //            ScenePtr s = it.value();
@@ -276,7 +313,7 @@ void DataManager::saveAllActors(){
 void DataManager::saveAllScenes(){
     QMutexLocker ml(&mx);
     this->sceneUpdateList.clear();
-    QHashIterator<int, ScenePtr> it(sceneMap);
+    QMapIterator<int, ScenePtr> it(sceneMap);
     while(it.hasNext()){
         it.next();
         sceneUpdateList << it.value();
@@ -306,7 +343,7 @@ void DataManager::updateActorDisplayItems(){
 void DataManager::updateSceneDisplayItems(){
     int index = 0;
     emit progressBegin(QString("Updating %1 Scene Display Items").arg(sceneMap.size()), sceneMap.size());
-    QHashIterator<int, ScenePtr> it(sceneMap);
+    QMapIterator<int, ScenePtr> it(sceneMap);
     while(it.hasNext()){
         it.next();
         mx.lock();

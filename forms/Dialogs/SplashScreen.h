@@ -52,11 +52,17 @@ private:
     QString listType;
     RowList rows;
 signals:
+
+    void sendSceneRow(Row);
+    void sendActorRow(Row);
     void completed(int);
     void done(RowList);
     void startRun(int id, int max);
     void update(int id, int value);
     void stopRun(int id);
+
+    void actorBuildComplete();
+    void sceneBuildComplete();
 };
 
 class SplashScreen : public QWidget
@@ -100,6 +106,8 @@ signals:
     void sendSceneRows  (RowList);
     void sendActors     (ActorMap);
     void sendScenes     (SceneMap);
+    void sendSceneRow(Row);
+    void sendActorRow(Row);
     void done           (void);
 };
 

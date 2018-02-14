@@ -25,7 +25,8 @@ public:
 public slots:
     void loadFilters(FilterSet set);
     void saveFilters(void);
-
+    void receiveInitialRow(ScenePtr s, Row r);
+    void addRow(const Row);
     void addRows(RowList);
     void addNewScene(ScenePtr);
     void addNewScenes(SceneList);
@@ -59,8 +60,9 @@ private slots:
     void selectionChanged(QModelIndex, QModelIndex);
     void itemClicked(QModelIndex);
     void removeItem();
-    void reparseItem();
+    void reparseItem(const QModelIndex &);
     void rightClickMenu(const QPoint &);
+    void updateCurrentItem();
 private:
     QModelIndex findSceneIndex(const QRegExp &rx, const int column);
     ScenePtr    getSelection(const QModelIndex &);
@@ -82,6 +84,7 @@ private:
     ActorProfileView *profileView;
     QModelIndex proxyIndex, modelIndex;
     int currentID;
+    QMutex mx;
 signals:
     void rowsFinishedLoading();
     void displayChanged(int);

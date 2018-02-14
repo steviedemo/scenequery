@@ -54,7 +54,7 @@ void Scene::clear(){
     this->actors        = QVector<QString>(0);
     this->tags          = QVector<QString>(0);
     this->ages          = QVector<int>(0);
-    this->row           = QList<QStandardItem *>();
+    this->displayRow    = QList<QStandardItem *>();
     this->rating = Rating("R");
 }
 
@@ -331,9 +331,9 @@ QList<QStandardItem *> Scene::getQStandardItem(){
     } else {
 
     }
-    row << itemActors << itemTitle << itemCompany << itemQuality \
+    displayRow << itemActors << itemTitle << itemCompany << itemQuality \
         << itemSize << itemLength << itemDate << itemRating << itemID;
-    return row;
+    return displayRow;
 }
 
 QList<QStandardItem *> Scene::buildQStandardItem(){
@@ -384,16 +384,16 @@ QList<QStandardItem *> Scene::buildQStandardItem(){
     this->itemActors->setData(QVariant(mainActor), Qt::DisplayRole);
     this->itemFeaturedActors = new QStandardItem();
     this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
-    row << itemActors << itemTitle << itemCompany << itemQuality \
+    this->displayRow << itemActors << itemTitle << itemCompany << itemQuality \
         << itemFeaturedActors <<  itemSize << itemLength \
         << itemDate << itemRating << itemPath << itemID \
         << itemTags << itemSeries;
     displayBuilt = true;
-    return row;
+    return displayRow;
 }
 
 void Scene::updateQStandardItem(){
-    if (displayBuilt){
+    if (displayRow.size() > 0){
         QString mainActor(""), featuredActors("");
         if (actors.size() > 0){
             mainActor = actors.at(0).trimmed();
@@ -411,13 +411,17 @@ void Scene::updateQStandardItem(){
                 }
             }
         }
-        this->itemActors->setData(QVariant(mainActor), Qt::DisplayRole);
-        this->itemFeaturedActors->setData(QVariant(featuredActors), Qt::DisplayRole);
+        if (!mainActor.isEmpty()){
+            this->itemActors->setText(mainActor);
+        }
+        if (!featuredActors.isEmpty()){
+            this->itemFeaturedActors->setText(featuredActors);
+        }
         QString date("");
         if (released.isValid()){
             date = released.toString("yyyy/MM/dd");
+            this->itemDate->setText(date);
         }
-        this->itemDate->setText(date);
         if (height > 0){
             this->itemQuality->setData(QVariant(height), Qt::DecorationRole);
         } else {
@@ -442,6 +446,8 @@ QString Scene::getFullpath() const{
     QString path("");
     if (valid(filename) && valid(filepath)){
         path = QString("%1/%2").arg(filepath).arg(filename);
+    } else {
+        path = "";
     }
     return path;
 }
@@ -461,12 +467,12 @@ QString Scene::tagString() const{
     QTextStream out(&s);
     QVectorIterator<QString> it(tags);
     while(it.hasNext()){
-        out << it.next() << (it.hasNext() ? ", " : "");
+        out << it.next().trimmed() << (it.hasNext() ? ", " : "");
     }
     return s;
 }
 
-Query Scene::toQuery() const{
+Query Scene::toQuery(){
     Query q;
     q.setTable("scenes");
     q.addCriteria("ID", QString::number(this->ID));

@@ -32,6 +32,7 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     table->setHorizontalScrollMode(QAbstractItemView::ScrollPerItem);
     table->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     table->setDragDropMode(QAbstractItemView::NoDragDrop);
+    table->setContextMenuPolicy(Qt::CustomContextMenu);
     this->mainLayout = new QVBoxLayout;
     mainLayout->addWidget(table);
     setLayout(mainLayout);
@@ -56,6 +57,45 @@ void SceneTableView::connectViews(SceneDetailView *detail, ActorProfileView *pro
     connect(profileView,    SIGNAL(hidden()),                       detailView, SLOT(hideDetailView()));
     connect(profileView,    SIGNAL(hidden()),                       this,       SLOT(setFilter_name()));
     connect(detailView,     SIGNAL(showActor(ActorPtr)),            profileView,SLOT(loadActorProfile(ActorPtr)));
+    connect(detailView,     SIGNAL(updateCurrentItem()),            this,       SLOT(updateCurrentItem()));
+}
+
+void SceneTableView::addRow(const Row r){
+    QMutexLocker ml(&mx);
+    if (!r.isEmpty()){
+        sceneModel->appendRow(r);
+    }
+}
+
+void SceneTableView::updateCurrentItem(){
+    QModelIndex currentIndex = table->currentIndex();
+    if (!currentIndex.isValid()){
+        ScenePtr currentScene = this->getSelection(currentIndex);
+        if (!currentScene.isNull()){
+            qDebug("Updating Current Item at Index %d", currentIndex.row());
+            currentScene->updateQStandardItem();
+        } else {
+            qWarning("Error: Scene Item at Row %d is Null", currentIndex.row());
+        }
+    } else {
+        qWarning("Error: Model index is invalid. Trying to use current ID (%d)", currentFileSelection);
+        if (currentFileSelection > 0 && vault->contains(currentFileSelection)){
+            ScenePtr s = vault->getScene(currentFileSelection);
+            if (!s.isNull()){
+                qDebug("Updating Display for file with ID %d", currentFileSelection);
+                s->updateQStandardItem();
+            } else {
+                qWarning("File with ID of %d is Null", currentFileSelection);
+            }
+        } else {
+            qWarning("Error: Scene ID invalid or Vault does not contain it (ID: %d)", currentFileSelection);
+        }
+
+    }
+}
+
+void SceneTableView::receiveInitialRow(ScenePtr s, Row r){
+    qDebug("Placeholder for initial role addition.");
 }
 
 void SceneTableView::rightClickMenu(const QPoint &p){
@@ -65,8 +105,8 @@ void SceneTableView::rightClickMenu(const QPoint &p){
         currentID = proxyModel->data(proxyModel->index(proxyIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         QMenu *menu = new QMenu;
         menu->addAction(QIcon(":/Icons/red_close_icon.png"), "Remove", this, SLOT(removeItem()));
-        menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", this, SLOT(reparseItem()));
-        menu->exec();
+        menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", [=]{ reparseItem(proxyIndex); });
+        menu->exec(QCursor::pos());
     }
 }
 
@@ -81,9 +121,9 @@ void SceneTableView::removeItem(){
     }
 }
 
-void SceneTableView::reparseItem(){
-    if (proxyIndex.isValid()){
-        ScenePtr s = getSelection(proxyIndex);
+void SceneTableView::reparseItem(const QModelIndex &index){
+    if (index.isValid()){
+        ScenePtr s = getSelection(index);
         s->reparse();
         s->updateQStandardItem();
     } else {
@@ -155,13 +195,15 @@ void SceneTableView::updateSceneItem(int id){
 
 void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
     qDebug("Selection Changed");
-    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
-    if (id > 0){
-        if (currentFileSelection != id){
-            this->currentFileSelection = id;
-            ScenePtr s = vault->getScene(id);
-            if (!s.isNull()){
-                emit sceneSelectionChanged(s);
+    if (modelIndex.isValid()){
+        int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+        if (id > 0){
+            if (currentFileSelection != id){
+                this->currentFileSelection = id;
+                ScenePtr s = vault->getScene(id);
+                if (!s.isNull()){
+                    emit sceneSelectionChanged(s);
+                }
             }
         }
     }
@@ -169,23 +211,27 @@ void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldI
 
 void SceneTableView::itemClicked(QModelIndex modelIndex){
     qDebug("Clicked");
-    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
-    if (id > 0){
-        this->currentFileSelection = id;
-        if (vault->contains(id)){
-            ScenePtr s = vault->getScene(id);
-            if (!s.isNull()){
-                emit sceneClicked(s);
+    if (modelIndex.isValid()){
+        int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+        if (id > 0){
+            this->currentFileSelection = id;
+            if (vault->contains(id)){
+                ScenePtr s = vault->getScene(id);
+                if (!s.isNull()){
+                    emit sceneClicked(s);
+                }
             }
         }
     }
 }
 
 void SceneTableView::rowDoubleClicked(const QModelIndex &modelIndex){
-    int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
-    if (id > 0){
-        this->currentFileSelection = id;
-        emit playFile(id);
+    if (modelIndex.isValid()){
+        int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
+        if (id > 0){
+            this->currentFileSelection = id;
+            emit playFile(id);
+        }
     }
 }
 

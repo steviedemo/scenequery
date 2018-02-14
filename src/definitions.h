@@ -59,6 +59,6 @@ typedef QList<class QStandardItem *>            Row;
 //using SceneList             = QVector<QSharedPointer<class Scene>>;
 using ActorList             = QVector<QSharedPointer<class Actor>>;
 using ActorMap              = QHash<QString, ActorPtr>;
-using SceneMap              = QHash<int, ScenePtr>;
+using SceneMap              = QMap<int, ScenePtr>;
 using ActorIterator         = QMapIterator<QString, ActorPtr>;
 #endif // DEFINITIONS_H

@@ -40,6 +40,7 @@ ActorTableView::ActorTableView(QWidget *parent):
     table->setFrameShadow(QFrame::Plain);
     table->setIconSize(QSize(20, 20));
     table->setGridStyle(Qt::DotLine);
+    table->setContextMenuPolicy(Qt::CustomContextMenu);
     this->mainLayout = new QVBoxLayout;
     mainLayout->addWidget(table);
     setLayout(mainLayout);
@@ -73,6 +74,13 @@ void ActorTableView::connectViews(SceneTableView *table, SceneDetailView *detail
     connect(profileView,SIGNAL(deleteActor(QString)),           this,           SLOT(removeActor(QString)));
 }
 
+void ActorTableView::addRow(const Row r){
+    QMutexLocker ml(&mx);
+    if (!r.isEmpty()){
+        actorModel->appendRow(r);
+    }
+}
+
 void ActorTableView::addDeleteButtons(){
     qDebug("Adding Delete Buttons");
     for (int r = 0; r < actorModel->rowCount(); ++r){
@@ -95,9 +103,9 @@ void ActorTableView::displayRightClickMenu(const QPoint &p){
         if (!name.isEmpty()){
             current = vault->getActor(name);
             if (!current.isNull()){
-                menu->addAction("Remove", this, SLOT(removeCurrent()));
-                menu->addAction("Update Bio",       [=] { emit updateFromWeb(current->getName());   });
-                menu->addAction("Download Photo",   [=] { emit downloadPhoto(current->getName());   });
+                menu->addAction(QIcon(":/Icons/red_close_icon.png"),            tr("Remove"), this, SLOT(removeCurrent()));
+                menu->addAction(QIcon(":/Icons/female_silhouette_download.png"),tr("Update Bio"),       [=] { emit updateFromWeb(current);   });
+                menu->addAction(QIcon(":/Icons/image_download.png"),            tr("Download Photo"),   [=] { emit downloadPhoto(current);   });
                 //menu->addAction("Remove Photo",     [=] { current->
                 menu->exec(QCursor::pos());
             }

@@ -30,6 +30,7 @@ private:
     SceneList sceneList;
     QVariant profilePhoto;
     bool favourite;
+    QList <QStandardItem*> row;
     void setup() { dataUsage = 0.0; sceneCount = 0; sceneList = {}; }
     void updateSceneCountItem(){
         if (!itemSceneCount){

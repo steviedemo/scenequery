@@ -38,6 +38,7 @@ public slots:
     FilterSet   saveFilters (void)              {   FilterSet f(proxyModel); emit saveFilterSet(f); return f;    }
     void        resizeToContents(void)          {   table->resizeColumnsToContents(); table->resizeRowsToContents(); table->sortByColumn(ACTOR_NAME_COLUMN, Qt::AscendingOrder);    }
     void addRows            (RowList rows);
+    void addRow             (const Row);
     void addActor           (ActorPtr);
     void addNewActors       (const ActorList &list);
     void addNewActor        (const ActorPtr a);
@@ -70,6 +71,7 @@ private:
     SceneDetailView *detailView;
     ActorProfileView *profileView;
     ActorPtr current;
+    QMutex mx;
     bool itemClicked;
     void addDeleteButtons();
 private slots:
@@ -87,8 +89,8 @@ signals:
     void progressEnd(QString);
     void deleteActor(QString);
     void saveFilterSet(FilterSet);
-    void updateFromWeb(QString);
-    void downloadPhoto(QString);
+    void updateFromWeb(ActorPtr);
+    void downloadPhoto(ActorPtr);
 };
 
 #endif // ACTORTABLEVIEW_H

@@ -39,6 +39,10 @@ public:
     QDate       getBirthday(const QString &name);
     int         getAge(const QString &name, const QDate &date);
 public slots:
+    void                    updateDisplayItem(const int id);
+    void                    updateDisplayItem(const QString name);
+    QList<QStandardItem *>  buildQStandardItem(const int id);
+    QList<QStandardItem *>  buildQStandardItem(const QString name);
     void    saveAllScenes();
     void    saveAllActors();
     void    updateActorDisplayItems();

@@ -420,9 +420,16 @@ void SQL::loadActor(pqxx::result::const_iterator &i){
 }
 
 void SQL::saveChanges(ScenePtr s){
-    sqlConnection sql(s->toQuery(), SQL_UPDATE);
-    if (!sql.execute()){
-        emit showError("Error Saving changes to database");
+    if (!s.isNull()){
+        sqlConnection cxn;
+        Query q = s->toQuery();
+        queryType type = SQL_UPDATE;
+        cxn.setQuery(q, type);
+        if (!cxn.execute()){
+            emit showError("Error Saving changes to database");
+        }
+    } else {
+        emit showError("Error Saving Changes - Received a Null Scene Pointer!");
     }
 }
 

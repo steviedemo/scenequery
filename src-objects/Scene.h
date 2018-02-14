@@ -39,8 +39,8 @@ private:
     bool displayBuilt;
 public slots:
 
-    void    updateQStandardItem();
 public:    
+    void    updateQStandardItem();
     QString dateString;
     explicit Scene   (void)                                 : Entry(){  clear();                        }
     Scene   (class SceneParser p);
@@ -54,7 +54,7 @@ public:
     friend bool     hasScene(const Scene s);
     friend Scene    duplicate(const Scene &s);
     friend bool     operator ==(const Scene &s1, const Scene &s2);
-    Query           toQuery() const;
+    Query           toQuery();
     void            fromRecord(pqxx::result::const_iterator record);
     int             entrySize();
     QList<QStandardItem *> buildQStandardItem();

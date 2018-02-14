@@ -34,14 +34,10 @@ void SceneRenamer::scan(ScenePtr scene){
             QDate released(scene->getReleased());
             this->releaseString = released.toString("yyyy.MM.dd");
             if (!released.isValid()){
-                qWarning("Error: Release Date is invalid.");
-
                 QRegularExpression rx(".*\\([A-Za-z0-9,\\s*]*((?:[0-9.]{8}[0-9]{2})+).*");
                 QRegularExpressionMatch m = rx.match(scene->getFilename());
                 if (m.hasMatch()){
                     this->releaseString = m.captured(1);
-                } else {
-                    qWarning("Unable to Match the release date out of the title");
                 }
             }
             qDebug("Managed to parse scene release date into: %s", qPrintable(releaseString));
@@ -103,8 +99,9 @@ QString SceneRenamer::getNewFilename(){
     }
     out << "." << extension;
     out.flush();
-    return newFilename;
+    return newFilename.replace("  ", " ");
 }
+
 QString SceneRenamer::makeFeaturedString(QVector<QString> names) const{
     QString s("");
     if (names.size() > 1){

@@ -43,10 +43,18 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     qRegisterMetaType<SceneMap>("SceneMap");
     qRegisterMetaType<ActorMap>("ActorMap");
     qRegisterMetaType<RowList>("RowList");
+    qRegisterMetaType<Row>("Row");
     qRegisterMetaType<QFileInfoList>("QFileInfoList");
     qRegisterMetaType<FilterSet>("FilterSet");
     this->videoOpen = false;
     this->vault     = QSharedPointer<DataManager>(new DataManager());
+    /// Start the Threads
+    this->curl = new curlTool();
+    this->curlThread = new QThread();
+    curl->moveToThread(curlThread);
+    this->sql = new SQL();
+    this->sqlThread = new QThread();
+    sql->moveToThread(sqlThread);
     /// Set up GUI Classes
     setupViews();
 
@@ -57,6 +65,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(splashScreen,       SIGNAL(done()),                 this,                 SLOT(initDone()));
     connect(ui->actorTableView, SIGNAL(rowsFinishedLoading()),  splashScreen,         SLOT(actorRowsLoaded()));
     connect(ui->sceneTableView, SIGNAL(rowsFinishedLoading()),  splashScreen,         SLOT(sceneRowsLoaded()));
+    connect(splashScreen,       SIGNAL(sendActorRow(Row)),      ui->actorTableView,   SLOT(addRow(Row)));
+    connect(splashScreen,       SIGNAL(sendSceneRow(Row)),      ui->sceneTableView,   SLOT(addRow(Row)));
     qDebug("Opening Splashscreen...");
     splashScreen->show();
 }
@@ -77,7 +87,6 @@ MainWindow::~MainWindow(){
 
 /** \brief Set up the main display */
 void MainWindow::setupViews(){
-    this->sql       = new SQL();
     connect(vault.data(),       SIGNAL(save(ActorPtr)),                 sql,                SLOT(updateActor(ActorPtr)));
     connect(vault.data(),       SIGNAL(save(ScenePtr)),                 sql,                SLOT(saveChanges(ScenePtr)));
     connect(vault.data(),       SIGNAL(save(ActorList)),                sql,                SLOT(store(ActorList)));
@@ -103,6 +112,7 @@ void MainWindow::setupViews(){
     ui->progressBar->setRange(0, 100);
     ui->progressBar->setValue(0);
     /// Make Relevant connections between widgets
+
     connect(ui->sceneTableView,         SIGNAL(displayChanged(int)),            ui->lcd_shownSceneCount,SLOT(display(int)));
     connect(ui->actorTableView,         SIGNAL(displayChanged(int)),            ui->lcd_actorCount, SLOT(display(int)));
     connect(ui->profileWidget,          SIGNAL(saveToDatabase(ActorPtr)),       sql,                SLOT(updateActor(ActorPtr)));
@@ -114,7 +124,8 @@ void MainWindow::setupViews(){
     connect(ui->sceneTableView,         SIGNAL(playFile(int)),                  this,               SLOT(playVideo(int)));
      /// Connect Scene Detail View
     connect(sceneDetailView,            SIGNAL(playVideo(int)),                 this,               SLOT(playVideo(int)));
-    connect(sceneDetailView,            SIGNAL(saveChanges(ScenePtr)),          this,               SLOT(renameFile(ScenePtr)));
+    connect(sceneDetailView,            SIGNAL(saveChanges(ScenePtr)),          sql,                SLOT(saveChanges(ScenePtr)));
+    connect(sceneDetailView,            SIGNAL(renameFile(ScenePtr)),           this,               SLOT(renameFile(ScenePtr)));
     connect(ui->tb_searchActors,        SIGNAL(clicked()),                      this ,              SLOT(searchActors()));
     connect(ui->tb_searchScenes,        SIGNAL(clicked()),                      this,               SLOT(searchScenes()));
     connect(ui->le_searchActors,        SIGNAL(returnPressed()),                this,               SLOT(searchActors()));
@@ -146,11 +157,6 @@ void MainWindow::initDone(){
     splashScreen->close();
     delete splashScreen;
     ui->statusLabel->setText("Initialization Complete");
-    qDebug("Initializing Worker Threads");
-    this->curl = new curlTool();
-
-
-
     qDebug("Making connections between widgets, curlTool, and SQL Thread");
     /// PROGRESS & STATUS BAR UPDATING
     connect(curl,                       SIGNAL(startProgress(QString,int)),     this,               SLOT(startProgress(QString,int)));
@@ -186,21 +192,14 @@ void MainWindow::initDone(){
     connect(ui->profileWidget,          SIGNAL(downloadPhoto(ActorPtr)),        curl,               SLOT(downloadPhoto(ActorPtr)));
     connect(ui->profileWidget,          SIGNAL(apv_to_ct_updateBio(QString)),   curl,               SLOT(apv_to_ct_getProfile(QString)));
     connect(curl,                       SIGNAL(ct_to_apv_sendActor(ActorPtr)),  ui->profileWidget,  SLOT(loadActorProfile(ActorPtr)));
-
+    connect(ui->actorTableView,         SIGNAL(downloadPhoto(ActorPtr)),        curl,               SLOT(downloadPhoto(ActorPtr)));
+    connect(ui->actorTableView,         SIGNAL(updateFromWeb(ActorPtr)),        curl,               SLOT(updateBio(ActorPtr)));
     /** Scanning Routing Data Passing **/
     connect(sql,                        SIGNAL(db_to_ct_buildActors(QStringList)),      curl,               SLOT(db_to_ct_buildActors(QStringList)));
     connect(sql,                        SIGNAL(db_to_mw_sendActors(ActorList)),         ui->actorTableView, SLOT(addNewActors(ActorList)));//this,       SLOT(db_to_mw_receiveActors(ActorList)));
     connect(curl,                       SIGNAL(ct_to_db_storeActors(ActorList)),        sql,                SLOT(ct_to_db_storeActors(ActorList)));
-
-    /// Start the Threads
-    this->curlThread = new QThread();
-    curl->moveToThread(curlThread);
     curlThread->start();
-    qDebug("Curl Thread Started");
-    this->sqlThread = new QThread();
-    sql->moveToThread(sqlThread);
     sqlThread->start();
-    qDebug("SQL Thread Started");
 }
 
 /** \brief Choose a Directory to scan files in from */
@@ -550,12 +549,6 @@ void MainWindow::renameFile(ScenePtr scene){
             if (!saved){
                 qWarning("Unable to rename:\n'%s' ------>\n'%s'\n", qPrintable(fullpath), qPrintable(newPath));
                 QMessageBox::warning(this, tr("Renaming Error"), QString("Error Renaming\n%1\n---->\n%2").arg(oldName).arg(newName), QMessageBox::Cancel);
-            } else {
-                qDebug("File Renamed");
-                emit saveChangesToDB(scene);
-                qDebug("Database Updated");
-                scene->updateQStandardItem();
-                qDebug("Display Updated");
             }
 #endif
         }

@@ -68,6 +68,8 @@ void SplashScreen::receiveActors(ActorMap list){
     connect(actorBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(actorBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
     connect(actorBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+    connect(actorBuild, SIGNAL(sendActorRow(Row)),  this, SIGNAL(sendActorRow(Row)));
+    connect(actorBuild, SIGNAL(actorBuildComplete()),this,SLOT(actorRowsLoaded()));
     actorBuild->start();
 
     emit completed(LOAD_ACTOR_PROGRESS);
@@ -82,6 +84,8 @@ void SplashScreen::receiveScenes(SceneMap list){
     connect(sceneBuild, SIGNAL(startRun(int,int)),  this, SLOT(startProgress(int,int)));
     connect(sceneBuild, SIGNAL(stopRun(int)),       this, SLOT(finishProgress(int)));
     connect(sceneBuild, SIGNAL(update(int,int)),    this, SLOT(updateProgress(int,int)));
+    connect(sceneBuild, SIGNAL(sendSceneRow(Row)),  this, SIGNAL(sendSceneRow(Row)));
+    connect(sceneBuild, SIGNAL(sceneBuildComplete()),this,SLOT(sceneRowsLoaded()));
     sceneBuild->start();
     emit completed(LOAD_SCENE_PROGRESS);
 }
@@ -114,7 +118,7 @@ void SplashScreen::stepComplete(int progress){
 void SplashScreen::receiveActorDisplay(RowList rows){
     this->actorRows = rows;
     qDebug("Got %d actor rows", rows.size());
-    emit sendActorRows(rows);
+    //emit sendActorRows(rows);
 }
 void SplashScreen::actorRowsLoaded(){
     qDebug("Actor Rows Finished Loading into the Table View");
@@ -123,7 +127,7 @@ void SplashScreen::actorRowsLoaded(){
 void SplashScreen::receiveSceneDisplay(RowList rows){
     this->sceneRows = rows;
     qDebug("Got %d scene Rows", rows.size());
-    emit sendSceneRows(sceneRows);
+    //emit sendSceneRows(sceneRows);
 }
 void SplashScreen::sceneRowsLoaded(){
     qDebug("Scene Rows Finished Loading into the Table View");
@@ -145,20 +149,26 @@ void DisplayMaker::run(){
     } else {
         id = BUILD_SCENE_PROGRESS;
         emit startRun(BUILD_SCENE_PROGRESS, sceneMap.size());
-        QHashIterator<int, ScenePtr> it(sceneMap);
+        QMapIterator<int, ScenePtr> it(sceneMap);
         while(it.hasNext()){
             it.next();
             sync.addFuture(QtConcurrent::run(this, &DisplayMaker::makeSceneRow, it.value()));
         }
     }
     sync.waitForFinished();
+    if (id == BUILD_ACTOR_PROGRESS){
+        emit actorBuildComplete();
+    } else {
+        emit sceneBuildComplete();
+    }
     emit done(rows);
 }
 
 void DisplayMaker::makeActorRow(ActorPtr a){
     QList<QStandardItem *> row = a->buildQStandardItem();
     QMutexLocker ml(&mx);
-    this->rows << row;
+    emit sendActorRow(row);
+    //this->rows << row;
     if (++index % 50 == 0){
         emit update(BUILD_ACTOR_PROGRESS, index);
     }
@@ -166,7 +176,8 @@ void DisplayMaker::makeActorRow(ActorPtr a){
 void DisplayMaker::makeSceneRow(ScenePtr s){
     QList<QStandardItem*>row = s->buildQStandardItem();
     QMutexLocker ml(&mx);
-    this->rows << row;
+    emit sendSceneRow(row);
+    //this->rows << row;
     if (++index %100 == 0){
         emit update(BUILD_SCENE_PROGRESS, index);
     }

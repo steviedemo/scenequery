@@ -51,89 +51,91 @@ SceneDetailView::~SceneDetailView(){
 }
 
 void SceneDetailView::loadScene(ScenePtr s){
-    try{
-        if (!current.isNull() && changed){
-            QMessageBox b(QMessageBox::Question, tr("Unsaved Changes"), tr("Save changes before leaving this page?"),QMessageBox::Save | QMessageBox::No, this, Qt::WindowStaysOnTopHint);
-            if (b.exec() == QMessageBox::Save){
-                emit saveChanges(current);
+    if (!s.isNull()){
+        try{
+            if (!current.isNull() && changed){
+                QMessageBox b(QMessageBox::Question, tr("Unsaved Changes"), tr("Save changes before leaving this page?"),QMessageBox::Save | QMessageBox::No, this, Qt::WindowStaysOnTopHint);
+                if (b.exec() == QMessageBox::Save){
+                    emit saveChanges(current);
+                }
             }
+        } catch (std::exception &e){
+            qWarning("Caught Exception While Displaying menu: %s", e.what());
         }
-    } catch (std::exception &e){
-        qWarning("Caught Exception While Displaying menu: %s", e.what());
-    }
-    try{
-        this->current = s;
-    } catch (std::bad_alloc &e){
-        qWarning("Bad Alloc Exception Caught while re-assigning 'current' scene object: %s", e.what());
-        return;
-    } catch (std::exception &e){
-        qWarning("Exception Caught while re-assigning 'current' scene object: %s", e.what());
-        return;
-    }
-    QDate released = s->getReleased();
-    QDate added = s->getAdded();
-    QDate opened = s->getOpened();
-    try{
-        this->currentSceneID = s->getID();
-        ui->titleLineEdit->setText(s->getTitle());
-        ui->companyLineEdit->setText(s->getCompany());
-        ui->seriesLineEdit->setText(s->getSeries());
-        QTime duration = s->getLength();
-        ui->durationLineEdit->setText(duration.toString("h:mm:ss"));
-        ui->releasedLineEdit->setText(released.toString("MMMM d, yyyy"));
-        ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
-        ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
-        ui->filenameLineEdit->setText(s->getFullpath());
-        ui->tagsTextEdit->setPlainText(s->tagString());
-    } catch (std::bad_alloc &e){
-        qWarning("Bad Alloc Exception Caught while Setting fields: %s", e.what());
-        return;
-    } catch (std::exception &e){
-        qWarning("Exception Caught while Setting fields : %s", e.what());
-        return;
-    }
-    try{
-        QString rating = s->getRating().grade();
-        int index = ui->ratingComboBox->findData(rating);
-        if (index != -1){
-            ui->ratingComboBox->setCurrentIndex(index);
+        try{
+            this->current = s;
+        } catch (std::bad_alloc &e){
+            qWarning("Bad Alloc Exception Caught while re-assigning 'current' scene object: %s", e.what());
+            return;
+        } catch (std::exception &e){
+            qWarning("Exception Caught while re-assigning 'current' scene object: %s", e.what());
+            return;
         }
-        ui->sizeLineEdit->setText(QString("%1 MB").arg(s->getSize()/BYTES_PER_MEGABYTE));
-        int resolution = s->getHeight();
-        if (resolution > 0){
-            ui->resolutionLineEdit->setText(QString::number(resolution));
+        QDate released = s->getReleased();
+        QDate added = s->getAdded();
+        QDate opened = s->getOpened();
+        try{
+            this->currentSceneID = s->getID();
+            ui->titleLineEdit->setText(s->getTitle());
+            ui->companyLineEdit->setText(s->getCompany());
+            ui->seriesLineEdit->setText(s->getSeries());
+            QTime duration = s->getLength();
+            ui->durationLineEdit->setText(duration.toString("h:mm:ss"));
+            ui->releasedLineEdit->setText(released.toString("MMMM d, yyyy"));
+            ui->addedLineEdit->setText(added.toString("MMMM d, yyyy"));
+            ui->openedLineEdit->setText(opened.toString("MMMM d, yyyy"));
+            ui->filenameLineEdit->setText(s->getFullpath());
+            ui->tagsTextEdit->setPlainText(s->tagString().replace("  ", " "));
+        } catch (std::bad_alloc &e){
+            qWarning("Bad Alloc Exception Caught while Setting fields: %s", e.what());
+            return;
+        } catch (std::exception &e){
+            qWarning("Exception Caught while Setting fields : %s", e.what());
+            return;
         }
-        QVector<QString> cast = s->getActors();
-        if (!cast.isEmpty()){
-            for (int i = 0; i < ageList.size(); ++i){
-                castList.at(i)->clear();
-                ageList.at(i)->clear();
-                ageLabelList.at(i)->clear();
-                if (i < cast.size()){
-                    QString name = cast.at(i);
-                    if (!name.isEmpty()){
-                        castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
-                        if (!released.isNull() && released.isValid() && vault->contains(name)){
-                            QDate birthday = vault->getActor(name)->getBirthday();
-                            if (!birthday.isNull() && birthday.isValid()){
-                                int age = (birthday.daysTo(released)/365);
-                                ageList.at(i)->setText(QString::number(age));
-                                ageLabelList.at(i)->setText("Age:");
+        try{
+            QString rating = s->getRating().grade();
+            int index = ui->ratingComboBox->findData(rating);
+            if (index != -1){
+                ui->ratingComboBox->setCurrentIndex(index);
+            }
+            ui->sizeLineEdit->setText(QString("%1 MB").arg(s->getSize()/BYTES_PER_MEGABYTE));
+            int resolution = s->getHeight();
+            if (resolution > 0){
+                ui->resolutionLineEdit->setText(QString::number(resolution));
+            }
+            QVector<QString> cast = s->getActors();
+            if (!cast.isEmpty()){
+                for (int i = 0; i < ageList.size(); ++i){
+                    castList.at(i)->clear();
+                    ageList.at(i)->clear();
+                    ageLabelList.at(i)->clear();
+                    if (i < cast.size()){
+                        QString name = cast.at(i);
+                        if (!name.isEmpty()){
+                            castList.at(i)->setText(QString("<a href=\"%1\"><font style=\"color:white\">%1</font></a>").arg(cast.at(i)));
+                            if (!released.isNull() && released.isValid() && vault->contains(name)){
+                                QDate birthday = vault->getActor(name)->getBirthday();
+                                if (!birthday.isNull() && birthday.isValid()){
+                                    int age = (birthday.daysTo(released)/365);
+                                    ageList.at(i)->setText(QString::number(age));
+                                    ageLabelList.at(i)->setText("Age:");
+                                }
                             }
                         }
                     }
                 }
             }
+        } catch (std::bad_alloc &e){
+            qWarning("Exception Caught while setting labels: %s", e.what());
+            return;
+        } catch (std::exception &e){
+            qWarning("Exception Caught while setting labels: %s", e.what());
+            return;
         }
-    } catch (std::bad_alloc &e){
-        qWarning("Exception Caught while setting labels: %s", e.what());
-        return;
-    } catch (std::exception &e){
-        qWarning("Exception Caught while setting labels: %s", e.what());
-        return;
+       changed = false;
+       this->show();
     }
-   changed = false;
-   this->show();
 }
 
 void SceneDetailView::rescanScene(){
@@ -195,31 +197,51 @@ void SceneDetailView::enableLineEdits(bool readOnly){
 }
 
 void SceneDetailView::on_pb_save_clicked(){
+    bool rename = false;
     if (!current.isNull()){
-        QString text = ui->titleLineEdit->text();
-        if (valid(text) && text != current->getTitle()){
-            current->setTitle(text);
+        QString log("");
+        QTextStream out(&log);
+        QString title = ui->titleLineEdit->text();
+        if (valid(title) && title != current->getTitle()){
+            current->setTitle(title);
+            out << "Title: " << title << endl;
+            rename = true;
         }
-        text = ui->seriesLineEdit->text();
-        if (valid(text) && text != current->getSeries()){
-            current->setSeries(text);
+        QString series = ui->seriesLineEdit->text();
+        if (valid(series) && series != current->getSeries()){
+            current->setSeries(series);
+            out << "Series: " << series << endl;
+            rename = true;
+        }\
+        QString length = ui->durationLineEdit->text();
+        if (valid(length) && length != current->getLength().toString("h::mm:ss")){
+            current->setLength(QTime::fromString(length, "h:mm:ss"));
+            out << "Length: " << length << endl;
         }
-        text = ui->durationLineEdit->text();
-        if (valid(text) && text != current->getLength().toString("h::mm:ss")){
-            current->setLength(QTime::fromString(text, "h:mm:ss"));
+        QString date = ui->releasedLineEdit->text();
+        if (valid(date) && date != current->getReleased().toString("MMMM d, yyyy")){
+            current->setReleased(QDate::fromString(date, "MMMM d, yyyy"));
+            out << "Release Date: " << date << endl;
+            rename = true;
         }
-        text = ui->releasedLineEdit->text();
-        if (valid(text) && text != current->getReleased().toString("MMMM d, yyyy")){
-            current->setReleased(QDate::fromString(text, "MMMM d, yyyy"));
+        QString tags = ui->tagsTextEdit->toPlainText();
+        if (valid(tags) && tags != current->tagString()){
+            current->setTags(tags.split(',', QString::SkipEmptyParts).toVector());
+            out << "Tags: " << tags << endl;
+            rename = true;
         }
-        text = ui->tagsTextEdit->toPlainText();
-        if (valid(text) && text != current->tagString()){
-            current->setTags(text.split(',', QString::SkipEmptyParts).toVector());
+        QString rating = ui->ratingComboBox->currentText();
+        if (ui->ratingComboBox->currentIndex() != -1 && !rating.isEmpty() && rating != current->getRating().grade()){
+            this->current->setRating(rating);
+            out << "Rating: " << rating << endl;
+            rename = true;
         }
-        if (ui->ratingComboBox->currentIndex() != -1 && !ui->ratingComboBox->currentText().isEmpty()){
-            this->current->setRating(ui->ratingComboBox->currentText());
+        qDebug("Setting The Following Values for %s:\n%s\n", qPrintable(current->getFullpath()), qPrintable(log));
+        if (rename){
+            emit renameFile(current);
         }
         emit saveChanges(current);
+        vault->updateDisplayItem(currentSceneID);
         changed = false;
         //enableLineEdits(true);
     } else {

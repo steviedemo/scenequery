@@ -52,8 +52,11 @@ signals:
     void showActor(QString);
     void showActor(ActorPtr);
     void saveChanges(ScenePtr);
+    void renameFile(ScenePtr);
     void requestActorBirthday(QString name);
     void playVideo(int sceneID);
+    void updateCurrentItem();
+    void updateItem(int);
 };
 
 #endif // SCENEDETAILVIEW_H

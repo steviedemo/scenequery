@@ -11,19 +11,18 @@ public:
     Entry();
     Entry(qint64);
     Entry(int id);
-    virtual QList<QStandardItem *>  buildQStandardItem() = 0;
-    virtual void                    updateQStandardItem() = 0;
+    //virtual QList<QStandardItem *>  buildQStandardItem() = 0;
+    //virtual void                    updateQStandardItem() = 0;
     virtual QList<QStandardItem *>  getQStandardItem() = 0;
     //virtual void                    updateFromDatabase() = 0;
-    virtual Query                   toQuery() const = 0;
+    //virtual Query                   toQuery() const = 0;
     virtual void                    fromRecord(pqxx::result::const_iterator record) = 0;
-    virtual int                     entrySize() = 0;
+    //virtual int                     entrySize() = 0;
     virtual bool operator ==(Entry &e) const;
     qint64  getID();
     void    setID(qint64);
 protected:
     qint64 ID;
-    QList<QStandardItem *>row;
 private:
 signals:
 
