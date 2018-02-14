@@ -106,6 +106,7 @@ SOURCES += \
     forms/ItemViews/ActorProxyModel.cpp \
     forms/ItemViews/ActorTableView.cpp \
     forms/ItemViews/SceneTableView.cpp \
+    forms/ItemViews/SceneModel.cpp \
     forms/SceneDetailView.cpp \
     forms/FilterWidget.cpp \
     forms/MainWindow.cpp
@@ -150,6 +151,7 @@ HEADERS  += \
     forms/ItemViews/ActorTableView.h \
     forms/ItemViews/SceneProxyModel.h \
     forms/ItemViews/SceneTableView.h \
+    forms/ItemViews/SceneModel.cpp \
     ImageCropper/src/imagecropper.h \
     forms/FilterWidget.h \
     forms/MainWindow.h
