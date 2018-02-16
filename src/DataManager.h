@@ -22,6 +22,7 @@ public:
     QVector<ScenePtr>   getActorsScenes(const QString name);
     bool        save    (const int id);
     bool        save    (const QString name);
+    void        reparse (const int id);
     void        add     (const SceneList,   bool saveToDatabase=false);
     void        add     (const ActorList,   bool saveToDatabase=false);
     bool        add     (const ScenePtr,    bool saveToDatabase=false);

@@ -6,7 +6,8 @@
 #include <QModelIndex>
 #include <QStringList>
 
-
+#include <QtConcurrent>
+#include <QtConcurrent/QtConcurrentRun>
 SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     headers << "Main Actor" << "Title" << "Company" << "Resolution" << "Featured Actors" << "File Size" << "Length" << "Released" << "Rating" << "Location" << "ID";
     this->sceneModel = new QStandardItemModel();
@@ -28,7 +29,7 @@ SceneTableView::SceneTableView(QWidget *parent):parent(parent){
     table->setStatusTip("Scenes");
     table->setEditTriggers(QAbstractItemView::NoEditTriggers);
     table->setSelectionBehavior(QAbstractItemView::SelectRows);
-    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setSelectionMode(QAbstractItemView::ContiguousSelection);
     table->setHorizontalScrollMode(QAbstractItemView::ScrollPerItem);
     table->setVerticalScrollMode(QAbstractItemView::ScrollPerItem);
     table->setDragDropMode(QAbstractItemView::NoDragDrop);
@@ -101,7 +102,8 @@ void SceneTableView::rightClickMenu(const QPoint &p){
         currentID = proxyModel->data(proxyModel->index(proxyIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         QMenu *menu = new QMenu;
         menu->addAction(QIcon(":/Icons/red_close_icon.png"), "Remove", this, SLOT(removeItem()));
-        menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", [=]{ reparseItem(proxyIndex); });
+        //menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", [=]{ reparseItem(proxyIndex); });
+        menu->addAction(QIcon(":/Icons/shiny_blue_reload_icon.png"), "Reparse", this, SLOT(reparseSelection()));
         menu->exec(QCursor::pos());
     }
 }
@@ -117,6 +119,18 @@ void SceneTableView::removeItem(){
     }
 }
 
+void SceneTableView::reparseSelection(){
+    QModelIndexList list = selectionModel->selectedRows();
+    emit progressBegin(QString("Reparsing %1 Scenes").arg(list.size()), list.size());
+    QFutureSynchronizer<void> sync;
+    for(int i = 0; i < list.size(); ++i){
+        sync.addFuture(QtConcurrent::run(this, &SceneTableView::reparseItem, list.at(i)));
+        emit progressUpdate(i);
+    }
+    sync.waitForFinished();
+    emit progressEnd(QString("Reparsed %1 Scenes").arg(list.size()));
+}
+
 void SceneTableView::reparseItem(const QModelIndex &index){
     if (index.isValid()){
         ScenePtr s = getSelection(index);
@@ -125,6 +139,19 @@ void SceneTableView::reparseItem(const QModelIndex &index){
     } else {
         qWarning("Can't Reparse Scene Item With invalid index!");
     }
+}
+
+QVector<int> SceneTableView::getSelectedIDs() const{
+    QVector<int> ids = {};
+    QModelIndexList list = selectionModel->selectedRows(SCENE_ID_COLUMN);
+    foreach(QModelIndex x, list){
+        bool ok = false;
+        int curr = sceneModel->data(sceneModel->index(x.row(), SCENE_ID_COLUMN)).toInt(&ok);
+        if (ok){
+            ids << curr;
+        }
+    }
+    return ids;
 }
 
 ScenePtr SceneTableView::getSelection(const QModelIndex &x){

@@ -17,6 +17,15 @@ bool DataManager::contains(const QString &name) const{
     return actorMap.contains(name);
 }
 
+void DataManager::reparse(const int id){
+    if (sceneMap.contains(id)){
+        sceneMap[id]->reparse();
+        save(id);
+    } else {
+        qWarning("Error: Map Doesn't Contain ID %d, Cannot Reparse Item.", id);
+    }
+}
+
 bool DataManager::save(const int id){
     bool success = false;
     if (sceneMap.contains(id)){

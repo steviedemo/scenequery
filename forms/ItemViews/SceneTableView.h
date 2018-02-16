@@ -50,6 +50,7 @@ public slots:
     void qualityFilterChanged   (const int i=-1,  const LogicalOperator op=NOT_SET) {  proxyModel->setFilterQuality(i, op);    }
     void durationFilterChanged  (QTime t=QTime(), const LogicalOperator op=NOT_SET) {  proxyModel->setFilterDuration(t, op);   }
     void searchByID(const int &);
+    QVector<int> getSelectedIDs(void) const;
 
 private slots:
     void rowCountChanged(QModelIndex, int, int);
@@ -59,6 +60,7 @@ private slots:
     void selectionChanged(QModelIndex, QModelIndex);
     void itemClicked(QModelIndex);
     void removeItem();
+    void reparseSelection();
     void reparseItem(const QModelIndex &);
     void rightClickMenu(const QPoint &);
     void updateCurrentItem();
@@ -99,6 +101,7 @@ signals:
     void progressUpdate(int);
     void progressEnd(QString);
     void saveFilterSet(FilterSet);
+
 };
 
 #endif // SCENEVIEW_H
