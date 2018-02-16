@@ -146,6 +146,7 @@ void MainWindow::setupViews(){
     connect(ui->pb_refreshActors,       SIGNAL(pressed()),                      sql,                SLOT(loadActors()));
     connect(ui->pb_refreshScenes,       SIGNAL(pressed()),                      sql,                SLOT(loadScenes()));
     connect(ui->actionCleanDatabase,    SIGNAL(triggered()),                    sql,                SLOT(purgeScenes()));
+    connect(ui->sceneTableView,         SIGNAL(saveScene(ScenePtr)),            sql,                SLOT(saveChanges(ScenePtr)));
     connect(sql,                        SIGNAL(db_to_mw_sendScenes(SceneList)),         ui->sceneTableView, SLOT(addNewScenes(SceneList)));//this,       SLOT(db_to_mw_receiveScenes(SceneList)));
     connect(sql,                        SIGNAL(sendResult(ActorList)),                  ui->actorTableView, SLOT(addNewActors(ActorList)));//this,               SLOT(receiveActors(ActorList)));
     connect(sql,                        SIGNAL(sendResult(SceneList)),                  ui->sceneTableView, SLOT(addNewScenes(SceneList)));//this,               SLOT(receiveScenes(SceneList)));

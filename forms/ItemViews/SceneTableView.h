@@ -101,6 +101,7 @@ signals:
     void progressUpdate(int);
     void progressEnd(QString);
     void saveFilterSet(FilterSet);
+    void saveScene(ScenePtr);
 
 };
 

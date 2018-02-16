@@ -136,6 +136,7 @@ void SceneTableView::reparseItem(const QModelIndex &index){
         ScenePtr s = getSelection(index);
         s->reparse();
         s->updateQStandardItem();
+        emit saveScene(s);
     } else {
         qWarning("Can't Reparse Scene Item With invalid index!");
     }
@@ -217,7 +218,6 @@ void SceneTableView::updateSceneItem(int id){
 
 
 void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldIndex*/){
-    qDebug("Selection Changed");
     if (modelIndex.isValid()){
         int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         if (id > 0){
@@ -230,7 +230,6 @@ void SceneTableView::selectionChanged(QModelIndex modelIndex, QModelIndex /*oldI
 }
 
 void SceneTableView::itemClicked(QModelIndex modelIndex){
-    qDebug("Clicked");
     if (modelIndex.isValid()){
         int id = proxyModel->data(proxyModel->index(modelIndex.row(), SCENE_ID_COLUMN), Qt::DisplayRole).toInt();
         if (id > 0){
